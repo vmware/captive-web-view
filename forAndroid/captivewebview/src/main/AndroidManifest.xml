@@ -1,0 +1,6 @@
+<!--
+    Copyright 2019 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.example.captivewebview"/>
