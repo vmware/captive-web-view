@@ -1,0 +1,38 @@
+# Copyright 2019 VMware, Inc.  
+# SPDX-License-Identifier: BSD-2-Clause
+
+# docs/src/orchid/resources/config.yml
+site:
+  about:
+    siteName: Captive Web View
+    siteDescription: Library for an Android WebView or iOS WKWebView that is captive in the application.
+
+theme:
+  menu:
+    - type: 'separator'
+      title: 'Reference Documentation'
+    - type: 'kotlindocPackages'
+    - type: 'kotlindocClasses'
+
+Editorial:
+  primaryColor: '#DE9149'
+
+BsDoc:
+  primaryColor: '#DE9149'
+
+kotlindoc:
+  sourceDirs:
+    - '../../../../captivewebview/src/main/java'
+  args:
+    - '-links'
+    - 'https://developer.android.com/reference/^https://developer.android.com/reference/package-list^^'
+   # - '-rubbishy'
+#   - 'https://developer.android.com/reference/^https://developer.android.com/reference/kotlin/android/content/package-list^'
+
+# //  externalDocumentationLink {
+# //    url = new URL("https://developer.android.com/reference/")
+# //    packageListUrl =
+# //        new URL("https://developer.android.com/reference/android/support/package-list")
+# //  }
+
+# //  -links - external documentation links in format url^packageListUrl^^url2...

@@ -1,0 +1,70 @@
+// Copyright 2019 VMware, Inc.  
+// SPDX-License-Identifier: BSD-2-Clause
+
+plugins {
+    // Add the official Orchid Gradle plugin so you can use Orchid with the custom DSL   
+    id "com.eden.orchidPlugin" version "0.17.4"
+}
+
+dependencies {
+    // Add an Orchid Bundle. OrchidAll comes with all official themes included.
+    // You must include a theme separately when using the OrchidBlog bundle.
+    // Any additional plugins may be added as dependencies here as well.
+//    orchidRuntime 'io.github.javaeden.orchid:OrchidAll:0.17.4'
+
+//    orchidRuntime "io.github.javaeden.orchid:OrchidDocs:0.16.0"
+//    orchidRuntime "io.github.javaeden.orchid:OrchidKotlindoc:0.16.0"
+//    orchidRuntime "io.github.javaeden.orchid:OrchidPluginDocs:0.16.0"
+
+    orchidRuntime "io.github.javaeden.orchid:OrchidDocs:0.17.4"
+    orchidRuntime "io.github.javaeden.orchid:OrchidKotlindoc:0.17.4"
+    orchidRuntime "io.github.javaeden.orchid:OrchidPluginDocs:0.17.4"
+    orchidRuntime "io.github.javaeden.orchid:OrchidSyntaxHighlighter:0.17.4"
+}
+
+repositories {
+    // Orchid uses dependencies from both Jcenter and Jitpack, so both must be included. jcenter also includes 
+    // everything available from MavenCentral, while Jitpack makes accessible any Github project.
+    mavenCentral()
+    maven { url "https://kotlin.bintray.com/kotlinx" }
+//    maven { url 'https://jitpack.io' }
+//    google()
+    jcenter()
+}
+
+orchid {
+    // Theme is required
+    theme   =  "Editorial" // "BsDoc" // "{theme}"
+    
+    // The following properties are optional
+    version = "${project.version}"
+//    baseUrl = "."
+//    baseUrl = "{baseUrl}"                         // a baseUrl prepended to all generated links. Defaults to '/'
+    // srcDir  = "path/to/new/source/directory"      // defaults to 'src/orchid/resources'
+    // destDir = "path/to/new/destination/directory" // defaults to 'build/docs/orchid'
+    runTask = "build"                             // specify a task to run with 'gradle orchidRun'
+}
+
+afterEvaluate {
+    orchid {
+//        println 'aaghs'
+//        println args
+        // args += ['-links']
+        // [INFO] com.google.inject.internal.MessageProcessor: An exception was caught and reported. Message: java.lang.IllegalArgumentException: Unrecognized flag: -links
+
+
+        // args += ['--kotlindocArgs']
+        // [INFO] com.google.inject.internal.MessageProcessor: An exception was caught and reported. Message: java.lang.IllegalArgumentException: Unrecognized flag: --args
+//        println 'munged args'
+//        println args
+//        println 'no more arfgs'
+        // use Gradle APIs to get the classpath to pass-through to Dokka
+//        args += ["--kotlindocClasspath", project(":captivewebview").sourceSets.main.runtimeClasspath.getAsPath()]
+        // args += ["--kotlindocClasspath",
+        //         new Vector<SourceSet>("../ljar/classes.jar")
+        // args += [
+        //     "-links",
+        //     "https://developer.android.com/reference/^https://developer.android.com/reference/package-list"
+        // ]
+    }
+}
