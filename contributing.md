@@ -1,14 +1,10 @@
-
-
-# Contributing to captive-web-view
-
-The captive-web-view project team welcomes contributions from the community. Before you start working with captive-web-view, please
+# Contributing to Captive Web View
+The Captive Web View project team welcomes contributions from the community. Before you start working with Captive Web View, please
 read our [Developer Certificate of Origin](https://cla.vmware.com/dco). All contributions to this repository must be
 signed as described on that page. Your signature certifies that you wrote the patch or have the right to pass it on
 as an open-source patch.
 
 ## Contribution Flow
-
 This is a rough outline of what a contributor's workflow looks like:
 
 - Create a topic branch from where you want to base your work
@@ -64,6 +60,9 @@ Be sure to add a comment to the PR indicating your new changes are ready to revi
 notification when you git push.
 
 ### Code Style
+The main code of Captive Web View is written in Kotlin, Swift, and ES6
+JavaScript. There is also an HTTP server, based on the version 3 Python module.
+The Python code makes use of the PEP 8 style guidelines.
 
 ### Formatting Commit Messages
 
