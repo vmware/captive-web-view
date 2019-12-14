@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2019 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:Captivity/Captivity.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Headless/Headless.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:Skeleton/Skeleton.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:CaptiveWebView/CaptiveWebView.xcodeproj">
+   </FileRef>
+</Workspace>
