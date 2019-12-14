@@ -1,0 +1,15 @@
+// Copyright 2019 VMware, Inc.  
+// SPDX-License-Identifier: BSD-2-Clause
+
+[
+    // Library:
+    ':captivewebview',
+
+    // Sample applications:
+    ':Captivity', ':Headless', ':Skeleton',
+
+    // Reference documentation placeholder:
+    ':documentationOrchid'
+].each({include it})
+
+// TOTH: https://stackoverflow.com/a/43497244/7657675

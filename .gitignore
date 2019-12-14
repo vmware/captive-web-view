@@ -1,0 +1,20 @@
+# Copyright 2019 VMware, Inc.  
+# SPDX-License-Identifier: BSD-2-Clause
+
+# That macOS file it puts everywhere.
+.DS_Store
+
+# Publishing location for the AAR file.
+/m2repository
+
+# Material design minified or original files have to be included by hand.
+material.min.css
+material.min.js
+material.css
+material.js
+
+# File with secrets like go-rest token.
+forAndroid/Headless/src/main/assets/WebResources/secrets.js
+
+# Python that was cached by importation
+__pycache__/

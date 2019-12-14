@@ -1,0 +1,14 @@
+# Copyright 2019 VMware, Inc.  
+# SPDX-License-Identifier: BSD-2-Clause
+
+*.iml
+.gradle
+/local.properties
+/.idea/
+/build
+/captures
+.externalNativeBuild
+
+/gradle
+/gradlew
+/gradlew.bat
