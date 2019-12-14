@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<!--
+    Copyright 2019 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        fieldset {
+            border: var(--field-colour) 1px solid;
+            /* width: 100%; */
+        }
+        fieldset.inactive {
+            display: none;
+        }
+        button.selected {
+            outline: 1px var(--accent-colour) solid;
+            outline-offset: 1px;
+        }
+        .selectors {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            margin-top: 0.5em;
+            margin-bottom: 0.5em;
+        }
+        .selectors > * {
+            flex: auto;
+            text-align: center;
+        }
+    </style>
+</head>
+<body
+><script src="captivewebview.js"></script
+><script>
+    CaptiveWebView.whenLoaded("captivity.js");
+</script
+><h1 id="loading">Loading ...</h1
+></body>
+</html>

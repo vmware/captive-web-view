@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<!--
+    Copyright 2019 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url(pagebuilder.css);
+
+        /* CSS variable
+         *
+         * Reference is here:
+         * https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties
+         *
+         * TOTH: https://stackoverflow.com/a/17595596/7657675
+         */
+         :root {
+            --grid-bg-colour: rgba(233,171,88,0.5);
+        }
+
+        /* Original grid code copied from MDN:
+         * https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Grid_Layout
+         * Also from the CodePen link on that page.
+         *
+         * Note use of rgba for transparency. Reference is here:
+         * https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#rgba()
+         */
+        .wrapper > div {
+            border: 4px dashed rgba(180,81,88, 0.5);
+            border-radius: 10px;
+            background-color: var(--grid-bg-colour);
+            transition: 200ms linear background-color;
+            padding: 1em;
+            color: #d9480f;
+        }
+        .wrapper {
+            margin: 0.5em;
+
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-gap: 10px;
+            grid-auto-rows: minmax(100px, auto);
+        }
+        .one {
+            grid-column: 1 / 3;
+            grid-row: 1;
+        }
+        .two { 
+            grid-column: 2 / 4;
+            grid-row: 1 / 3;
+        }
+        .three {
+            grid-column: 1;
+            grid-row: 2 / 5;
+        }
+        .four {
+            grid-column: 3;
+            grid-row: 3;
+        }
+        .five {
+            grid-column: 2;
+            grid-row: 4;
+        }
+        .six {
+            grid-column: 3;
+            grid-row: 4;
+        }
+   </style>
+</head>
+<body
+><h1>Grid with changing colour</h1
+><div class="wrapper"
+    ><div class="one">One</div
+    ><div class="two">Two</div
+    ><div class="three">Three</div
+    ><div class="four">Four</div
+    ><div class="five">Five</div
+    ><div class="six">Six</div
+    ></div
+><form
+><button
+    id="changeColour" type="button" name="changeColour" class="cwv-button"
+    >Change grid colour</button
+></form
+
+><script>
+    let colour1;
+    let colour2 = "#ffc0cb80";
+
+    function get_wrapper_array() {
+        return Array.from(document.getElementsByClassName('wrapper'));
+    }
+
+    function get_element_colour(element) {
+        return getComputedStyle(element).getPropertyValue('--grid-bg-colour');
+    }
+
+    document.body.onload = () => {
+        colour1 = get_element_colour(get_wrapper_array()[0]);
+        document.getElementById('changeColour')
+        .addEventListener('click', () => {
+            // console.log({
+            //     "computed":
+            //         getComputedStyle(document.body)
+            //         .getPropertyValue('--grid-bg-colour'),
+            //     "body":
+            //         document.body.style.getPropertyValue('--grid-bg-colour'),
+            //     "wrappers":
+            //         document.getElementsByClassName('wrapper')
+            // });
+            // TOTH: https://stackoverflow.com/a/17595596/7657675
+            get_wrapper_array().forEach(element => element.style.setProperty(
+                '--grid-bg-colour',
+                get_element_colour(element) === colour1 ? colour2 : colour1
+            ));
+        })
+    };
+</script
+
+><a class="cwv-anchor cwv-anchor_back" href="Main.html">Back to Captivity</a
+></body>
+</html>

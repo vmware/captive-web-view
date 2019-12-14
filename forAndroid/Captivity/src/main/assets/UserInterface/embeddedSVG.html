@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+    Copyright 2019 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<html>
+<head>
+<style>
+
+@import url(pagebuilder.css);
+
+li {
+    padding-top: 2em;
+    padding-bottom: 2em;
+    list-style-type: none;
+    border: dashed black 1px;
+    margin-bottom: 6px;
+}
+
+li svg, li img {
+    float: left;
+    padding-right: 12px;
+}
+
+li.with-image {
+    /* See TOTH below. */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M0 0h24v24H0z' fill='none'/><path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'/></svg>");
+    background-position: left;
+    background-repeat: no-repeat;
+    padding-left: 36px;
+}
+
+</style>
+</head>
+<body>
+<h1>Embedded SVG Images</h1
+><ul
+    ><li
+        >Embedded SVG in XML, floated with CSS.
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/
+        ></svg
+        ></li
+    ><li
+        ><span>IMG tag with SVG in a <tt>data:</tt> URI, floated with CSS.</span
+        ><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M0 0h24v24H0z' fill='none'/><path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'/></svg>"></img
+        ><br 
+        /><span>TOTH: <a href="https://jsfiddle.net/estelle/SJjJb/"
+            >https://jsfiddle.net/estelle/SJjJb/</a
+        ></span></li
+    ><li class="with-image"
+        >As a CSS background image.</li
+></ul
+><p
+    >The image is from the Material Design icon set:<br
+    /><a href="https://material.io/tools/icons/?icon=visibility&style=baseline"
+        >https://material.io/tools/icons/?icon=visibility&style=baseline</a
+        ></p
+
+><a class="cwv-anchor cwv-anchor_back" href="Main.html">Back to Captivity</a
+></body>
+</html>
