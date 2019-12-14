@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2019 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity">
+
+    <TextView
+            android:id="@+id/labelResults"
+            android:layout_width="406dp"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:text="@string/app_name"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonSWAPI" />
+
+    <Button
+            android:id="@+id/buttonSWAPI"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:onClick="buttonSWAPIClicked"
+            android:text="SWAPI"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+            android:id="@+id/buttonGoRest401"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:onClick="buttonGoRest401Clicked"
+            android:text="go-rest 401"
+            app:layout_constraintStart_toEndOf="@+id/buttonSWAPI"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+            android:id="@+id/buttonGoRestBasic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            app:layout_constraintStart_toEndOf="@+id/buttonGoRest401"
+            app:layout_constraintTop_toTopOf="parent"
+            android:onClick="buttonGoRestBasicClicked"
+            android:text="go-rest basic" />
+
+    <Button
+            android:id="@+id/buttonGoRestQueryParameter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/buttonSWAPI"
+            android:onClick="buttonGoRestQueryParameterClicked"
+            android:text="go-rest query parameter" />
+
+    <!--
+
+    If you want to diagnose problems in the JS then uncomment the FrameLayout
+    here and the code that adds the WebView to it, in the MainActivity.kt file.
+    Then the web view will appear in the application user interface.
+    Oh, you also have to muck about with the constraints so that the layout has
+    some screen space.
+
+    <FrameLayout
+            android:id="@+id/smallFrame"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/labelResults"
+            app:layout_constraintVertical_bias="1.0">
+
+    </FrameLayout>
+
+    -->
+
+</android.support.constraint.ConstraintLayout>
