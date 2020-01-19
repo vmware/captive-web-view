@@ -18,12 +18,12 @@ How to get the framework
 
 2.  Open Android Studio and then as a new project, open this location:
 
-        /wherever/you/cloned/captivewebview/forAndroid/
+        /wherever/you/cloned/captive-web-view/forAndroid/
 
 3.  Execute the Gradle task: forAndroid/Tasks/upload/uploadArchives
 
 That should create a maven repository under the
-/wherever/you/cloned/captivewebview/m2repository/ directory.
+/wherever/you/cloned/captive-web-view/m2repository/ directory.
 
 You can then add the framework library to an application by following the
 instructions in the next section.
@@ -48,7 +48,7 @@ Project build.gradle file snippet:
             // Next declaration is added:
             maven {
                 url uri(new File(
-                    rootDir, '../relative/path/to/captivewebview/m2repository'))
+                    rootDir, '../relative/path/to/captive-web-view/m2repository'))
             }
             // ToDo: Change to the actual relative path.
         }
