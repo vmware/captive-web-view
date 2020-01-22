@@ -3,6 +3,9 @@ Backlog
 This is the product backlog for the Captive Web View library. For an
 introduction, see the [parent directory](/../) readme file.
 
+-   The default for iPadOS seems to be to open a second ViewController in a kind
+    of pop-over window. Fix that so it opens full screen like it does in iOS.
+
 -   Error displays for iOS web View like the Android htmlErrorResponse().
 
     Calling iOS urlSchemeTask.didFailWithError aborts retrieval without showing
