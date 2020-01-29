@@ -60,7 +60,7 @@ However, there is a better way.
 
 Create a file here:  
 
-    /path/where/you/cloned/captivewebview/forAndroid/Headless/src/main/assets/WebResources/secrets.js
+    /path/where/you/cloned/captive-web-view/forAndroid/Headless/src/main/assets/WebResources/secrets.js
 
 Paste in the following:
 

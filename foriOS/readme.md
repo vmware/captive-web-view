@@ -19,15 +19,15 @@ How to get the framework
 
 2.  In Xcode, select to open the following path.
 
-    /wherever/you/cloned/captivewebview/foriOS/Demonstration.xcworkspace
+    /wherever/you/cloned/captive-web-view/foriOS/Demonstration.xcworkspace
 
     This is an Xcode workspace with two projects:
 
-    -   SwiftWebView, an excessive demonstration application.
+    -   Captivity, an excessive demonstration application.
     -   Skeleton, a minimal application.
     -   CaptiveWebView, the framework.
 
-3.  Build the CaptiveWebView framework, and then the SwiftWebView application.
+3.  Build the CaptiveWebView framework, and then the Captivity application.
 
 You might need to remove the framework from the application and add it back to
 make it build. You can do this either by dragging and dropping, or by clicking
@@ -196,9 +196,9 @@ get the framework, above.
     reference to that directory from the Xcode project.  
     This is how the Captive Web View repository is structured. For example, real
     web resource files are in the
-    captivewebview/forAndroid/KotlinWebView/src/main/assets/UserInterface/
+    captive-web-view/forAndroid/Captivity/src/main/assets/UserInterface/
     directory; a reference to that directory appears in the Xcode project at
-    SwiftWebView/UserInterface.
+    Captivity/UserInterface.
 
 8.  Create the JavaScript file.
 
@@ -339,8 +339,8 @@ the JS layer.
 
 TBD properly but in note form:
 
-1.  In the Demonstration workspace, in the SwiftWebView application, Open the
-    IndexViewController.swift file.
+1.  In the Demonstration workspace, in the Captivity application, Open the
+    MainViewController.swift file.
 2.  Look for the self.sendObject call.
 3.  Copy it somewhere in your native code.
 
@@ -361,8 +361,8 @@ TBD properly but in note form:
 
 1.  Change your AppDelegate to be a subclass of the
     CaptiveWebView.ApplicationDelegate class, and then call self.launch like in
-    the AppDelegate.swift code in the SwiftWebView application in the workspace
-    in the repository. Code is like this:
+    the AppDelegate.swift code in the Captivity application in the workspace in
+    the repository. Code is like this:
 
         self.launch(MainViewController.self)
 
