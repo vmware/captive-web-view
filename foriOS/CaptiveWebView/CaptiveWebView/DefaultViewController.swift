@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2020 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
@@ -8,6 +8,7 @@ private let CONFIRM_KEY = "confirm"
 private let COMMAND_KEY = "command"
 private let EXCEPTION_KEY = "failed"
 private let LOAD_PAGE_KEY = "load"
+private let SECURE_KEY = "secure"
 
 private let FOCUS_COMMAND = "focus"
 private let LOAD_COMMAND = LOAD_PAGE_KEY
@@ -57,6 +58,12 @@ extension CaptiveWebView.DefaultViewController {
             // TOTH: https://stackoverflow.com/a/34878224
             returning[CONFIRM_KEY] =
                 String(describing: type(of: viewController)) + " bridge OK."
+            if let webView = viewController.view as? WKWebView {
+                returning[SECURE_KEY] = webView.hasOnlySecureContent
+            }
+            else {
+                returning[SECURE_KEY] = String(describing: viewController.view)
+            }
         }
         catch ErrorMessage.message(let message) {
             returning[EXCEPTION_KEY] = message
@@ -107,7 +114,11 @@ extension CaptiveWebView.DefaultViewController {
                 throw ErrorMessage.message(
                     "Page \"\(page)\" isn't in viewControllerMap")
             }
-            viewController.show(controllerClass.init(), sender: self)
+            let loadedController = controllerClass.init()
+            // TOTH: https://zonneveld.dev/ios-13-viewcontroller-presentation-style-modalpresentationstyle/
+            loadedController.modalPresentationStyle = .fullScreen
+            loadedController.modalTransitionStyle = .flipHorizontal
+            viewController.present(loadedController, animated: true)
             return ["loaded": page]
             
         case "":
