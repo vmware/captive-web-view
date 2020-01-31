@@ -38,8 +38,6 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
             }
             let mimeType = try CaptiveWebView.WebResource.getMIMEType(
                 responseURL)
-            // os_log("Resource for \"%@\" is MIME type %@",
-            //        responseURL.lastPathComponent, mimeType)
             
             urlSchemeTask.didReceive(URLResponse(
                 url: taskURL,
