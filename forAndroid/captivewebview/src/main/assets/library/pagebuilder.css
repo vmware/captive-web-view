@@ -1,5 +1,9 @@
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2020 VMware, Inc.
  * SPDX-License-Identifier: BSD-2-Clause
+ */
+
+/* Style names make use of the Block Element Modifier convention, see:  
+ * https://en.bem.info/methodology/naming-convention/
  */
 
 body {
@@ -137,6 +141,18 @@ pre.cwv-transcript__log_line {
     color: var(--line-colour);
     margin-top: -5px;
     margin-right: 0.5em;
+}
+
+h1 .cwv-anchor {
+    border-bottom: none;
+    padding: 0 0.5em 0 0.5em;
+}
+h1 .cwv-anchor:first-of-type {
+    border-top: none;
+}
+.cwv-anchor_back::before {
+    position: relative;
+    top: -0.25em;
 }
 
 .cwv-progress {

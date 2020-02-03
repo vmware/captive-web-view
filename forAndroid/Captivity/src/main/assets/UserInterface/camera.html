@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<!--
+
+Copyright 2020 VMware, Inc.
+SPDX-License-Identifier: BSD-2-Clause
+
+Original camera code copied from this article and the linked repository:  
+https://developer.mozilla.org/en-US/docs/Web/API/WebRTC_API/Taking_still_photos
+
+The repository is licensed under Creative Commons Zero v1.0 Universal and so
+unencumbered by copyright, see:  
+https://github.com/mdn/samples-server/blob/master/LICENSE.md
+
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url(pagebuilder.css);
+        body {font-family: sans-serif;}
+
+        #viewer {
+            position: relative;
+        }
+        #viewer > * {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+        }
+
+        .viewer-message {
+            display: table-cell;
+            background-color:var(--field-colour);
+            vertical-align: middle;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        #viewer .viewer-message {
+            position: static;
+        }
+
+        .camera-information {
+            margin: 0px;
+            text-align: left;
+
+            transition: opacity ease-in 0.25s;
+            background-color:var(--field-colour);
+            opacity: 0.75;
+        }
+        .camera-information_hidden {
+            opacity: 0;
+        }
+
+        body {
+            position: absolute;
+            top: 0px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+        }
+        body > div {
+            /* background-color: gold; */
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        body > div > *:nth-child(1) { flex: none; }
+        body > div > *:nth-child(2) {
+            flex: auto;
+            overflow: hidden;
+            text-align: center;
+        }
+        body > div > *:nth-child(3) { flex: none; }
+
+        #status button {
+            background-color: var(--field-colour);
+            font-size: large;
+            padding: 0.5em 1em 0.5em 1em;
+            border: none;
+            border-radius: var(--border-radius);
+            outline: none;
+            margin-left: 0.25em;
+            margin-right: 0.25em;
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+        #status button.toggle_on {
+            /* background-color: var(--accent-colour); */
+            outline: var(--accent-colour) solid 1px;
+        }
+
+    </style>
+</head>
+<body><div
+    ><h1><a class="cwv-anchor cwv-anchor_back" href="Main.html">Camera</a></h1
+    ><div id="viewer"><!-- Will be populated by JavaScript. --></div
+    ><div id="status"><!-- Will be populated by JavaScript. --></div
+    ></div
+><script>
+
+class Camera {
+    constructor(viewerID, statusID) {
+        this._viewer = document.getElementById(viewerID);
+        this._status = document.getElementById(statusID);
+
+        this._streaming = false;
+        this._playing = false;
+
+        this._canvasWidth = undefined;
+        this._canvasHeight = undefined;
+        this._sizeSummary = "";
+        this._deviceInformation = [];
+        this._cameraControls = false;
+
+        this._cameraIndex = undefined;
+    }
+
+    load() {
+        this._build();
+        this._get_device_information();
+        this._tap_message();
+        this._viewerMessageDiv.addEventListener(
+            'click', this._tap_message.bind(this));
+        this._cameraInfoDiv.addEventListener(
+            'click', this._set_img.bind(this, true));
+        this._img.addEventListener(
+            'click', this._set_img.bind(this, false));
+    }
+
+    _build() {
+        this._build_viewer();
+        this._build_bar();
+
+        [
+            this._viewerMessageDiv, this._video, this._cameraInfoDiv,
+            this._canvas, this._img
+        ].forEach(element => {
+            element.style.display = 'none';
+            this._viewer.append(element);
+        });
+        this.cameraControls = false;
+        this._viewerMessageDiv.style.removeProperty('display');
+
+        this._status.append(
+            this._streamStatusText, this._switchButton, this._showButton
+        );
+
+        this._get_sizes();
+        window.addEventListener('resize', this._get_sizes.bind(this));
+
+        this._video.addEventListener(
+            'canplay', this._on_can_play.bind(this), false);
+    }
+
+    _build_viewer() {
+        this._viewerMessageDiv = document.createElement('div');
+        this._viewerMessageDiv.classList.add('viewer-message');
+        this._viewerMessageText = document.createTextNode(
+            Camera.loadingMessage);
+        this._viewerMessageDiv.append(this._viewerMessageText);
+
+        this._cameraInfoDiv = document.createElement('pre');
+        this._cameraInfoDiv.classList.add(
+            'camera-information', 'camera-information_hidden');
+        this._cameraInfoText = document.createTextNode("No camera.");
+        this._cameraInfoDiv.append(this._cameraInfoText);
+
+        this._video = document.createElement('video');
+        this._video.append("Video unavailable.");
+        this._canvas = document.createElement('canvas');
+        this._img = document.createElement('img');
+    }
+
+    _build_bar() {
+        this._streamStatusText = document.createTextNode("");
+
+        this._showButton = document.createElement('button');
+        // Next line adds the Unicode wrench character.
+        this._showButton.append(String.fromCodePoint(128295));
+        this._showButton.addEventListener('click', () => {
+            const toggled = this._cameraInfoDiv.classList.toggle(
+                'camera-information_hidden');
+            this._showButton.classList.toggle('toggle_on', !toggled)
+        });
+        this._showButton.style.display = 'none';
+
+        this._switchButton = document.createElement('button');
+        this._switchText = document.createTextNode("Camera 0 of 0");
+        this._switchButton.append(this._switchText);
+        this._switchButton.addEventListener(
+            'click', this._select_camera.bind(this, true));
+    }
+
+    _get_sizes() {
+        // This is after a time out because getBoundingClientRect has been known
+        // to return all zeros sometimes if there hasn't been a chance to render
+        // the layout.
+        setTimeout(() => {
+            const boundingBox = this._viewer.getBoundingClientRect();
+            const videoWidth = (
+                this._playing ? this._video.videoWidth : undefined);
+            const videoHeight = (
+                this._playing ? this._video.videoHeight : undefined);
+
+            this._canvasWidth = videoWidth;
+            this._canvasHeight = videoHeight;
+            this._sizeSummary = [
+                '\n(',
+                ['x', 'y', 'width', 'height'].map(
+                    property => boundingBox[property].toFixed(2)
+                ).join(', '),
+                ')\n',
+                this._playing ? [
+                    videoWidth.toString(),
+                    String.fromCodePoint(0xd7), // Unicode multiplication sign.
+                    videoHeight.toString()
+                ].join(" ") : "No video."
+            ].join('');
+            // TOTH for bounding box formatting:
+            // https://github.com/dasher-project/redash/blob/master/browser/userinterface.js#L525
+            this._diagnostic_display();
+
+            // The message always fills the bounding box.
+            const widthStyle = `${boundingBox.width}px`;
+            const heightStyle = `${boundingBox.height}px`;
+            [this._viewerMessageDiv, this._cameraInfoDiv].forEach(element => {
+                element.style.width = widthStyle;
+                element.style.height = heightStyle;
+            });
+
+            if (this._playing) {
+                // Aspect ratio formula: h/w = vh/vw
+
+                // First candidate: set width and solve height.
+                let width = boundingBox.width;
+                let height = width * (videoHeight / videoWidth);
+                let left = 0;
+                let top = (boundingBox.height - height) / 2;
+                //
+                // If height is too big, switch to the alternative candidate:
+                // Set height and solve width.
+                if (height > boundingBox.height) {
+                    height = boundingBox.height;
+                    width = height / (videoHeight / videoWidth);
+                    left = (boundingBox.width - width) / 2;
+                    top = 0;
+                }
+
+                [
+                    this._img, this._video, this._cameraInfoDiv
+                ].forEach(element => {
+                    element.style.width = `${width}px`;
+                    element.style.height = `${height}px`;
+                    element.style.left = `${left}px`;
+                    element.style.top = `${top}px`;
+                });
+            }
+        }, 0);
+    }
+
+    _set_img(fromVideo) {
+        const context = this._canvas.getContext('2d');
+        this._canvas.setAttribute('width', this._canvasWidth);
+        this._canvas.setAttribute('height', this._canvasHeight);
+        if (fromVideo && this._streaming) {
+            context.drawImage(
+                this._video, 0, 0, this._canvasWidth, this._canvasHeight);
+        }
+        else {
+            context.fillStyle = "#AAA";
+            context.fillRect(0, 0, this._canvasWidth, this._canvasHeight);
+        }
+
+        const imgData = this._canvas.toDataURL('image/png');
+        this._img.setAttribute('src', imgData);
+
+        if (fromVideo) {
+            this._img.style.removeProperty('display');
+            this.cameraControls = false;
+        }
+        else {
+            this.cameraControls = true;
+            this._img.style.display = 'none';
+        }
+
+        this._streamStatusText.nodeValue = (
+            fromVideo ? "Tap to clear." : "Tap picture.");
+    }
+
+    get cameraControls() { return this._cameraControls; }
+    set cameraControls(cameraControls) {
+        this._cameraControls = cameraControls;
+        [
+            this._video, this._cameraInfoDiv,
+            this._showButton, this._switchButton
+        ].forEach( element => {
+            if (this._cameraControls) {
+                element.style.removeProperty('display');
+            }
+            else {
+                element.style.display = 'none';
+            }
+        });
+    }
+
+    _on_can_play(event) {
+        if (this._playing) {
+            return;
+        }
+        this._playing = true;
+        this._get_sizes();
+    }
+
+    _tap_message() {
+        this._viewerMessageText.nodeValue = Camera.loadingMessage;
+
+        if (navigator.mediaDevices === undefined) {
+            this._streaming = false;
+            this._viewerMessageDiv.style.removeProperty('display');
+            this.cameraControls = false;
+            this._viewerMessageText.nodeValue = [
+                "Media devices unavailable.",
+                `\nLocation could be insecure: ${document.location}.`,
+                "\nEmbedded web view for iOS, iPadOS, and macOS doesn't",
+                " support camera or other WebRTC yet."
+            ].join("");
+            return;
+        }
+
+        const specification = {
+            "audio": false,
+            "video": (
+                this._cameraIndex === undefined ? true : {
+                    "deviceId": this._deviceInformation[this._cameraIndex].idRaw
+                }
+            )
+        };
+        navigator.mediaDevices.getUserMedia(specification)
+        .then(stream => {
+            this._streaming = true;
+            this._streamStatusText.nodeValue = "Tap to take picture.";
+            this._video.srcObject = stream;
+            this._video.play();
+            this._viewerMessageDiv.style.display = 'none';
+            this.cameraControls = true;
+
+            // One of the devices might now have a label, because it's
+            // streaming, so refresh the device list.
+            this._get_device_information();
+        })
+        .catch(error => {
+            this._streaming = false;
+            let showControls = true;
+            if (error.name === 'NotAllowedError') {
+                showControls = false;
+                this._viewerMessageText.nodeValue =
+                    "Not allowed. Tap to retry.";
+            }
+            else if (error.name === 'NotReadableError') {
+                this._viewerMessageText.nodeValue = 
+                    "Not readable. Try next camera.";
+            }
+            else {
+                this._viewerMessageText.nodeValue = `${error}.`;
+            }
+            this.cameraControls = showControls;
+            this._viewerMessageDiv.style.removeProperty('display');
+            this._video.style.display = 'none';
+            this._get_device_information();
+        });
+    }
+
+    _get_device_information() {
+        if (
+            navigator === undefined ||
+            navigator.mediaDevices === undefined ||
+            navigator.mediaDevices.enumerateDevices === undefined
+        ) {
+            this._deviceInformation = [];
+            return;
+        }
+
+        let cameraCount = 0;
+        navigator.mediaDevices.enumerateDevices()
+        .then(devices => {
+            this._deviceInformation = devices.map(device => {
+                if (device.kind === 'videoinput') {
+                    cameraCount += 1;
+                }
+                return {
+                    'idRaw': device.deviceId,
+                    'kind': device.kind,
+                    'label': device.label,
+                    'idDisplay': (
+                        device.deviceId.length <= 11 ? device.deviceId : [
+                            '"', device.deviceId.slice(0, 4), "...",
+                            device.deviceId.slice(-4), '"'
+                        ].join("")
+                    ),
+                    'cameraNumber': (
+                        device.kind === 'videoinput' ? `${cameraCount}` : "")
+                };
+            });
+            this._diagnostic_display();
+            this._select_camera(false);
+        })
+        .catch(error => {
+            this._deviceInformation = [];
+            console.log(error);
+        });
+    }
+
+    _select_camera(advance) {
+        let firstCamera = undefined;
+        let nextCamera = undefined;
+        let cameraCount = undefined;
+        // Don't filter here to keep the index running across the whole array.
+        this._deviceInformation.forEach((device, index) => {
+            if (device.kind === 'videoinput') {
+                // Camera count will be the number of the last camera.
+                cameraCount = device.cameraNumber;
+                if (firstCamera === undefined) { firstCamera = index; }
+                if (this._cameraIndex !== undefined) {
+                    if (index > this._cameraIndex && nextCamera === undefined) {
+                        nextCamera = index;
+                    }
+                }
+            }
+            // Near here, could check for unexpected device.kind values.
+        });
+
+        // Set camera index to reflect the selection.
+        if (this._cameraIndex === undefined) {
+            if (firstCamera !== undefined) {
+                this._cameraIndex = firstCamera;
+            }
+        }
+        else {
+            if (firstCamera === undefined) {
+                this._cameraIndex = undefined;
+            }
+        }
+
+        if (advance) {
+            if (nextCamera === undefined) {
+                nextCamera = firstCamera;
+            }
+            const changingCamera = (
+                nextCamera !== undefined &&
+                this._cameraIndex !== undefined &&
+                nextCamera !== this._cameraIndex
+            );
+            if (changingCamera) {
+                // Stop the stream - we're about to change camera.
+                this._video.pause();
+                this._video.srcObject.getTracks().forEach(
+                    track => track.stop());
+                this._video.srcObject = null;
+            }
+            this._cameraIndex = nextCamera;
+            if (changingCamera) {
+                this._tap_message();
+            }
+        }
+
+        let cameraNumber = "0";
+        if (this._cameraIndex !== undefined) {
+            cameraNumber =
+                this._deviceInformation[this._cameraIndex].cameraNumber;
+        }
+        if (firstCamera === undefined && this._streaming) {
+            // Stream is running OK but there were no cameras, or no list.
+            // Assume there is one camera then but the browser didn't return it.
+            cameraNumber = "1";
+            cameraCount = "1";
+        }
+        this._switchText.nodeValue = [
+            "Camera", cameraNumber, "of", cameraCount].join(" ");
+    }
+
+    _diagnostic_display() {
+        this._cameraInfoText.nodeValue = this._deviceInformation.map(
+            (device, index) => [
+                index === this._cameraIndex ? "-" : " ",
+                index.toString().padStart(2), device.idDisplay.padStart(14),
+                device.kind.padStart(12), device.cameraNumber.padStart(2),
+                ' "', device.label, '"'
+            ].join("")
+        ).join("\n") + this._sizeSummary;
+    }
+
+}
+Camera.loadingMessage = "Loading camera information ...";
+
+document.body.onload = () => {
+    const camera = new Camera("viewer", "status");
+    camera.load();
+};
+
+</script
+></body
+</html>

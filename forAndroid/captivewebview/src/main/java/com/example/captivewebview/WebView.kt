@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2020 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.captivewebview
@@ -16,7 +16,7 @@ import org.json.JSONObject
 
 class WebView : android.webkit.WebView {
     companion object {
-        val TAG = WebView.javaClass.simpleName
+        val TAG = WebView::class.java.simpleName
     }
     constructor(context: Context?) : super(context) {
         this.defaultSettings(context)
@@ -87,6 +87,9 @@ class WebView : android.webkit.WebView {
         this.settings.javaScriptEnabled = true
         android.webkit.WebView.setWebContentsDebuggingEnabled(true)
         this.webViewClient = this._webViewClient
+
+        this.settings.mediaPlaybackRequiresUserGesture = false
+        this.webChromeClient = WebChromeClient(this)
     }
 
     var captive:Boolean
@@ -97,9 +100,9 @@ class WebView : android.webkit.WebView {
                 // Internet, so check the application has permission here.
 
                 // Convenience variable for debugger.
-                val context = this?.context
+                val context = this.context
 
-                val canInternet: Boolean = context?.run {
+                val canInternet: Boolean = context.run {
                     this.packageManager.checkPermission(
                         Manifest.permission.INTERNET, this.packageName
                     ) == PackageManager.PERMISSION_GRANTED
@@ -154,7 +157,7 @@ class WebViewClient : android.webkit.WebViewClient() {
         // scheme, not the authority, which may have been why it didn't work.
         const val ASSET_SCHEME = "https"
         const val ASSET_AUTHORITY = "localhost"
-        val TAG = WebViewClient.javaClass.simpleName
+        val TAG = WebViewClient::class.java.simpleName
     }
 
     var captive = true

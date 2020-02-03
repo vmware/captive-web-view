@@ -1,3 +1,6 @@
+// Copyright 2019 VMware, Inc.  
+// SPDX-License-Identifier: BSD-2-Clause
+
 package com.example.captivewebview
 
 import android.content.Intent
@@ -17,7 +20,6 @@ import java.lang.Exception
  *             super.onCreate(savedInstanceState)
  *             onCreateMixIn()
  *         }
- *
  *         override fun onResume() {
  *             super.onResume()
  *             onResumeMixIn()

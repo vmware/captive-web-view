@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2020 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import PageBuilder from "./pagebuilder.js";
@@ -111,6 +111,7 @@ class Captivity {
         panel.add_anchor("three.html", "Three JS for WebGL");
         panel.add_anchor("grid.html", "Grid with changing colour");
         panel.add_anchor("embeddedSVG.html", "Embedded SVG Images");
+        panel.add_anchor("camera.html", "Camera");
     }
 
     _panel_page_builder(panel) {
