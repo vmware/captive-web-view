@@ -451,8 +451,10 @@ class Camera {
                 nextCamera !== this._cameraIndex
             );
             if (changingCamera) {
-                // Stop the stream - we're about to change camera.
                 this._video.pause();
+
+                // Stop the stream - we're about to change camera.
+                // TOTH https://developer.mozilla.org/en-US/docs/Web/API/MediaStreamTrack/stop
                 this._video.srcObject.getTracks().forEach(
                     track => track.stop());
                 this._video.srcObject = null;
