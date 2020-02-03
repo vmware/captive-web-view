@@ -99,10 +99,21 @@ Typical structure is as follows.
     When the main module is instantiated, it is passed a reference to the bridge
     object.
 
+# Platform Notes
+-   WKWebView doesn't support WebRTC. This means that the device cameras cannot
+    be utilised from the JavaScript layer in an application for iOS or iPadOS.
+
+    This seems to be an acknowledged issue, see the following:  
+    [https://bugs.webkit.org/show_bug.cgi?id=185448](https://bugs.webkit.org/show_bug.cgi?id=185448)
+
+    Android WebView supports camera via WebRTC no problem.
+
+-   Android WebView doesn't support speech synthesis.
+
 # Headless Web View
 See the separate [headless.md](headless.md) file for details.
 
 Legal
 =====
-Copyright 2019 VMware, Inc.  
+Copyright 2020 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
