@@ -24,7 +24,11 @@ introduction, see the [parent directory](/../) readme file.
 
     https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
 
+-   Check if anything from the following code could be used:
+
+    https://github.com/googlearchive/chromium-webview-samples/tree/master/webrtc-example/app/src/main/java/com/google/chrome/android/webrtcsample
+
 Legal
 =====
-Copyright 2019 VMware, Inc.  
+Copyright 2020 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
