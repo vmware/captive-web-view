@@ -112,6 +112,7 @@ class Captivity {
         panel.add_anchor("grid.html", "Grid with changing colour");
         panel.add_anchor("embeddedSVG.html", "Embedded SVG Images");
         panel.add_anchor("camera.html", "Camera");
+        panel.add_anchor("speech.html", "Speech");
     }
 
     _panel_page_builder(panel) {
