@@ -42,6 +42,7 @@
 		046B7C342347C7990034D246 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		046B7C362347C7990034D246 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		049D5D622348AE24006981C0 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		679377CC23E821200002AE2D /* Skeleton.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skeleton.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +77,7 @@
 		046B7C292347C7980034D246 /* Skeleton */ = {
 			isa = PBXGroup;
 			children = (
+				679377CC23E821200002AE2D /* Skeleton.entitlements */,
 				045DC7F523A000C600A553B0 /* UserInterface */,
 				0438B8112348E00A00F5B415 /* MainViewController.swift */,
 				046B7C2A2347C7980034D246 /* AppDelegate.swift */,
@@ -306,7 +308,9 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Skeleton/Skeleton.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				HEADER_SEARCH_PATHS = "/Users/hawkinsji/Library/Developer/Xcode/DerivedData/Demonstration-emflntfrxvvnbmdvjjiyjgdynbvo/Build/Products/Debug-iphoneos/CaptiveWebView.framework/Headers";
 				INFOPLIST_FILE = Skeleton/Info.plist;
@@ -316,6 +320,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.CaptiveSkeleton;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -326,7 +331,9 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Skeleton/Skeleton.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				HEADER_SEARCH_PATHS = "/Users/hawkinsji/Library/Developer/Xcode/DerivedData/Demonstration-emflntfrxvvnbmdvjjiyjgdynbvo/Build/Products/Debug-iphoneos/CaptiveWebView.framework/Headers";
 				INFOPLIST_FILE = Skeleton/Info.plist;
@@ -336,6 +343,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.CaptiveSkeleton;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
