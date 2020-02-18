@@ -115,6 +115,11 @@ Typical structure is as follows.
     -   https://stackoverflow.com/questions/55926880/speechsynthesis-in-android-webview
     -   https://bugs.chromium.org/p/chromium/issues/detail?id=487255
 
+-   The library for iOS doesn't use any dynamic libraries that would make it
+    unsafe for use in an App Extension. The relevant build target includes the
+    declaration: Allow app extension API only.
+
+    TOTH: https://stackoverflow.com/a/48863451/7657675
 
 # Headless Web View
 See the separate [headless.md](headless.md) file for details.
