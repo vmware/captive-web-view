@@ -1,5 +1,0 @@
-# Copyright 2019 VMware, Inc.  
-# SPDX-License-Identifier: BSD-2-Clause
-
-# Directory with the three.js framework shouldn't be added to our repository.
-js/

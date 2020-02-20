@@ -10,6 +10,11 @@ plugins {
 android {
     compileSdkVersion 28
 
+    sourceSets {
+        main.assets.srcDirs += new File(new File(
+                rootDir.getParent(), "WebResources"), "Captivity")
+    }
+
     defaultConfig {
         applicationId "com.example.captivity"
         minSdkVersion 21

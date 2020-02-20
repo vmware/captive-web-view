@@ -18,3 +18,6 @@ forAndroid/Headless/src/main/assets/WebResources/secrets.js
 
 # Python that was cached by importation
 __pycache__/
+
+# Directory with the three.js framework shouldn't be added to our repository.
+WebResources/Captivity/UserInterface/js/

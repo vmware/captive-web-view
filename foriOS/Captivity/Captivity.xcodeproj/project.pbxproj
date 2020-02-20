@@ -1,4 +1,7 @@
 // !$*UTF8*$!
+/* Copyright 2019 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
 {
 	archiveVersion = 1;
 	classes = {
@@ -9,12 +12,12 @@
 /* Begin PBXBuildFile section */
 		04031C3623A126AC00DA01E6 /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */; };
 		04031C3823A126B600DA01E6 /* CaptiveWebView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		04220F0F23A12961002084F9 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04220F0E23A12961002084F9 /* UserInterface */; };
 		044BDBB923A12383009F2C76 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044BDBB823A12383009F2C76 /* AppDelegate.swift */; };
 		044BDBBB23A12383009F2C76 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044BDBBA23A12383009F2C76 /* MainViewController.swift */; };
 		044BDBC023A12385009F2C76 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 044BDBBF23A12385009F2C76 /* Assets.xcassets */; };
 		044BDBC323A12385009F2C76 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 044BDBC123A12385009F2C76 /* LaunchScreen.storyboard */; };
 		045CC08023A5047600912780 /* SecondaryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045CC07F23A5047600912780 /* SecondaryViewController.swift */; };
+		04899D4C23FED6210088FAA3 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04899D4B23FED6210088FAA3 /* UserInterface */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -33,7 +36,6 @@
 
 /* Begin PBXFileReference section */
 		04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		04220F0E23A12961002084F9 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../forAndroid/Captivity/src/main/assets/UserInterface; sourceTree = "<group>"; };
 		044BDBB523A12383009F2C76 /* Captivity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Captivity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		044BDBB823A12383009F2C76 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		044BDBBA23A12383009F2C76 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
@@ -41,6 +43,7 @@
 		044BDBC223A12385009F2C76 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		044BDBC423A12385009F2C76 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		045CC07F23A5047600912780 /* SecondaryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryViewController.swift; sourceTree = "<group>"; };
+		04899D4B23FED6210088FAA3 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Captivity/UserInterface; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,7 +86,7 @@
 		044BDBB723A12383009F2C76 /* Captivity */ = {
 			isa = PBXGroup;
 			children = (
-				04220F0E23A12961002084F9 /* UserInterface */,
+				04899D4B23FED6210088FAA3 /* UserInterface */,
 				044BDBB823A12383009F2C76 /* AppDelegate.swift */,
 				044BDBBA23A12383009F2C76 /* MainViewController.swift */,
 				044BDBBF23A12385009F2C76 /* Assets.xcassets */,
@@ -155,7 +158,7 @@
 			files = (
 				044BDBC323A12385009F2C76 /* LaunchScreen.storyboard in Resources */,
 				044BDBC023A12385009F2C76 /* Assets.xcassets in Resources */,
-				04220F0F23A12961002084F9 /* UserInterface in Resources */,
+				04899D4C23FED6210088FAA3 /* UserInterface in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
