@@ -117,11 +117,9 @@ public struct CaptiveWebView {
         let filePaths = CaptiveWebView.WebResource.findFile(name:file)
         var builder = URLComponents()
         builder.scheme = scheme
-        // URL construction on next line ensures that a leading slash is added.
-        builder.path = URL(fileURLWithPath:
-            filePaths.count > 0 ? filePaths[0] : file
-            ).path
-        
+        // Note: if there were multiple files with the same name in different directories this code
+        // picks the first one. This may not be the desired outcome.
+        builder.path = "/" + (filePaths.count > 0 ? filePaths[0] : file)
         webView.load(URLRequest(url:builder.url!))
         return builder.url!
     }

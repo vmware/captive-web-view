@@ -110,6 +110,12 @@ Typical structure is as follows.
 
 -   Android WebView doesn't support speech synthesis.
 
+    It's a defect in Chromium, according to these links:
+
+    -   https://stackoverflow.com/questions/55926880/speechsynthesis-in-android-webview
+    -   https://bugs.chromium.org/p/chromium/issues/detail?id=487255
+
+
 # Headless Web View
 See the separate [headless.md](headless.md) file for details.
 
