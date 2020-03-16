@@ -119,9 +119,15 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         // Handy diagnostic code for anybody interested.
         // os_log("main:%@ self:%@", Bundle.main.bundleURL.description,
         //        Bundle(for: type(of: self)).bundleURL.description)
+        #if targetEnvironment(macCatalyst)
+        responseURL = Bundle(for: type(of: self)).bundleURL
+            .appending(pathComponents: [
+                "Resources", "library", requestURL.lastPathComponent])
+        #else
         responseURL = Bundle(for: type(of: self)).bundleURL
             .appending(pathComponents: [
                 "library", requestURL.lastPathComponent])
+        #endif
         // When there was a "WebAssets" group with a directory, it
         // didn't seem to feature in the bundle.
         do {
