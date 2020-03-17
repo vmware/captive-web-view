@@ -64,8 +64,8 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
             throw URLSchemeTaskError("Null URL in task request \(request).")
         }
         
-        var responseURL = Bundle.main.bundleURL
-            .appending(pathComponents: requestURL)
+        var baseURL:URL = Bundle.main.resourceURL ?? Bundle.main.bundleURL
+        let responseURL = baseURL.appending(pathComponents: requestURL)
         var resourceError: Error?
         
         // Try to get the resource from two locations:
@@ -115,23 +115,25 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         //
         // Bundle for self gets the bundle that includes this class, which
         // is the CaptiveWebView framework.
-        //
+        let bundle = Bundle(for: type(of: self))
+        baseURL = bundle.resourceURL ?? bundle.bundleURL
+        
         // Handy diagnostic code for anybody interested.
-        // os_log("main:%@ self:%@", Bundle.main.bundleURL.description,
-        //        Bundle(for: type(of: self)).bundleURL.description)
-        #if targetEnvironment(macCatalyst)
-        responseURL = Bundle(for: type(of: self)).bundleURL
-            .appending(pathComponents: [
-                "Resources", "library", requestURL.lastPathComponent])
-        #else
-        responseURL = Bundle(for: type(of: self)).bundleURL
-            .appending(pathComponents: [
-                "library", requestURL.lastPathComponent])
-        #endif
+        // os_log("main resource:%@\nself:%@\nbase:%@",
+        //        Bundle.main.resourceURL?.description ?? "nil",
+        //        bundle.bundleURL.description, baseURL.description)
+
         // When there was a "WebAssets" group with a directory, it
         // didn't seem to feature in the bundle.
+        guard let libraryURL = CaptiveWebView.WebResource.findFile(
+            under: baseURL,
+            tailComponents: ["library", requestURL.lastPathComponent]) else
+        {
+            throw resourceError!
+        }
+
         do {
-            return try (Data(contentsOf: responseURL), responseURL)
+            return try (Data(contentsOf: libraryURL), libraryURL)
         }
         catch {
             throw resourceError!

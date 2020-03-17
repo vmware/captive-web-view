@@ -24,11 +24,6 @@ public extension URL {
         return appended
     }
 
-    func appending(pathComponents:String) -> URL {
-        return self.appending(
-            pathComponents: URL(fileURLWithPath: pathComponents))
-    }
-    
     func appending(pathComponents:URL?) -> URL {
         // Extract the array of path components from the URL.
         // It's OK to pass nil.

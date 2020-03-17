@@ -114,12 +114,27 @@ public struct CaptiveWebView {
                        scheme:String = "local",
                        file:String = "index.html") -> URL
     {
-        let filePaths = CaptiveWebView.WebResource.findFile(name:file)
         var builder = URLComponents()
         builder.scheme = scheme
-        // Note: if there were multiple files with the same name in different directories this code
-        // picks the first one. This may not be the desired outcome.
-        builder.path = "/" + (filePaths.count > 0 ? filePaths[0] : file)
+
+        // We have to get a slash from somewhere. Could just put in a "/" but
+        // that seems unsafe. Instead, rely on the first component of the path
+        // always being slash.
+
+        if
+            let fileURL = CaptiveWebView.WebResource.findFile(
+                under: Bundle.main.resourceURL ?? Bundle.main.bundleURL,
+                tailComponents: [file]),
+            let leadingSlash = fileURL.pathComponents.first
+        {
+            builder.path = leadingSlash + fileURL.relativePath
+        }
+        else {
+            // This can be expected to fail later, in an orderly fashion, and
+            // gets us out of having to throw here.
+            builder.path = file
+        }
+
         webView.load(URLRequest(url:builder.url!))
         return builder.url!
     }
