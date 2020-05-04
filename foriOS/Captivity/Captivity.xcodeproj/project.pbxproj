@@ -1,5 +1,5 @@
 // !$*UTF8*$!
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2020 VMware, Inc.
  * SPDX-License-Identifier: BSD-2-Clause
  */
 {
@@ -36,6 +36,7 @@
 
 /* Begin PBXFileReference section */
 		04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		043F54B42420F5C5000B6D40 /* Captivity.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Captivity.entitlements; sourceTree = "<group>"; };
 		044BDBB523A12383009F2C76 /* Captivity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Captivity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		044BDBB823A12383009F2C76 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		044BDBBA23A12383009F2C76 /* MainViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
@@ -86,6 +87,7 @@
 		044BDBB723A12383009F2C76 /* Captivity */ = {
 			isa = PBXGroup;
 			children = (
+				043F54B42420F5C5000B6D40 /* Captivity.entitlements */,
 				04899D4B23FED6210088FAA3 /* UserInterface */,
 				044BDBB823A12383009F2C76 /* AppDelegate.swift */,
 				044BDBBA23A12383009F2C76 /* MainViewController.swift */,
@@ -309,7 +311,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Captivity/Captivity.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				INFOPLIST_FILE = Captivity/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -318,6 +322,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.captivewebview.Captivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -327,7 +332,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Captivity/Captivity.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				INFOPLIST_FILE = Captivity/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -336,6 +343,7 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.captivewebview.Captivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
