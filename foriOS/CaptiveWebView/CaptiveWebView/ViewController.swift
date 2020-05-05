@@ -13,16 +13,24 @@ extension CaptiveWebView.ViewController {
     
     override open func viewDidLoad() {
         super.viewDidLoad()
-        self.view = CaptiveWebView.makeWebView(
+        self.webView = CaptiveWebView.makeWebView(
             frame: self.view.frame, commandHandler: nil)
+        self.view.insertSubview(self.webView, at:0)
+        CaptiveWebView.constrain(view: webView, to: view.safeAreaLayoutGuide)
+        self.view.layer.backgroundColor = UIColor.white.cgColor
+
+        // Uncomment the following to add a diagnostic border around the web
+        // view.
+        // self.webView.layer.borderColor = UIColor.blue.cgColor
+        // self.webView.layer.borderWidth = 4.0
+        // self.webView.layer.backgroundColor = UIColor.yellow.cgColor
+        // self.view.layer.backgroundColor = UIColor.cyan.cgColor
     }
 
     public func loadCustom(scheme:String = "local",
                            file:String = "index.html") -> URL
     {
-        return CaptiveWebView.load(in: self.view as! WKWebView,
-                                   scheme:scheme,
-                                   file:file)
+        return CaptiveWebView.load(in: webView, scheme:scheme, file:file)
     }
     
     public func loadMainHTML() -> URL {
@@ -46,24 +54,6 @@ extension CaptiveWebView.ViewController {
         _ command:Dictionary<String, Any>,
         _ completionHandler:((Any?, Error?) -> Void)? = nil)
     {
-        CaptiveWebView.sendObject(to: self.view as! WKWebView,
-                                  command,
-                                  completionHandler)
-    }
-}
-
-class URLSchemeTaskError: Error {
-    let message:String
-    
-    init(_ message:String) {
-        self.message = message
-    }
-    
-    var localizedDescription: String {
-        return self.message
-    }
-    
-    var description: String {
-        return self.message
+        CaptiveWebView.sendObject(to: webView, command, completionHandler)
     }
 }

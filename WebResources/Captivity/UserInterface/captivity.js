@@ -40,8 +40,12 @@ class Captivity {
         // -   On iOS, there's just a call to the view.becomeFirstResponder
         //     method.
         //
-        // This didn't work on iOS until it was changed to be in an asynchronous
-        // block, like it is now.
+        // This never worked on iOS until it was changed to be in an
+        // asynchronous block, like it is now. At some point even that stopped
+        // working on iOS.  
+        // Most of it works on Catalyst. The focussed field does receive
+        // keyboard input. However, the cursor isn't shown in the field until
+        // the user types something.
         this._send({"command": "ready"})
         .then(() => {
             focusInput.focus();
@@ -219,6 +223,11 @@ class Captivity {
             panel.node.classList.toggle('inactive', panelIndex !== index);
             this._selectors[panelIndex].classList.toggle(
                 'selected', panelIndex === index);
+        }
+        
+        if (index === 0) {
+            const focusInput = document.getElementById("focus");
+            focusInput.focus();
         }
     }
 

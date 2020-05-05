@@ -10,6 +10,11 @@ plugins {
 android {
     compileSdkVersion 28
 
+    sourceSets {
+        main.assets.srcDirs += new File(new File(
+                rootDir.getParent(), "WebResources"), "Skeleton")
+    }
+
     defaultConfig {
         applicationId "com.example.skeleton"
         minSdkVersion 21

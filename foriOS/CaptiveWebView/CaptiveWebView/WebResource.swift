@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
+#if !os(macOS)
 import MobileCoreServices
+#endif
 import os.log
 
 public extension CaptiveWebView.WebResource {

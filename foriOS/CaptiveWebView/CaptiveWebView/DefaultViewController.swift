@@ -21,10 +21,9 @@ extension CaptiveWebView.DefaultViewController {
         self.bridge = self
         // Don't load here; load in the viewDidAppear instead.
     }
-
+    
     override open func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        let webView = self.view as! WKWebView
         if webView.url == nil {
             _ = self.loadMainHTML()
         }
@@ -58,12 +57,7 @@ extension CaptiveWebView.DefaultViewController {
             // TOTH: https://stackoverflow.com/a/34878224
             returning[CONFIRM_KEY] =
                 String(describing: type(of: viewController)) + " bridge OK."
-            if let webView = viewController.view as? WKWebView {
-                returning[SECURE_KEY] = webView.hasOnlySecureContent
-            }
-            else {
-                returning[SECURE_KEY] = String(describing: viewController.view)
-            }
+            returning[SECURE_KEY] = viewController.webView.hasOnlySecureContent
         }
         catch ErrorMessage.message(let message) {
             returning[EXCEPTION_KEY] = message
@@ -90,7 +84,7 @@ extension CaptiveWebView.DefaultViewController {
             return ["closed": true]
 
         case FOCUS_COMMAND:
-            return ["focussed": viewController.view.becomeFirstResponder()]
+            return ["focussed controller": viewController.becomeFirstResponder()]
             
         case LOAD_COMMAND:
             guard let page = parameters["page"] as? String else {

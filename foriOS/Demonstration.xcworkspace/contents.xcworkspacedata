@@ -15,6 +15,9 @@
       location = "group:Skeleton/Skeleton.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:MacSkeleton/MacSkeleton.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:CaptiveWebView/CaptiveWebView.xcodeproj">
    </FileRef>
 </Workspace>

@@ -1,5 +1,5 @@
 // !$*UTF8*$!
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2020 VMware, Inc.
  * SPDX-License-Identifier: BSD-2-Clause
  */
 {
@@ -11,12 +11,12 @@
 
 /* Begin PBXBuildFile section */
 		0438B8122348E00A00F5B415 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0438B8112348E00A00F5B415 /* MainViewController.swift */; };
-		045DC7F623A000C600A553B0 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 045DC7F523A000C600A553B0 /* UserInterface */; };
 		046B7C2B2347C7980034D246 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046B7C2A2347C7980034D246 /* AppDelegate.swift */; };
 		046B7C322347C7990034D246 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 046B7C312347C7990034D246 /* Assets.xcassets */; };
 		046B7C352347C7990034D246 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 046B7C332347C7990034D246 /* LaunchScreen.storyboard */; };
 		049D5D642348AE6A006981C0 /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 049D5D622348AE24006981C0 /* CaptiveWebView.framework */; };
 		049D5D652348AEB3006981C0 /* CaptiveWebView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 049D5D622348AE24006981C0 /* CaptiveWebView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		049F4E5E2461731500F213DD /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 049F4E5D2461731500F213DD /* UserInterface */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,6 +42,7 @@
 		046B7C342347C7990034D246 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		046B7C362347C7990034D246 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		049D5D622348AE24006981C0 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		049F4E5D2461731500F213DD /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Skeleton/UserInterface; sourceTree = "<group>"; };
 		679377CC23E821200002AE2D /* Skeleton.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skeleton.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -77,6 +78,7 @@
 		046B7C292347C7980034D246 /* Skeleton */ = {
 			isa = PBXGroup;
 			children = (
+				049F4E5D2461731500F213DD /* UserInterface */,
 				679377CC23E821200002AE2D /* Skeleton.entitlements */,
 				045DC7F523A000C600A553B0 /* UserInterface */,
 				0438B8112348E00A00F5B415 /* MainViewController.swift */,
@@ -156,8 +158,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				046B7C352347C7990034D246 /* LaunchScreen.storyboard in Resources */,
+				049F4E5E2461731500F213DD /* UserInterface in Resources */,
 				046B7C322347C7990034D246 /* Assets.xcassets in Resources */,
-				045DC7F623A000C600A553B0 /* UserInterface in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

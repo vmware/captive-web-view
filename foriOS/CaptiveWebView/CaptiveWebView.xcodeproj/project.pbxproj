@@ -1,5 +1,5 @@
 // !$*UTF8*$!
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2020 VMware, Inc.
  * SPDX-License-Identifier: BSD-2-Clause
  */
 {
@@ -10,6 +10,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0416640B2461679500239175 /* MacCaptiveWebView.h in Headers */ = {isa = PBXBuildFile; fileRef = 041664092461679500239175 /* MacCaptiveWebView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		0416640F2461680100239175 /* CaptiveURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04575CF0234752C200A2A462 /* CaptiveURLHandler.swift */; };
+		041664102461680100239175 /* CaptiveWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045D3F4323469C4400D12F79 /* CaptiveWebView.swift */; };
+		041664112461680100239175 /* URL+Changing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489F5C92345303100A11737 /* URL+Changing.swift */; };
+		041664122461680100239175 /* WebResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489F5CB2345303100A11737 /* WebResource.swift */; };
+		0416641324616B1100239175 /* library in Resources */ = {isa = PBXBuildFile; fileRef = 0489F5D52345306600A11737 /* library */; };
 		04575CF1234752C200A2A462 /* CaptiveURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04575CF0234752C200A2A462 /* CaptiveURLHandler.swift */; };
 		045D3F4523469C4400D12F79 /* CaptiveWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045D3F4323469C4400D12F79 /* CaptiveWebView.swift */; };
 		045D3F4623469FE700D12F79 /* CaptiveWebView.h in Headers */ = {isa = PBXBuildFile; fileRef = 045D3F4223469C4400D12F79 /* CaptiveWebView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -22,6 +28,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		041664072461679500239175 /* MacCaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MacCaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		041664092461679500239175 /* MacCaptiveWebView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MacCaptiveWebView.h; sourceTree = "<group>"; };
+		0416640A2461679500239175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		04575CF0234752C200A2A462 /* CaptiveURLHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptiveURLHandler.swift; sourceTree = "<group>"; };
 		045D3F4223469C4400D12F79 /* CaptiveWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaptiveWebView.h; sourceTree = "<group>"; };
 		045D3F4323469C4400D12F79 /* CaptiveWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CaptiveWebView.swift; sourceTree = "<group>"; };
@@ -36,6 +45,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		041664042461679500239175 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		04F937D82271A368005DC262 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,6 +62,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		041664082461679500239175 /* MacCaptiveWebView */ = {
+			isa = PBXGroup;
+			children = (
+				041664092461679500239175 /* MacCaptiveWebView.h */,
+				0416640A2461679500239175 /* Info.plist */,
+			);
+			path = MacCaptiveWebView;
+			sourceTree = "<group>";
+		};
 		0489F5C52345303100A11737 /* CaptiveWebView */ = {
 			isa = PBXGroup;
 			children = (
@@ -67,6 +92,7 @@
 			isa = PBXGroup;
 			children = (
 				0489F5C52345303100A11737 /* CaptiveWebView */,
+				041664082461679500239175 /* MacCaptiveWebView */,
 				04F937DC2271A368005DC262 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -75,6 +101,7 @@
 			isa = PBXGroup;
 			children = (
 				04F937DB2271A368005DC262 /* CaptiveWebView.framework */,
+				041664072461679500239175 /* MacCaptiveWebView.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -82,6 +109,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		041664022461679500239175 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0416640B2461679500239175 /* MacCaptiveWebView.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		04F937D62271A368005DC262 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -93,6 +128,24 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		041664062461679500239175 /* MacCaptiveWebView */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0416640E2461679500239175 /* Build configuration list for PBXNativeTarget "MacCaptiveWebView" */;
+			buildPhases = (
+				041664022461679500239175 /* Headers */,
+				041664032461679500239175 /* Sources */,
+				041664042461679500239175 /* Frameworks */,
+				041664052461679500239175 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MacCaptiveWebView;
+			productName = MacCaptiveWebView;
+			productReference = 041664072461679500239175 /* MacCaptiveWebView.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		04F937DA2271A368005DC262 /* CaptiveWebView */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 04F937E32271A368005DC262 /* Build configuration list for PBXNativeTarget "CaptiveWebView" */;
@@ -120,6 +173,9 @@
 				LastUpgradeCheck = 1010;
 				ORGANIZATIONNAME = "Jim Hawkins";
 				TargetAttributes = {
+					041664062461679500239175 = {
+						CreatedOnToolsVersion = 11.4.1;
+					};
 					04F937DA2271A368005DC262 = {
 						CreatedOnToolsVersion = 10.1;
 						LastSwiftMigration = 1020;
@@ -140,11 +196,20 @@
 			projectRoot = "";
 			targets = (
 				04F937DA2271A368005DC262 /* CaptiveWebView */,
+				041664062461679500239175 /* MacCaptiveWebView */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		041664052461679500239175 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0416641324616B1100239175 /* library in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		04F937D92271A368005DC262 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -156,6 +221,17 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		041664032461679500239175 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0416640F2461680100239175 /* CaptiveURLHandler.swift in Sources */,
+				041664102461680100239175 /* CaptiveWebView.swift in Sources */,
+				041664112461680100239175 /* URL+Changing.swift in Sources */,
+				041664122461680100239175 /* WebResource.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		04F937D72271A368005DC262 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -173,6 +249,60 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		0416640C2461679500239175 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = S2ZMFGQM93;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = MacCaptiveWebView/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MacCaptiveWebView;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		0416640D2461679500239175 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = S2ZMFGQM93;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = MacCaptiveWebView/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MacCaptiveWebView;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		04F937E12271A368005DC262 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -350,6 +480,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0416640E2461679500239175 /* Build configuration list for PBXNativeTarget "MacCaptiveWebView" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0416640C2461679500239175 /* Debug */,
+				0416640D2461679500239175 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		04F937D52271A368005DC262 /* Build configuration list for PBXProject "CaptiveWebView" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
