@@ -1,7 +1,4 @@
 // !$*UTF8*$!
-/* Copyright 2020 VMware, Inc.
- * SPDX-License-Identifier: BSD-2-Clause
- */
 {
 	archiveVersion = 1;
 	classes = {
@@ -10,113 +7,122 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0424C2602462CCF500A10351 /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 042F2C822462CAE500A899CC /* CaptiveWebView.framework */; };
-		044F09D824616D75005A11DD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044F09D724616D75005A11DD /* AppDelegate.swift */; };
-		044F09DA24616D75005A11DD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044F09D924616D75005A11DD /* ViewController.swift */; };
-		044F09DC24616D75005A11DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 044F09DB24616D75005A11DD /* Assets.xcassets */; };
-		044F09DF24616D75005A11DD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 044F09DD24616D75005A11DD /* Main.storyboard */; };
-		049F4E63246178A200F213DD /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 049F4E62246178A200F213DD /* UserInterface */; };
+		0424C25F2462CC1200A10351 /* CaptiveWebView.h in Headers */ = {isa = PBXBuildFile; fileRef = 0424C25E2462CC1200A10351 /* CaptiveWebView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		049C33E22462C22C007F2EE3 /* CaptiveURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049C33DE2462C22C007F2EE3 /* CaptiveURLHandler.swift */; };
+		049C33E32462C22C007F2EE3 /* WebResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049C33DF2462C22C007F2EE3 /* WebResource.swift */; };
+		049C33E42462C22C007F2EE3 /* CaptiveWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049C33E02462C22C007F2EE3 /* CaptiveWebView.swift */; };
+		049C33E52462C22C007F2EE3 /* URL+Changing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049C33E12462C22C007F2EE3 /* URL+Changing.swift */; };
+		049C33E72462C265007F2EE3 /* library in Resources */ = {isa = PBXBuildFile; fileRef = 049C33E62462C265007F2EE3 /* library */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		042F2C822462CAE500A899CC /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		044F09D424616D75005A11DD /* MacSkeleton.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacSkeleton.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		044F09D724616D75005A11DD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		044F09D924616D75005A11DD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		044F09DB24616D75005A11DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		044F09DE24616D75005A11DD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
-		044F09E024616D75005A11DD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		044F09E124616D75005A11DD /* MacSkeleton.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MacSkeleton.entitlements; sourceTree = "<group>"; };
-		049F4E62246178A200F213DD /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Skeleton/UserInterface; sourceTree = "<group>"; };
+		0424C25E2462CC1200A10351 /* CaptiveWebView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CaptiveWebView.h; sourceTree = "<group>"; };
+		049C33D22462C1E9007F2EE3 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		049C33D62462C1E9007F2EE3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		049C33DE2462C22C007F2EE3 /* CaptiveURLHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CaptiveURLHandler.swift; path = ../CaptiveWebView/CaptiveWebView/CaptiveURLHandler.swift; sourceTree = "<group>"; };
+		049C33DF2462C22C007F2EE3 /* WebResource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = WebResource.swift; path = ../CaptiveWebView/CaptiveWebView/WebResource.swift; sourceTree = "<group>"; };
+		049C33E02462C22C007F2EE3 /* CaptiveWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = CaptiveWebView.swift; path = ../CaptiveWebView/CaptiveWebView/CaptiveWebView.swift; sourceTree = "<group>"; };
+		049C33E12462C22C007F2EE3 /* URL+Changing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "URL+Changing.swift"; path = "../CaptiveWebView/CaptiveWebView/URL+Changing.swift"; sourceTree = "<group>"; };
+		049C33E62462C265007F2EE3 /* library */ = {isa = PBXFileReference; lastKnownFileType = folder; name = library; path = ../../forAndroid/captivewebview/src/main/assets/library; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		044F09D124616D75005A11DD /* Frameworks */ = {
+		049C33CF2462C1E9007F2EE3 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0424C2602462CCF500A10351 /* CaptiveWebView.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		044F09CB24616D75005A11DD = {
+		049C33C82462C1E9007F2EE3 = {
 			isa = PBXGroup;
 			children = (
-				044F09D624616D75005A11DD /* MacSkeleton */,
-				044F09D524616D75005A11DD /* Products */,
-				049F4E5F2461754B00F213DD /* Frameworks */,
+				049C33E62462C265007F2EE3 /* library */,
+				049C33DD2462C211007F2EE3 /* CaptiveWebView */,
+				049C33D42462C1E9007F2EE3 /* Library_Mac */,
+				049C33D32462C1E9007F2EE3 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		044F09D524616D75005A11DD /* Products */ = {
+		049C33D32462C1E9007F2EE3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				044F09D424616D75005A11DD /* MacSkeleton.app */,
+				049C33D22462C1E9007F2EE3 /* CaptiveWebView.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		044F09D624616D75005A11DD /* MacSkeleton */ = {
+		049C33D42462C1E9007F2EE3 /* Library_Mac */ = {
 			isa = PBXGroup;
 			children = (
-				049F4E62246178A200F213DD /* UserInterface */,
-				044F09D724616D75005A11DD /* AppDelegate.swift */,
-				044F09D924616D75005A11DD /* ViewController.swift */,
-				044F09DB24616D75005A11DD /* Assets.xcassets */,
-				044F09DD24616D75005A11DD /* Main.storyboard */,
-				044F09E024616D75005A11DD /* Info.plist */,
-				044F09E124616D75005A11DD /* MacSkeleton.entitlements */,
+				0424C25E2462CC1200A10351 /* CaptiveWebView.h */,
+				049C33D62462C1E9007F2EE3 /* Info.plist */,
 			);
-			path = MacSkeleton;
+			path = Library_Mac;
 			sourceTree = "<group>";
 		};
-		049F4E5F2461754B00F213DD /* Frameworks */ = {
+		049C33DD2462C211007F2EE3 /* CaptiveWebView */ = {
 			isa = PBXGroup;
 			children = (
-				042F2C822462CAE500A899CC /* CaptiveWebView.framework */,
+				049C33DE2462C22C007F2EE3 /* CaptiveURLHandler.swift */,
+				049C33E02462C22C007F2EE3 /* CaptiveWebView.swift */,
+				049C33E12462C22C007F2EE3 /* URL+Changing.swift */,
+				049C33DF2462C22C007F2EE3 /* WebResource.swift */,
 			);
-			name = Frameworks;
+			name = CaptiveWebView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		049C33CD2462C1E9007F2EE3 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0424C25F2462CC1200A10351 /* CaptiveWebView.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
-		044F09D324616D75005A11DD /* MacSkeleton */ = {
+		049C33D12462C1E9007F2EE3 /* CaptiveWebView */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 044F09E424616D75005A11DD /* Build configuration list for PBXNativeTarget "MacSkeleton" */;
+			buildConfigurationList = 049C33DA2462C1E9007F2EE3 /* Build configuration list for PBXNativeTarget "CaptiveWebView" */;
 			buildPhases = (
-				044F09D024616D75005A11DD /* Sources */,
-				044F09D124616D75005A11DD /* Frameworks */,
-				044F09D224616D75005A11DD /* Resources */,
+				049C33CD2462C1E9007F2EE3 /* Headers */,
+				049C33CE2462C1E9007F2EE3 /* Sources */,
+				049C33CF2462C1E9007F2EE3 /* Frameworks */,
+				049C33D02462C1E9007F2EE3 /* Resources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
-			name = MacSkeleton;
-			productName = MacSkeleton;
-			productReference = 044F09D424616D75005A11DD /* MacSkeleton.app */;
-			productType = "com.apple.product-type.application";
+			name = CaptiveWebView;
+			productName = CaptiveWebView;
+			productReference = 049C33D22462C1E9007F2EE3 /* CaptiveWebView.framework */;
+			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		044F09CC24616D75005A11DD /* Project object */ = {
+		049C33C92462C1E9007F2EE3 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1140;
 				LastUpgradeCheck = 1140;
 				ORGANIZATIONNAME = "Jim Hawkins";
 				TargetAttributes = {
-					044F09D324616D75005A11DD = {
+					049C33D12462C1E9007F2EE3 = {
 						CreatedOnToolsVersion = 11.4.1;
+						LastSwiftMigration = 1140;
 					};
 				};
 			};
-			buildConfigurationList = 044F09CF24616D75005A11DD /* Build configuration list for PBXProject "MacSkeleton" */;
+			buildConfigurationList = 049C33CC2462C1E9007F2EE3 /* Build configuration list for PBXProject "Library_Mac" */;
 			compatibilityVersion = "Xcode 9.3";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -124,54 +130,43 @@
 				en,
 				Base,
 			);
-			mainGroup = 044F09CB24616D75005A11DD;
-			productRefGroup = 044F09D524616D75005A11DD /* Products */;
+			mainGroup = 049C33C82462C1E9007F2EE3;
+			productRefGroup = 049C33D32462C1E9007F2EE3 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				044F09D324616D75005A11DD /* MacSkeleton */,
+				049C33D12462C1E9007F2EE3 /* CaptiveWebView */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		044F09D224616D75005A11DD /* Resources */ = {
+		049C33D02462C1E9007F2EE3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				044F09DC24616D75005A11DD /* Assets.xcassets in Resources */,
-				044F09DF24616D75005A11DD /* Main.storyboard in Resources */,
-				049F4E63246178A200F213DD /* UserInterface in Resources */,
+				049C33E72462C265007F2EE3 /* library in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		044F09D024616D75005A11DD /* Sources */ = {
+		049C33CE2462C1E9007F2EE3 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				044F09DA24616D75005A11DD /* ViewController.swift in Sources */,
-				044F09D824616D75005A11DD /* AppDelegate.swift in Sources */,
+				049C33E32462C22C007F2EE3 /* WebResource.swift in Sources */,
+				049C33E42462C22C007F2EE3 /* CaptiveWebView.swift in Sources */,
+				049C33E52462C22C007F2EE3 /* URL+Changing.swift in Sources */,
+				049C33E22462C22C007F2EE3 /* CaptiveURLHandler.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
-/* Begin PBXVariantGroup section */
-		044F09DD24616D75005A11DD /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				044F09DE24616D75005A11DD /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
-
 /* Begin XCBuildConfiguration section */
-		044F09E224616D75005A11DD /* Debug */ = {
+		049C33D82462C1E9007F2EE3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -228,10 +223,12 @@
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
 			};
 			name = Debug;
 		};
-		044F09E324616D75005A11DD /* Release */ = {
+		049C33D92462C1E9007F2EE3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -281,45 +278,58 @@
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
 			};
 			name = Release;
 		};
-		044F09E524616D75005A11DD /* Debug */ = {
+		049C33DB2462C1E9007F2EE3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MacSkeleton/MacSkeleton.entitlements;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = MacSkeleton/Info.plist;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = Library_Mac/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MacSkeleton;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.CaptiveWebView;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		044F09E624616D75005A11DD /* Release */ = {
+		049C33DC2462C1E9007F2EE3 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MacSkeleton/MacSkeleton.entitlements;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
-				ENABLE_HARDENED_RUNTIME = YES;
-				INFOPLIST_FILE = MacSkeleton/Info.plist;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = Library_Mac/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.MacSkeleton;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.CaptiveWebView;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -327,25 +337,25 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		044F09CF24616D75005A11DD /* Build configuration list for PBXProject "MacSkeleton" */ = {
+		049C33CC2462C1E9007F2EE3 /* Build configuration list for PBXProject "Library_Mac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				044F09E224616D75005A11DD /* Debug */,
-				044F09E324616D75005A11DD /* Release */,
+				049C33D82462C1E9007F2EE3 /* Debug */,
+				049C33D92462C1E9007F2EE3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		044F09E424616D75005A11DD /* Build configuration list for PBXNativeTarget "MacSkeleton" */ = {
+		049C33DA2462C1E9007F2EE3 /* Build configuration list for PBXNativeTarget "CaptiveWebView" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				044F09E524616D75005A11DD /* Debug */,
-				044F09E624616D75005A11DD /* Release */,
+				049C33DB2462C1E9007F2EE3 /* Debug */,
+				049C33DC2462C1E9007F2EE3 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 044F09CC24616D75005A11DD /* Project object */;
+	rootObject = 049C33C92462C1E9007F2EE3 /* Project object */;
 }

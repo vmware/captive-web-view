@@ -4,7 +4,7 @@
 import Cocoa
 import WebKit
 
-import MacCaptiveWebView
+import CaptiveWebView
 
 class ViewController: NSViewController, CaptiveWebViewCommandHandler {
     func handleCommand(
@@ -19,10 +19,10 @@ class ViewController: NSViewController, CaptiveWebViewCommandHandler {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.webView = MacCaptiveWebView.CaptiveWebView.makeWebView(
+        self.webView = CaptiveWebView.makeWebView(
             frame: self.view.frame, commandHandler: self)
         self.view.addSubview(self.webView, positioned: .below, relativeTo: nil)
-        MacCaptiveWebView.CaptiveWebView.constrain(view:webView, to:view)
+        CaptiveWebView.constrain(view:webView, to:view)
 
         // Uncomment the following to add a diagnostic border around the web
         // view.
@@ -30,7 +30,7 @@ class ViewController: NSViewController, CaptiveWebViewCommandHandler {
         // self.webView.layer?.borderWidth = 4.0
         // self.webView.layer?.backgroundColor = NSColor.yellow.cgColor
 
-        _ = MacCaptiveWebView.CaptiveWebView.load(
+        _ = CaptiveWebView.load(
             in: self.webView, scheme: "local", file: "Main.html")
     }
 
