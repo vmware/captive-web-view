@@ -53,7 +53,8 @@ Cordova and Electron.
 
 # Usage
 -   For Android, see the [forAndroid sub-directory](/forAndroid/).
--   For iOS, see the [foriOS sub-directory](/foriOS/).
+-   For iOS, Catalyst, and native macOS, see the
+    [forApple sub-directory](/forApple/).
 
 # Learn More
 -   Reference documentation is in the 
@@ -74,6 +75,6 @@ of work to be done.
 License
 =======
 Captive Web View, is:  
-Copyright 2019 VMware, Inc.  
+Copyright 2020 VMware, Inc.  
 And licensed under a two-clause BSD license.  
 SPDX-License-Identifier: BSD-2-Clause

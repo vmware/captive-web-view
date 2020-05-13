@@ -19,12 +19,15 @@ How to get the framework
 
 2.  In Xcode, select to open the following path.
 
-    /wherever/you/cloned/captive-web-view/foriOS/Demonstration.xcworkspace
+    /wherever/you/cloned/captive-web-view/forApple/CaptiveWebView.xcworkspace
 
-    This is an Xcode workspace with two projects:
+    This is an Xcode workspace with the following projects:
 
     -   Captivity, an excessive demonstration application.
+    -   Headless, a demonstration in which the Web View isn't shown but is used
+        to run JavaScript Fetch commands.
     -   Skeleton, a minimal application.
+    -   MacSkeleton, a minimal macOS application.
     -   CaptiveWebView, the framework.
 
 3.  Build the CaptiveWebView framework, and then the Captivity application.

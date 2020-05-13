@@ -30,12 +30,12 @@ locations.
     [../forAndroid/](../forAndroid/) readme for how to add the Captive Web View
     library.
 
--   Swift source for iOS: [../foriOS/Headless/](../foriOS/Headless/)
+-   Swift source for iOS: [../forApple/Headless/](../forApple/Headless/)
 
     This sample is included in the Demonstration Xcode workspace, in the parent
     directory, and that might be the easiest way to build it. If you make a copy
     for your own work, refer to the general instructions in the
-    [../foriOS/](../foriOS/) readme for how to add the Captive Web View
+    [../forApple/](../forApple/) readme for how to add the Captive Web View
     framework.
 
 -   JavaScript shared source: [../forAndroid/Headless/src/main/assets/WebResources/](../forAndroid/Headless/src/main/assets/WebResources/)
@@ -73,5 +73,5 @@ path of the file is already configured to be ignored by Git.
 
 Legal
 =====
-Copyright 2019 VMware, Inc.  
+Copyright 2020 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
