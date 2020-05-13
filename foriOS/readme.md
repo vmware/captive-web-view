@@ -3,11 +3,11 @@
 
 Compatibility
 =============
-These instructions have been tested with the following software versions.
+This code is compatible with the following software versions.
 
-Software | Version
----------|--------
-Xcode    | 10.2.1
+Software | Instructions last tested | Built
+---------|--------------------------|-------
+Xcode    | 10.2.1                   | 11.4.1
 
 How to get the framework
 ==========================
