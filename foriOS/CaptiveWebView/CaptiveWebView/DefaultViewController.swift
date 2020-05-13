@@ -1,7 +1,7 @@
 // Copyright 2020 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
-#if os(iOS)
 
+#if os(iOS)
 import Foundation
 import WebKit
 
@@ -159,4 +159,5 @@ extension CaptiveWebView.DefaultViewController {
 private enum ErrorMessage: Error {
     case message(_ message:String)
 }
+
 #endif
