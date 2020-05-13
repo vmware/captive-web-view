@@ -1,7 +1,7 @@
 // Copyright 2019 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
-#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
 //! Project version number for CaptiveWebView.
 FOUNDATION_EXPORT double CaptiveWebViewVersionNumber;

@@ -1,6 +1,6 @@
 // Copyright 2019 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
-
+#if os(iOS)
 import Foundation
 import UIKit
 
@@ -38,3 +38,4 @@ extension CaptiveWebView.ApplicationDelegate {
     }
 
 }
+#endif

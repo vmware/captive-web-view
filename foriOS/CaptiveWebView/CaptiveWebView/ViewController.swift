@@ -1,6 +1,6 @@
 // Copyright 2019 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
-
+#if os(iOS)
 import Foundation
 import UIKit
 import WebKit
@@ -57,3 +57,4 @@ extension CaptiveWebView.ViewController {
         CaptiveWebView.sendObject(to: webView, command, completionHandler)
     }
 }
+#endif

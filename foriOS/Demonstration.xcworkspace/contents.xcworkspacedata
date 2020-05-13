@@ -20,7 +20,4 @@
    <FileRef
       location = "group:CaptiveWebView/CaptiveWebView.xcodeproj">
    </FileRef>
-   <FileRef
-      location = "group:Library_Mac/Library_Mac.xcodeproj">
-   </FileRef>
 </Workspace>
