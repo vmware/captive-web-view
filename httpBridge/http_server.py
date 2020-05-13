@@ -1,5 +1,5 @@
 # Run with Python 3
-# Copyright 2019 VMware, Inc.  
+# Copyright 2020 VMware, Inc.  
 # SPDX-License-Identifier: BSD-2-Clause
 """\
 HTTP server that can be used as a back end to Captive Web View applications.
@@ -128,15 +128,28 @@ class Server(ThreadingMixIn, HTTPServer):
                             break
             # Uncomment the following line to get diagnostic logs.
             # yield "".join(transcript)
+
+        host, port = self.server_address[0:2] # Items at index zero and one.
+        serverURL = "".join((
+            'http://', 'localhost' if host == '127.0.0.1' else host, ':',
+            str(int(port))
+        ))
+        #
+        # Following code generates URL strings for HTML files under the first
+        # directory that have an initial capital letter.
+        htmlFiles = "\n".join(tuple(
+            serverURL + str(htmlFile)[len(str(self.directories[0])):]
+            for htmlFile in Path(self.directories[0]).glob("**/*.html")
+            if htmlFile.name[0].isupper()
+        ))
+        
         #
         # Get the actual port number and server address. The port number could
         # be different, if zero was specified.
-        address = self.server_address
-        return 'Starting HTTP server at http://{}:{} for:{}\ncd {}'.format(
-            'localhost' if address[0] == '127.0.0.1' else address[0]
-            , int(address[1])
-            , "".join(tuple(directory_lines()))
-            , os.path.commonpath(self.directories))
+        return 'Starting HTTP server at {} for:{}\ncd {}\n{}'.format(
+            serverURL , "".join(tuple(directory_lines()))
+            , os.path.commonpath(self.directories), htmlFiles
+        )
     
     def serve_forever(self):
         chdir(os.path.commonpath(self.directories))
@@ -264,7 +277,7 @@ class Main:
 class CaptivityMain(Main):
     def __init__(self, argv):
         argv = (*argv, str(project_path(
-            'forAndroid', 'Captivity', 'src', 'main', 'assets', 'UserInterface'
+            'WebResources', 'Captivity', 'UserInterface'
         )))
         return super().__init__(argv)
     
