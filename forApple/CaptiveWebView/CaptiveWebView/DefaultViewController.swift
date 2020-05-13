@@ -112,8 +112,20 @@ extension CaptiveWebView.DefaultViewController {
             let loadedController = controllerClass.init()
             // TOTH: https://zonneveld.dev/ios-13-viewcontroller-presentation-style-modalpresentationstyle/
             loadedController.modalPresentationStyle = .fullScreen
-            loadedController.modalTransitionStyle = .flipHorizontal
-            viewController.present(loadedController, animated: true)
+
+            loadedController.modalTransitionStyle = .coverVertical
+            // During the vertical cover animation, the web view hasn't been
+            // loaded and so is a blank white rectangle. The sense of the
+            // current view being covered is therefore lost. The following code
+            // addresses this by adding a thin black border, and removing the
+            // border after presentation.  
+            // The flipHorizontal transition doesn't seem to have this problme,
+            // but it's old-fashioned looking.
+            loadedController.view.layer.borderWidth = 1.0
+            loadedController.view.layer.borderColor = UIColor.black.cgColor
+            viewController.present(loadedController, animated: true) {
+                loadedController.view.layer.borderWidth = 0
+            }
             return ["loaded": page]
             
         case "":
