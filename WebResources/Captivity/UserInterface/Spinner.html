@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<!--
+    Copyright 2019 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        html {font-family: sans-serif;}
+        body > div {
+            background-color: beige;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+        body > div > div {
+            flex: none;
+        }
+        body > div > div#spinner {
+            border: 1px black solid;
+            flex: auto;
+            /* background-color: burlywood; */
+        }
+
+        /*
+        The SVG for the spinner is from VMware Clarity. See:
+        https://clarity.design/documentation/spinners
+
+        And hence:
+        https://github.com/vmware/clarity/blob/c77dee037dda21556dba30aa4eb742ea1832677b/packages/angular/projects/clr-angular/src/image/_icons.clarity.scss#L45
+
+        Jim wrote a small JS script that fetch'd the data URL, which returns the decoded SVG. Also, change the # colour specifications to rgb().
+        */
+        @keyframes spin {
+            from {
+                transform: rotate(0);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        div#background-spinner {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'><circle fill='none' stroke-miterlimit='10' stroke-width='5px' stroke='rgb(16,16,16)' stroke-opacity='0.15' cx='36' cy='36' r='33'/> <path fill='none' stroke-miterlimit='10' stroke-width='5px' stroke='rgb(0,119,184)' d='M14.3,60.9A33,33,0,0,1,36,3'/></svg>");
+            background-position: left 0 top 50%;
+            background-repeat: no-repeat;
+            background-size: contain;
+            /* padding-left: 144px; */
+            min-height: 144px;
+            min-width: 144px;
+            /* border: 1px blue dashed; */
+            animation: spin 3s linear infinite;
+            display: inline-block;
+            position: relative;
+        }
+        
+        div#embed {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M0 0h24v24H0z' fill='none'/><path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z'/></svg>");
+            background-position: left;
+            background-repeat: no-repeat;
+            padding-left: 36px;
+        }
+    </style>
+</head>
+<body
+><script src="captivewebview.js"></script
+><script>
+    CaptiveWebView.whenLoaded("spinner.js");
+</script
+><h1 id="loading">Loading ...</h1
+></body>
+</html>
