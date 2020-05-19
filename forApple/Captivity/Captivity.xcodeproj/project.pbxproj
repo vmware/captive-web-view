@@ -18,6 +18,7 @@
 		044BDBC323A12385009F2C76 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 044BDBC123A12385009F2C76 /* LaunchScreen.storyboard */; };
 		045CC08023A5047600912780 /* SecondaryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045CC07F23A5047600912780 /* SecondaryViewController.swift */; };
 		04899D4C23FED6210088FAA3 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04899D4B23FED6210088FAA3 /* UserInterface */; };
+		049E16E7246DA23600C71C68 /* SpinnerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049E16E6246DA23600C71C68 /* SpinnerViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -45,6 +46,7 @@
 		044BDBC423A12385009F2C76 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		045CC07F23A5047600912780 /* SecondaryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryViewController.swift; sourceTree = "<group>"; };
 		04899D4B23FED6210088FAA3 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Captivity/UserInterface; sourceTree = "<group>"; };
+		049E16E6246DA23600C71C68 /* SpinnerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +97,7 @@
 				044BDBC123A12385009F2C76 /* LaunchScreen.storyboard */,
 				044BDBC423A12385009F2C76 /* Info.plist */,
 				045CC07F23A5047600912780 /* SecondaryViewController.swift */,
+				049E16E6246DA23600C71C68 /* SpinnerViewController.swift */,
 			);
 			path = Captivity;
 			sourceTree = "<group>";
@@ -171,6 +174,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				049E16E7246DA23600C71C68 /* SpinnerViewController.swift in Sources */,
 				044BDBBB23A12383009F2C76 /* MainViewController.swift in Sources */,
 				044BDBB923A12383009F2C76 /* AppDelegate.swift in Sources */,
 				045CC08023A5047600912780 /* SecondaryViewController.swift in Sources */,

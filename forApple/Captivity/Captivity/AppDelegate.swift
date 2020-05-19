@@ -17,7 +17,10 @@ class AppDelegate: CaptiveWebView.ApplicationDelegate {
     ) -> Bool
     {
         CaptiveWebView.DefaultViewController
-        .viewControllerMap["Secondary"] = SecondaryViewController.self
+            .viewControllerMap.merge([
+                "Secondary": SecondaryViewController.self,
+                "Spinner": SpinnerViewController.self
+            ], uniquingKeysWith: {(first, _) in first})
         self.launch(MainViewController.self)
         // Override point for customization after application launch.
         return true

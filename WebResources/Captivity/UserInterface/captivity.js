@@ -73,16 +73,21 @@ class Captivity {
     _panel_basic(panel) {
         const buttonA = panel.add_button("Command A");
         const focusInput = panel.add_input('focus', "Default focussed:");
-        panel.add_node('span', "Secondary user interface: ");
-        const buttonOpen = panel.add_button("Open");
+        panel.add_node('span', "User interfaces: ");
+        const buttonSecondary = panel.add_button("Secondary");
+        const buttonSpinner = panel.add_button("Spinner");
 
         buttonA.addEventListener('click', () => {
             this._send({"command": "A"});
             focusInput.value = "";
         });
-        buttonOpen.addEventListener('click', () => {
+        buttonSecondary.addEventListener('click', () => {
             this._send(
                 {"command": "load", "parameters": {"page": "Secondary"}});
+        });
+        buttonSpinner.addEventListener('click', () => {
+            this._send(
+                {"command": "load", "parameters": {"page": "Spinner"}});
         });
 
         return focusInput.inputNode;

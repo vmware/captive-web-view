@@ -3,22 +3,24 @@
 
 import PageBuilder from "./pagebuilder.js";
 
+const spinnerTitle = "Spinner Title"
+const pollIntervalMillis = 1000;
+
 class Spinner {
     constructor(bridge) {
         this._bridge = bridge;
         const loading = document.getElementById('loading');
         const builder = new PageBuilder('div', undefined, document.body);
 
-        const top = new PageBuilder('div', undefined, builder.node);
+        const header = new PageBuilder('div', undefined, builder.node);
         const middle = this._set_up(builder);
-        const bottom = new PageBuilder('div', undefined, builder.node);
+        this._footer = new PageBuilder('div', undefined, builder.node);
 
-        bottom.add_node(
-            'div', "This page loads in a separate Activity or ViewController.");
-        bottom.add_node(
-            'div', "Return by tapping Close, or the Android back button.");
-        const buttonClose = bottom.add_button("Close");
-        this._transcript = bottom.add_transcript(false);
+        this._message = this._footer.add_node("div", "Getting status ...");
+        this._message.classList.add('__message');
+        this._get_status();
+        const buttonClose = this._footer.add_button("Close");
+        this._transcript = PageBuilder.add_transcript();
 
         bridge.receiveObjectCallback = command => {
             this._transcribe(command);
@@ -28,31 +30,52 @@ class Spinner {
         buttonClose.addEventListener('click', () => this._send({
             "command": "close"}));
 
-        loading.firstChild.textContent = "Spinner";
-        top.into(loading);
-        const spinnerSVG = document.getElementById('spinner-svg');
-        top.into(spinnerSVG);
+        loading.firstChild.textContent = spinnerTitle;
+        header.into(loading);
 
-
-        this._send({"command": "ready"});
+        this._send({"command": "ready"}).then(this._on_ready.bind(this));
     }
 
     _set_up(builder) {
         const middle = new PageBuilder('div', undefined, builder.node);
-        middle.node.setAttribute('id', 'spinner');
+        middle.node.classList.add('__spinner-holder');
 
-        const embed = middle.add_node('div', "Embed", middle.node);
-        embed.setAttribute('id', 'embed');
+        // const embed = middle.add_node('div', "Embed", middle.node);
+        // embed.setAttribute('id', 'embed');
 
-        middle.add_node('span', "Spinner:", middle.node);
+        // middle.add_node('span', "Spinner:", middle.node);
+
+        // middle.add_node('div', undefined, middle.node);
+        // middle.add_node('div', undefined, middle.node);
+        // middle.add_node('div', undefined, middle.node);
+        // middle.add_node('div', undefined, middle.node);
         const spinner = middle.add_node('div', undefined, middle.node);
-        spinner.setAttribute('id', 'background-spinner');
+        spinner.classList.add('__spinner');
+        // middle.add_node('div', undefined, middle.node);
+        // middle.add_node('div', undefined, middle.node);
+        // middle.add_node('div', undefined, middle.node);
+        // middle.add_node('div', undefined, middle.node);
 
         return middle;
     }
 
-    _transcribe(message) {
-        this._transcript.add(JSON.stringify(message, undefined, 4));
+    _get_status() {
+        this._send({"command": "getStatus"})
+        .then(response => {
+            if (response.message !== undefined) {
+                this._message.firstChild.textContent = response.message;
+            }
+        });
+    }
+
+    _transcribe(messageObject) {
+        const message = JSON.stringify(messageObject, undefined, 4);
+        if (this._transcript === null) {
+            console.log(message)
+        }
+        else {
+            this._transcript.add(message);
+        }
     }
 
     _send(object_) {
@@ -68,6 +91,21 @@ class Spinner {
             this._transcribe(error);
             return error;
         });
+    }
+
+    _on_ready(response) {
+        const showLog = response.showLog;
+        if (showLog === undefined || showLog) {
+            this._footer.into(this._transcript.node);
+        }
+        else {
+            this._transcript = null;
+            this._transcribe(response);
+        }
+
+        setInterval(() => {
+            this._get_status();
+        }, pollIntervalMillis);
     }
 }
 
