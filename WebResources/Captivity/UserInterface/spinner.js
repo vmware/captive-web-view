@@ -40,21 +40,8 @@ class Spinner {
         const middle = new PageBuilder('div', undefined, builder.node);
         middle.node.classList.add('__spinner-holder');
 
-        // const embed = middle.add_node('div', "Embed", middle.node);
-        // embed.setAttribute('id', 'embed');
-
-        // middle.add_node('span', "Spinner:", middle.node);
-
-        // middle.add_node('div', undefined, middle.node);
-        // middle.add_node('div', undefined, middle.node);
-        // middle.add_node('div', undefined, middle.node);
-        // middle.add_node('div', undefined, middle.node);
-        const spinner = middle.add_node('div', undefined, middle.node);
+        const spinner = middle.add_node('div');
         spinner.classList.add('__spinner');
-        // middle.add_node('div', undefined, middle.node);
-        // middle.add_node('div', undefined, middle.node);
-        // middle.add_node('div', undefined, middle.node);
-        // middle.add_node('div', undefined, middle.node);
 
         return middle;
     }
@@ -103,9 +90,7 @@ class Spinner {
             this._transcribe(response);
         }
 
-        setInterval(() => {
-            this._get_status();
-        }, pollIntervalMillis);
+        setInterval(this._get_status.bind(this), pollIntervalMillis);
     }
 }
 

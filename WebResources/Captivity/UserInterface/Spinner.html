@@ -8,10 +8,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         html {font-family: sans-serif;}
+
+        /*
+        The expected page structure is as follows.
+
+        -   Body has one div as its content. The div has three div elements
+            inside it.
+        -   The top div is a header, the bottom div is a footer, the middle div
+            holds the spinner.
+        -   The three div elements are laid out using flex. The header and
+            footer occupy whatever space is required for their content. The
+            spinner fills whatever is left.
+        -   The rotating graphic is padded from the edges by the holder div.
+        */
         body > div {
             /* background-color: burlywood; */
             display: flex;
             flex-direction: column;
+
+            /* Make it fill the window: */
             position: absolute;
             top: 0;
             bottom: 0;
@@ -19,19 +34,13 @@
             right: 0;
         }
         body > div > div {
-            flex: none;
             /* background-color: lightblue; */
+            flex: none;
         }
         .__spinner-holder {
-            flex: auto;
             /* background-color: beige; */
+            flex: auto;
             padding: 100px;
-
-            /*
-            display: grid;
-            grid-template-columns: 1fr;
-            grid-template-rows: auto;
-            */
 
             display: flex;
             flex-direction: row;
@@ -45,7 +54,9 @@
         And hence:
         https://github.com/vmware/clarity/blob/c77dee037dda21556dba30aa4eb742ea1832677b/packages/angular/projects/clr-angular/src/image/_icons.clarity.scss#L45
 
-        Jim wrote a small JS script that fetch'd the data URL, which returns the decoded SVG. Also, change the # colour specifications to rgb().
+        Tip: Decoded SVG can be recovered from a data: URL by writing a small JS
+        script that runs fetch() on the URL. Remember to change any # syntax
+        colour specifications to rgb().
         */
         @keyframes spin {
             from {
@@ -60,15 +71,6 @@
             background-position: left 50% top 50%;
             background-repeat: no-repeat;
             background-size: contain;
-
-            /* padding-left: 144px; */
-            /* min-height: 144px;
-            min-width: 144px; */
-            /* width: 100%;
-            height: 100%; */
-            /* border: 1px blue dashed; */
-            /* display: inline-block;
-            position: relative; */
 
             flex: auto;
             animation: spin 3s linear infinite;
