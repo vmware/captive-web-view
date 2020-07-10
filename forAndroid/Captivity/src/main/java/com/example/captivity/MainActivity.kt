@@ -13,12 +13,26 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         addToActivityMap("Secondary" to SecondaryActivity::class.java)
     }
 
+    // Android Studio warns that `ready` should start with a capital letter but
+    // it shouldn't because it has to match what gets sent from the JS layer.
+    private enum class Command {
+        ready, UNKNOWN;
+
+        companion object {
+            fun matching(string: String?): Command? {
+                return if (string == null) null
+                else try { valueOf(string) }
+                catch (exception: Exception) { UNKNOWN }
+            }
+        }
+    }
+
     override fun commandResponse(
         command: String?,
         jsonObject: JSONObject
     ): JSONObject {
-        return when(command) {
-            "ready" -> jsonObject
+        return when(Command.matching(command)) {
+            Command.ready -> jsonObject
             else -> super.commandResponse(command, jsonObject)
         }
     }
