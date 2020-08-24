@@ -7,7 +7,7 @@ readme file.
 
 The sample demonstrates use of two APIs:
 
--   SWAPI: [https://swapi.co](https://swapi.co)
+-   SWAPI: [https://swapi.dev](https://swapi.dev)
 
     SWAPI is an API that provides data about the Star Wars universe. There is no
     user authentication.

@@ -1,5 +1,5 @@
 // !$*UTF8*$!
-/* Copyright 2019 VMware, Inc.
+/* Copyright 2020 VMware, Inc.
  * SPDX-License-Identifier: BSD-2-Clause
  */
 {
@@ -17,7 +17,7 @@
 		0440AC7D235B410400C44216 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0440AC7B235B410400C44216 /* LaunchScreen.storyboard */; };
 		0440AC86235B488400C44216 /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0440AC85235B488400C44216 /* CaptiveWebView.framework */; };
 		0440AC88235B48A800C44216 /* CaptiveWebView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0440AC85235B488400C44216 /* CaptiveWebView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		04825B74235F2FB200F984D6 /* WebResources in Resources */ = {isa = PBXBuildFile; fileRef = 04825B73235F2FB200F984D6 /* WebResources */; };
+		049B221524ED3F2400F53576 /* WebResources in Resources */ = {isa = PBXBuildFile; fileRef = 049B221424ED3F2400F53576 /* WebResources */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,7 +43,7 @@
 		0440AC7C235B410400C44216 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0440AC7E235B410400C44216 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0440AC85235B488400C44216 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		04825B73235F2FB200F984D6 /* WebResources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WebResources; path = ../../../forAndroid/Headless/src/main/assets/WebResources; sourceTree = "<group>"; };
+		049B221424ED3F2400F53576 /* WebResources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WebResources; path = ../../../WebResources/Headless/WebResources; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,7 +78,7 @@
 		0440AC71235B410300C44216 /* Headless */ = {
 			isa = PBXGroup;
 			children = (
-				04825B73235F2FB200F984D6 /* WebResources */,
+				049B221424ED3F2400F53576 /* WebResources */,
 				0440AC72235B410300C44216 /* AppDelegate.swift */,
 				0440AC74235B410300C44216 /* ViewController.swift */,
 				0440AC76235B410300C44216 /* Main.storyboard */,
@@ -157,7 +157,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0440AC7D235B410400C44216 /* LaunchScreen.storyboard in Resources */,
-				04825B74235F2FB200F984D6 /* WebResources in Resources */,
+				049B221524ED3F2400F53576 /* WebResources in Resources */,
 				0440AC7A235B410400C44216 /* Assets.xcassets in Resources */,
 				0440AC78235B410300C44216 /* Main.storyboard in Resources */,
 			);

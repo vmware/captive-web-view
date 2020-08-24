@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2020 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 plugins {
@@ -9,6 +9,12 @@ plugins {
 
 android {
     compileSdkVersion 28
+
+    sourceSets {
+        main.assets.srcDirs += new RelativePath(
+            false, "WebResources", "Headless", "WebResources"
+        ).getFile(new File(rootDir.getParent()))
+    }
 
     defaultConfig {
         applicationId "com.example.headless"

@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2020 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 class Headless {
@@ -133,7 +133,7 @@ class Headless {
 }
 Headless.apis = {
     'star-wars': {
-        prefix: 'https://swapi.co/api/',
+        prefix: 'https://swapi.dev/api/',
         suffix: ''
     },
     'go-rest': {
