@@ -83,6 +83,8 @@ class MainActivity : Activity(), WebViewBridge {
     fun buttonSWAPIClicked(view: View) {
         val textView = findViewById<TextView>(R.id.labelResults)
         textView.text = "Sending\nSWAPI"
+        webView.settings.mixedContentMode =
+            android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
         webView.sendObject(mapOf(
             "api" to "star-wars",
             "path" to listOf("planets", "$numericParameter")
@@ -94,6 +96,7 @@ class MainActivity : Activity(), WebViewBridge {
     fun buttonGoRest401Clicked(view: View) {
         val textView = findViewById<TextView>(R.id.labelResults)
         textView.text = "Sending\ngo-rest 401"
+        webView.settings.mixedContentMode = webView.defaultMixedContentMode
         webView.sendObject(
             mapOf(
                 "api" to "go-rest",
@@ -106,6 +109,7 @@ class MainActivity : Activity(), WebViewBridge {
     fun buttonGoRestQueryParameterClicked(view: View) {
         val textView = findViewById<TextView>(R.id.labelResults)
         textView.text = "Sending\ngo-rest query parameter"
+        webView.settings.mixedContentMode = webView.defaultMixedContentMode
         webView.sendObject(
             mapOf(
                 "api" to "go-rest",
@@ -121,10 +125,11 @@ class MainActivity : Activity(), WebViewBridge {
     fun buttonGoRestBasicClicked(view: View) {
         val textView = findViewById<TextView>(R.id.labelResults)
         textView.text = "Sending\ngo-rest basic"
+        webView.settings.mixedContentMode = webView.defaultMixedContentMode
         webView.sendObject(
             mapOf(
                 "api" to "go-rest",
-                "path" to listOf("users", "${numericParameter + 18}"),
+                "path" to listOf("users", "1372"), // "${numericParameter + 18}"),
                 "basic-auth" to "Bearer",
                 "token" to (token ?: "No token")
             ), this::showResult

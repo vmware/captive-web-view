@@ -83,6 +83,13 @@ class WebView : android.webkit.WebView {
     private val _webViewClient by lazy {
         com.example.captivewebview.WebViewClient()
     }
+
+    // The default value for mixed content mode seems to depend on the Android
+    // version. For that reason, this interface has a property that is set in
+    // defaultSettings(), which is in turn called from every constructor.
+    val defaultMixedContentMode:Int by lazy { this._defaultMixedContentMode!! }
+    private var _defaultMixedContentMode:Int? = null
+
     private fun defaultSettings(context: Context?) {
         this.settings.javaScriptEnabled = true
         android.webkit.WebView.setWebContentsDebuggingEnabled(true)
@@ -90,6 +97,7 @@ class WebView : android.webkit.WebView {
 
         this.settings.mediaPlaybackRequiresUserGesture = false
         this.webChromeClient = WebChromeClient(this)
+        this._defaultMixedContentMode = this.settings.mixedContentMode
     }
 
     var captive:Boolean

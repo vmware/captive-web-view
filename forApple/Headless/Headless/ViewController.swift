@@ -90,7 +90,7 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
         CaptiveWebView.sendObject(
             to: self.wkWebView!, [
                 "api":"go-rest",
-                "path":["users", String(describing: numericParameter + 18)],
+                "path":["users", /* String(describing: numericParameter + 18)*/ "1372"],
                 "basic-auth":"Bearer",
                 "token": self.token ?? "No token"
             ], self.sendObjectCallback)
