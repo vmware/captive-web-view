@@ -29,7 +29,7 @@
                                 <rect key="frame" x="0.0" y="28.5" width="320" height="38"/>
                                 <subviews>
                                     <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="15I-98-bti" userLabel="ContentView">
-                                        <rect key="frame" x="0.0" y="0.0" width="442" height="38"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="603" height="38"/>
                                         <subviews>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fs7-Ko-FIn" userLabel="SWAPI">
                                                 <rect key="frame" x="0.0" y="0.0" width="66" height="38"/>
@@ -67,16 +67,27 @@
                                                     <action selector="goRestBasicClicked:" destination="BYZ-38-t0r" eventType="touchDown" id="gKD-9L-P5D"/>
                                                 </connections>
                                             </button>
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="1ca-To-KDa" userLabel="WebView">
+                                                <rect key="frame" x="462" y="0.0" width="84" height="38"/>
+                                                <color key="backgroundColor" systemColor="systemFillColor" red="0.47058823529999999" green="0.47058823529999999" blue="0.50196078430000002" alpha="0.20000000000000001" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <inset key="contentEdgeInsets" minX="10" minY="10" maxX="10" maxY="10"/>
+                                                <state key="normal" title="WebView"/>
+                                                <connections>
+                                                    <action selector="toggleWebView:" destination="BYZ-38-t0r" eventType="touchDown" id="nj9-iW-rQg"/>
+                                                </connections>
+                                            </button>
                                         </subviews>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                         <constraints>
                                             <constraint firstItem="fs7-Ko-FIn" firstAttribute="leading" secondItem="15I-98-bti" secondAttribute="leading" id="ALm-CL-mJE"/>
                                             <constraint firstItem="q8A-bS-fwE" firstAttribute="leading" secondItem="fs7-Ko-FIn" secondAttribute="trailing" constant="20" id="D3b-rj-WQY"/>
                                             <constraint firstItem="fs7-Ko-FIn" firstAttribute="centerY" secondItem="15I-98-bti" secondAttribute="centerY" id="DhH-qu-kVv"/>
+                                            <constraint firstAttribute="trailing" secondItem="1ca-To-KDa" secondAttribute="trailing" constant="57" id="LcD-Lh-1Vm"/>
                                             <constraint firstItem="fs7-Ko-FIn" firstAttribute="top" secondItem="15I-98-bti" secondAttribute="top" id="OIe-QS-F4B"/>
-                                            <constraint firstAttribute="trailing" secondItem="w6B-0h-zk8" secondAttribute="trailing" id="SKh-j7-uV3"/>
                                             <constraint firstItem="Vn4-sf-bOB" firstAttribute="leading" secondItem="q8A-bS-fwE" secondAttribute="trailing" constant="20" id="V6V-Bg-AQq"/>
                                             <constraint firstItem="Vn4-sf-bOB" firstAttribute="centerY" secondItem="fs7-Ko-FIn" secondAttribute="centerY" id="VpY-2L-aJ0"/>
+                                            <constraint firstItem="1ca-To-KDa" firstAttribute="leading" secondItem="w6B-0h-zk8" secondAttribute="trailing" constant="20" id="hPp-rh-e95"/>
+                                            <constraint firstItem="1ca-To-KDa" firstAttribute="centerY" secondItem="fs7-Ko-FIn" secondAttribute="centerY" id="mKB-oH-7Cp"/>
                                             <constraint firstItem="q8A-bS-fwE" firstAttribute="centerY" secondItem="fs7-Ko-FIn" secondAttribute="centerY" id="nQe-iO-zjn"/>
                                             <constraint firstItem="w6B-0h-zk8" firstAttribute="centerY" secondItem="fs7-Ko-FIn" secondAttribute="centerY" id="pfY-QU-0dq"/>
                                             <constraint firstItem="w6B-0h-zk8" firstAttribute="leading" secondItem="Vn4-sf-bOB" secondAttribute="trailing" constant="20" id="ukE-K0-qEv"/>
@@ -134,6 +145,7 @@
                     </view>
                     <connections>
                         <outlet property="resultsLabel" destination="plz-Da-Sbu" id="A1z-7H-rhS"/>
+                        <outlet property="scrollResults" destination="TMR-4t-UF7" id="W99-gR-8IM"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>

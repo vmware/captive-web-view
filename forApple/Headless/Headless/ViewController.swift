@@ -29,6 +29,9 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
     var wkWebView: WKWebView?
     var numericParameter = 1
 
+    @IBOutlet weak var scrollResults: UIScrollView!
+    @IBOutlet weak var resultsLabel: UILabel!
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -46,6 +49,10 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
         _ = CaptiveWebView.load(in: wkWebView!,
                                 scheme: "local",
                                 file: "Headless.html")
+        
+        // Next line makes the web view the same size and position as the
+        // scrolling results view. There's a button to toggle between the two.
+        CaptiveWebView.constrain(view: madeWebView, to: scrollResults)
     }
     
     func sendObjectCallback(result:Any?, error:Error?) {
@@ -94,6 +101,8 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
             ], self.sendObjectCallback)
     }
     
-    @IBOutlet weak var resultsLabel: UILabel!
+    @IBAction func toggleWebView(_ sender: Any) {
+        wkWebView?.isHidden = scrollResults.isHidden
+        scrollResults.isHidden = !scrollResults.isHidden
+    }
 }
-
