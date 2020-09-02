@@ -7,11 +7,10 @@ import android.app.Activity
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-//import android.widget.FrameLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import com.example.captivewebview.DefaultActivityMixIn
 import com.example.captivewebview.WebViewBridge
-//import com.example.captivewebview.WebViewClient
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -34,16 +33,6 @@ class MainActivity : Activity(), WebViewBridge {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        // If you want to diagnose problems in the JS then uncomment:
-        //
-        // -   The FrameLayout in the layout xml.
-        // -   The code that adds the WebView to it here.
-        //
-        // Then the web view will appear in the application user interface.
-        //
-        // val frame = findViewById<FrameLayout>(R.id.smallFrame)
-        // frame.addView(webView)
     }
 
     override fun onResume() {
@@ -76,8 +65,10 @@ class MainActivity : Activity(), WebViewBridge {
     }
 
     private fun showResult(jsonObject: JSONObject) {
-        val textView = findViewById<TextView>(R.id.labelResults)
-        textView.text = jsonObject.toString(4)
+        runOnUiThread {
+            findViewById<TextView>(R.id.labelResults)
+                .text = jsonObject.toString(4)
+        }
     }
 
     fun buttonSWAPIClicked(view: View) {
@@ -93,9 +84,9 @@ class MainActivity : Activity(), WebViewBridge {
         return
     }
 
-    fun buttonGoRest401Clicked(view: View) {
+    fun buttonGoRestGETClicked(view: View) {
         val textView = findViewById<TextView>(R.id.labelResults)
-        textView.text = "Sending\ngo-rest 401"
+        textView.text = "Sending\ngo-rest GET"
         webView.settings.mixedContentMode = webView.defaultMixedContentMode
         webView.sendObject(
             mapOf(
@@ -103,22 +94,20 @@ class MainActivity : Activity(), WebViewBridge {
                 "path" to listOf("users", "${numericParameter + 18}")
             ), this::showResult
         )
+        numericParameter += 1
         return
     }
 
-    fun buttonGoRestQueryParameterClicked(view: View) {
+    fun buttonGoRest401Clicked(view: View) {
         val textView = findViewById<TextView>(R.id.labelResults)
-        textView.text = "Sending\ngo-rest query parameter"
+        textView.text = "Sending\ngo-rest 401"
         webView.settings.mixedContentMode = webView.defaultMixedContentMode
         webView.sendObject(
             mapOf(
                 "api" to "go-rest",
-                "path" to listOf("users", "${numericParameter + 18}"),
-                "query-parameter" to "access-token",
-                "token" to (token ?: "No token")
+                "method" to "POST", "path" to listOf("users")
             ), this::showResult
         )
-        numericParameter += 1
         return
     }
 
@@ -129,12 +118,26 @@ class MainActivity : Activity(), WebViewBridge {
         webView.sendObject(
             mapOf(
                 "api" to "go-rest",
-                "path" to listOf("users", "1372"), // "${numericParameter + 18}"),
+                "method" to "POST", "path" to listOf("users"),
                 "basic-auth" to "Bearer",
                 "token" to (token ?: "No token")
             ), this::showResult
         )
-        numericParameter += 1
         return
+    }
+
+    fun toggleWebView(view: View) {
+        findViewById<ScrollView>(R.id.scrollWebView).let { scrollWebView ->
+            val visible = scrollWebView.visibility == View.VISIBLE
+            scrollWebView.visibility = if (visible) View.GONE else View.VISIBLE
+            if (visible) {
+                scrollWebView.removeView(webView)
+            }
+            else {
+                scrollWebView.addView(webView)
+            }
+            findViewById<ScrollView>(R.id.scrollResults).visibility =
+                if (visible) View.VISIBLE else View.GONE
+        }
     }
 }
