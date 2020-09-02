@@ -122,6 +122,11 @@ class Captivity {
         panel.add_anchor("embeddedSVG.html", "Embedded SVG Images");
         panel.add_anchor("camera.html", "Camera");
         panel.add_anchor("speech.html", "Speech");
+        
+        const speechButton = panel.add_button("Load Speech");
+        speechButton.addEventListener('click', () => {
+            this._send({"load": "speech.html"});
+        })
     }
 
     _panel_page_builder(panel) {

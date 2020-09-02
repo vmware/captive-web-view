@@ -10,81 +10,99 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
-    <TextView
-            android:id="@+id/labelResults"
-            android:layout_width="406dp"
-            android:layout_height="0dp"
-            android:gravity="center"
-            android:text="@string/app_name"
-            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/buttonSWAPI" />
-
-    <Button
-            android:id="@+id/buttonSWAPI"
+    <HorizontalScrollView
+        android:id="@+id/scrollButtons"
+        android:scrollbars="horizontal"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        >
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:onClick="buttonSWAPIClicked"
-            android:text="SWAPI"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-            android:id="@+id/buttonGoRest401"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:onClick="buttonGoRest401Clicked"
-            android:text="go-rest 401"
-            app:layout_constraintStart_toEndOf="@+id/buttonSWAPI"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-            android:id="@+id/buttonGoRestBasic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            app:layout_constraintStart_toEndOf="@+id/buttonGoRest401"
-            app:layout_constraintTop_toTopOf="parent"
-            android:onClick="buttonGoRestBasicClicked"
-            android:text="go-rest basic" />
-
-    <Button
-            android:id="@+id/buttonGoRestQueryParameter"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/buttonSWAPI"
-            android:onClick="buttonGoRestQueryParameterClicked"
-            android:text="go-rest query parameter" />
+            android:orientation="horizontal"
+            >
+            <Button
+                android:id="@+id/buttonSWAPI"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonSWAPIClicked"
+                android:text="SWAPI" />
+            <Button
+                android:id="@+id/buttonGoRestGET"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonGoRestGETClicked"
+                android:text="go-rest GET" />
+            <Button
+                android:id="@+id/buttonGoRest401"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonGoRest401Clicked"
+                android:text="go-rest 401" />
+            <Button
+                android:id="@+id/buttonGoRestBasic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="buttonGoRestBasicClicked"
+                android:text="go-rest basic" />
+            <Button
+                android:id="@+id/buttonWebView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="toggleWebView"
+                android:text="WebView" />
+        </LinearLayout>
+    </HorizontalScrollView>
 
     <!--
-
-    If you want to diagnose problems in the JS then uncomment the FrameLayout
-    here and the code that adds the WebView to it, in the MainActivity.kt file.
-    Then the web view will appear in the application user interface.
-    Oh, you also have to muck about with the constraints so that the layout has
-    some screen space.
-
-    <FrameLayout
-            android:id="@+id/smallFrame"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/labelResults"
-            app:layout_constraintVertical_bias="1.0">
-
-    </FrameLayout>
-
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        app:layout_constraintTop_toBottomOf="@id/scrollButtons"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:background="@android:color/black" />
     -->
+
+    <ScrollView
+        android:id="@+id/scrollResults"
+        android:scrollbars="vertical"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/scrollButtons"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        >
+        <TextView
+            android:id="@+id/labelResults"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+            android:text="Results go here"
+            />
+    </ScrollView>
+
+    <!--
+    Following ScrollView gets the WebView added to it by the WebView button.
+    That button also toggles the visibility of this and the scrollResults view.
+    -->
+    <ScrollView
+        android:id="@+id/scrollWebView"
+        android:scrollbars="vertical"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/scrollButtons"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </android.support.constraint.ConstraintLayout>

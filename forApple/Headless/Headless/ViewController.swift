@@ -29,6 +29,9 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
     var wkWebView: WKWebView?
     var numericParameter = 1
 
+    @IBOutlet weak var scrollResults: UIScrollView!
+    @IBOutlet weak var resultsLabel: UILabel!
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -46,6 +49,10 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
         _ = CaptiveWebView.load(in: wkWebView!,
                                 scheme: "local",
                                 file: "Headless.html")
+        
+        // Next line makes the web view the same size and position as the
+        // scrolling results view. There's a button to toggle between the two.
+        CaptiveWebView.constrain(view: madeWebView, to: scrollResults)
     }
     
     func sendObjectCallback(result:Any?, error:Error?) {
@@ -64,39 +71,38 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
         numericParameter += 1
     }
     
+    @IBAction func goRestGETClicked(_ sender: Any) {
+        resultsLabel.text = "Sending\ngo-rest GET"
+        CaptiveWebView.sendObject(
+            to: self.wkWebView!, [
+                "api":"go-rest",
+                "path":["users", String(describing: numericParameter + 18)],
+            ], self.sendObjectCallback)
+        numericParameter += 1
+    }
+
     @IBAction func goRest401Clicked(_ sender: Any) {
         resultsLabel.text = "Sending\ngo-rest 401"
         CaptiveWebView.sendObject(
             to: self.wkWebView!, [
                 "api":"go-rest",
-                "path":["users", String(describing: numericParameter + 18)]
+                "method": "POST", "path":["users"]
             ], self.sendObjectCallback)
     }
     
-    @IBAction func goRestQueryParameterClicked(_ sender: Any) {
-        resultsLabel.text = "Sending\ngo-rest query parameter"
-        CaptiveWebView.sendObject(
-            to: self.wkWebView!, [
-                "api":"go-rest",
-                "path":["users", String(describing: numericParameter + 18)],
-                "query-parameter":"access-token",
-                "token": self.token ?? "No token"
-            ], self.sendObjectCallback)
-        numericParameter += 1
-    }
-
     @IBAction func goRestBasicClicked(_ sender: Any) {
         resultsLabel.text = "Sending\ngo-rest basic"
         CaptiveWebView.sendObject(
             to: self.wkWebView!, [
                 "api":"go-rest",
-                "path":["users", String(describing: numericParameter + 18)],
+                "method": "POST", "path":["users"],
                 "basic-auth":"Bearer",
                 "token": self.token ?? "No token"
             ], self.sendObjectCallback)
-        numericParameter += 1
     }
     
-    @IBOutlet weak var resultsLabel: UILabel!
+    @IBAction func toggleWebView(_ sender: Any) {
+        wkWebView?.isHidden = scrollResults.isHidden
+        scrollResults.isHidden = !scrollResults.isHidden
+    }
 }
-

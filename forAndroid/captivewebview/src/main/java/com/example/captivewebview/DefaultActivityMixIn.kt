@@ -33,9 +33,20 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         const val EXCEPTION_KEY = "failed"
         private const val LOAD_PAGE_KEY = "load"
 
-        private const val FOCUS_COMMAND = "focus"
-        private const val LOAD_COMMAND = LOAD_PAGE_KEY
-        private const val CLOSE_COMMAND = "close"
+        // Android Studio warns that these should start with capital letters but
+        // they shouldn't because they have to match what gets sent from the JS
+        // layer.
+        private enum class Command {
+            close, focus, load, UNKNOWN;
+
+            companion object {
+                fun matching(string: String?): Command? {
+                    return if (string == null) null
+                    else try { valueOf(string) }
+                    catch (exception: Exception) { UNKNOWN }
+                }
+            }
+        }
 
         val activityMap = mutableMapOf<String, Class<android.app.Activity>>()
 
@@ -125,12 +136,15 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             : JSONObject
     {
         this as com.example.captivewebview.Activity
-        return when (command) {
-            CLOSE_COMMAND -> jsonObject.put("closed", true).also { this.finish() }
+        return when (Command.matching(command)) {
 
-            FOCUS_COMMAND -> jsonObject.put("focussed", focusWebView())
+            Command.close -> jsonObject.put("closed", true).also {
+                this.finish()
+            }
 
-            LOAD_COMMAND -> (jsonObject.get("parameters") as JSONObject).let {
+            Command.focus -> jsonObject.put("focussed", focusWebView())
+
+            Command.load -> (jsonObject.get("parameters") as JSONObject).let {
                 // Scope function `let` returns the result of the lambda and
                 // makes the context object available as `it`.
                 jsonObject.put("loaded", this.loadActivity(it))
@@ -138,7 +152,8 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
 
             null -> jsonObject
 
-            else -> throw Exception("Unknown command \"$command\".")
+            Command.UNKNOWN -> throw Exception("Unknown command \"$command\".")
+
         }
     }
 

@@ -265,6 +265,7 @@ get the framework, above.
     
     -   Do an Internet search for "Safari developer tools" for basic information
         and instructions.
+
     -   You have to do something extra to enable the Safari developer tools to
         inspect the WKWebView in your application running on a device, as
         follows.
@@ -275,6 +276,15 @@ get the framework, above.
         You might have to restart Safari on your desktop, and on your device,
         and restart Xcode and re-install your application for the change to take
         effect.
+
+    -   If you are using a beta version of iOS, you might have to use the Safari
+        Technology Preview version.
+
+        Download is available here, at time of writing:  
+        [https://developer.apple.com/safari/download/](https://developer.apple.com/safari/download/)
+        
+        TOTH:  
+        [https://developer.apple.com/forums/thread/96217?answerId=303426022#303426022](https://developer.apple.com/forums/thread/96217?answerId=303426022#303426022)
 
 10. Add the Swift end of the command handler.
 

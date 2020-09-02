@@ -11,9 +11,9 @@ private let EXCEPTION_KEY = "failed"
 private let LOAD_PAGE_KEY = "load"
 private let SECURE_KEY = "secure"
 
-private let FOCUS_COMMAND = "focus"
-private let LOAD_COMMAND = LOAD_PAGE_KEY
-private let CLOSE_COMMAND = "close"
+private enum Command: String {
+    case close, focus, load, EMPTY = ""
+}
 
 extension CaptiveWebView.DefaultViewController {
 
@@ -79,15 +79,15 @@ extension CaptiveWebView.DefaultViewController {
         let parameters = commandDictionary["parameters"]
             as? Dictionary<String, Any> ?? [:]
         
-        switch command {
-        case CLOSE_COMMAND:
+        switch Command(rawValue:command) {
+        case .close:
             viewController.dismiss(animated: true, completion: nil)
             return ["closed": true]
 
-        case FOCUS_COMMAND:
+        case .focus:
             return ["focussed controller": viewController.becomeFirstResponder()]
             
-        case LOAD_COMMAND:
+        case .load:
             guard let page = parameters["page"] as? String else {
                 throw ErrorMessage.message("No page specified.")
             }
@@ -128,7 +128,7 @@ extension CaptiveWebView.DefaultViewController {
             }
             return ["loaded": page]
             
-        case "":
+        case .EMPTY:
             if let page = commandDictionary[LOAD_PAGE_KEY] as? String {
                 // This branch handles a command like this:
                 //

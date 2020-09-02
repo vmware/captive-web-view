@@ -1,4 +1,4 @@
-# Copyright 2019 VMware, Inc.  
+# Copyright 2020 VMware, Inc.  
 # SPDX-License-Identifier: BSD-2-Clause
 
 # That macOS file it puts everywhere.
@@ -14,7 +14,7 @@ material.css
 material.js
 
 # File with secrets like go-rest token.
-forAndroid/Headless/src/main/assets/WebResources/secrets.js
+WebResources/Headless/WebResources/secrets.js
 
 # Python that was cached by importation
 __pycache__/
