@@ -160,6 +160,7 @@ class Headless {
         uri.protocol = base.protocol;
         uri.hostname = base.hostname;
         uri.port = "";
+        this._transcribe({port: uri.port});
         uri.pathname = [...base.path, ...command.path].join('/');
         if ('query-parameter' in command) {
             uri.searchParams.append(
@@ -179,7 +180,9 @@ class Headless {
     // Generate a JSON-able object from a Request instance.
     _request_JSON(request) {
         return {
-            url: request.url, headers: [...request.headers.entries()]
+            method: request.method,
+            url: request.url,
+            headers: [...request.headers.entries()]
         };
     }
 
@@ -256,7 +259,8 @@ class Headless {
         try {
             return {
                 ok:response.ok, body:await response.json(),
-                status:response.status, statusText:response.statusText
+                status:response.status, statusText:response.statusText,
+                request:this._request_JSON(request)
             };
         }
         catch(error) {
