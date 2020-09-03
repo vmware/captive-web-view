@@ -10,7 +10,10 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        addToActivityMap("Secondary" to SecondaryActivity::class.java)
+        addToActivityMap(
+            "Secondary" to SecondaryActivity::class.java,
+            "Spinner" to SpinnerActivity::class.java
+        )
     }
 
     // Android Studio warns that `ready` should start with a capital letter but

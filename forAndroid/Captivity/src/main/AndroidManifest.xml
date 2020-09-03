@@ -28,6 +28,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".SecondaryActivity" />
+        <activity android:name=".SpinnerActivity" />
     <meta-data
             android:name="android.webkit.WebView.MetricsOptOut"
             android:value="true"
