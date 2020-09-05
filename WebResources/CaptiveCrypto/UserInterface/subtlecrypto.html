@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<!--
+    Copyright 2020 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {font-family: sans-serif;}
+    </style>
+</head>
+<body
+><h1>Subtle Cryptography</h1><!--
+
+    Reference: https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto
+
+--><div
+    ><p>Look in the console too.</p
+    ><ul id="results"><!-- 
+
+        Will be populated by code.
+
+    --></ul
+    ></div
+><script>
+
+const crypto = window.crypto.subtle;
+const indexedDB = window.indexedDB;
+let results;
+function add_result(...messages) {
+    const li = document.createElement('li');
+    li.append(messages.join(" "));
+    results.append(li);
+    return li;
+}
+function add_sub_result(parent, ...tagTextsList) {
+    tagTextsList.forEach(([tag, ...texts]) => {
+        const node = document.createElement(tag);
+        node.appendChild(document.createTextNode(texts.join(" ")));
+        parent.appendChild(node);
+    });
+    return parent;
+}
+
+document.body.onload = function() {
+    console.log(window, window.crypto, crypto, indexedDB);
+    results = document.getElementById('results');
+
+    if (crypto) {
+        dumpVariousKeys();
+        storeKey();
+    }
+    else {
+        add_result(`Subtle Crypto: ${crypto}.`);
+    }
+};
+
+function dumpVariousKeys() {
+    // Generates an error for `raw` export, depending on browser:
+    // -   Chrome on macOS: DOMException.
+    // -   Safari on macOS: NotSupportedError: The algorithm is not supported.
+    dumpEachKey({
+        name: "RSA-OAEP",
+        modulusLength: 4096,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256"
+    }, ["encrypt", "decrypt"]);
+
+    dumpEachKey({
+        name: "ECDSA",
+        namedCurve: "P-384"
+    }, ["sign", "verify"]);
+
+    // OK.
+    dumpEachKey({
+        name: "HMAC",
+        hash: {name: "SHA-512"}
+    }, ["sign", "verify"]);
+}
+
+function dumpEachKey(arg1, arg3) {
+    [true, false].forEach(extractable => dumpKey(arg1, extractable, arg3));
+}
+
+function dumpKey(...generateArgs) {
+    const label = generateArgs[0].name + " " + generateArgs[1];
+    const li = document.createElement('li');
+
+    const p = document.createElement('p');
+    const labelNode = document.createTextNode(label);
+    p.appendChild(labelNode);
+    li.appendChild(p);
+    results.appendChild(li);
+    const ul = document.createElement('ul');
+    li.appendChild(ul);
+
+    crypto.generateKey(...generateArgs)
+    .then(key => {
+        console.log("Generated", key);
+        const generatedLI = document.createElement('li');
+
+        const generatedLabelNode = document.createElement('p');
+        generatedLabelNode.appendChild(document.createTextNode("Generated"));
+        generatedLI.appendChild(generatedLabelNode);
+
+        const generatedMessageNode = document.createElement('pre');
+        generatedMessageNode.appendChild(document.createTextNode(
+            JSON.stringify(JSONable(key, 1), undefined, 4)
+        ));
+        generatedLI.appendChild(generatedMessageNode);
+
+        ul.appendChild(generatedLI);
+
+        if ('publicKey' in key) {
+            exportKey(key.publicKey, ul, "Public");
+            exportKey(key.privateKey, ul, "Private");
+        }
+        else {
+            exportKey(key, ul);
+        }
+    });
+}
+
+function JSONable(obj, minLayers=0) {
+    if (minLayers <= 0) {
+        const stringified = JSON.stringify(obj);
+        if (stringified !== "{}") {
+            // console.log(stringified);
+            return obj;
+        }
+    }
+    const jsonAble = {};
+    for(let propertyName in obj) {
+        // console.log(propertyName, obj[propertyName]);
+        jsonAble[propertyName] = JSONable(obj[propertyName], minLayers - 1);
+    }
+    return jsonAble;
+}
+
+function exportKey(key, parent, label) {
+    crypto.exportKey('jwk', key)
+    .then(exported => [
+        "Exported", 'pre', JSON.stringify(exported, undefined, 4)
+    ])
+    .catch(error => [
+        "Error", 'p', error
+    ])
+    .then(([result, tag, message]) => {
+        parent.appendChild(add_sub_result(document.createElement('li'),
+            ['p', (label === undefined ? "" : label + " " ) + result],
+            [tag, message]
+        ));
+    });
+}
+
+// https://gist.github.com/saulshanabrook/b74984677bccd08b028b30d9968623f5
+function storeKey() {
+    crypto.generateKey({
+        name: "RSA-OAEP",
+        modulusLength: 4096,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: "SHA-256"
+    }, false, ["encrypt", "decrypt"])
+    .then(keyPair => {
+        const sentinel = "Sentinially";
+        return Promise.all([keyPair, sentinel, crypto.encrypt(
+            {name: "RSA-OAEP"},
+            keyPair.publicKey,
+            new TextEncoder().encode(sentinel)
+        )])
+    })
+    .then(([keyPair, sentinel, encipheredSentinel]) => Promise.all([
+        keyPair, sentinel, encipheredSentinel, crypto.decrypt(
+            {name: "RSA-OAEP"}, keyPair.privateKey, encipheredSentinel)
+    ]))
+    .then(([keyPair, sentinel, encipheredSentinel, decipheredSentinel]) => {
+        const decoded = new TextDecoder().decode(decipheredSentinel);
+        add_sub_result(add_result("Unstored"),
+            [
+                'p', sentinel === decoded ? "Match" : "No match",
+                sentinel, decoded
+            ],
+            ['pre', JSON.stringify(JSONable(keyPair, 1), undefined, 4)],
+            ['p', new Uint32Array(encipheredSentinel).join(", ")]
+        );
+        // console.log(
+        //     "Final", sentinel === decoded ? "Match" : "No match",
+        //      keyPair, sentinel, encipheredSentinel, decoded
+        // );
+
+        const name = "Keys";
+        const openRequest = indexedDB.open(name, 1);
+
+        openRequest.onerror = event => add_result("Error in open()", event);
+
+        // Create the schema
+        openRequest.onupgradeneeded = (event) => {
+            event.target.result.createObjectStore(
+                name, {keyPath: "identifier"});
+        };
+        
+        openRequest.onsuccess = on_open_success.bind(openRequest,
+            keyPair, encipheredSentinel);
+    });
+}
+
+function on_open_success(keyPair, enciphered, eventOpen) {
+    // The `eventOpen` ends up as the last parameter because of how .bind works.
+    // console.log("On open success", eventOpen, keyPair, enciphered);
+
+    const dataBase = eventOpen.target.result;
+    const transaction = dataBase.transaction(dataBase.name, "readwrite");
+    const store = transaction.objectStore(dataBase.name);
+
+    const getRequest = store.get(1);
+    getRequest.onerror = event =>  add_result("Error in get()", event);
+    getRequest.onsuccess = (event) => {
+        const resultDescent = descend(event, "target", "result");
+        const keyDescent = descend(resultDescent.point, "key", "privateKey");
+        // const got = event.target.result;
+        // console.log("OK get()", event, event.target, got);
+        // const key = got.key.privateKey;
+        if (keyDescent.ok && resultDescent.ok) {
+            const key = keyDescent.point;
+            const got = resultDescent.point;
+            crypto.decrypt({name: key.algorithm.name}, key, got.enciphered)
+            .then(deciphered => {
+                const decoded = new TextDecoder().decode(deciphered);
+                add_sub_result(
+                    add_result("Got", decoded),
+                    ['pre', JSON.stringify(JSONable(got.key, 1), undefined, 4)],
+                    ['p', new Uint32Array(got.enciphered).join(", ")]
+                );
+            });
+        }
+        else {
+            add_result("Got", JSON.stringify({
+                "result": resultDescent, "key": keyDescent}));
+        }
+    };
+
+    const putRequest = store.put({
+        "identifier":1, "key":keyPair, "enciphered": enciphered
+    });
+    putRequest.onerror = domException => {
+        const domExceptionJSON = JSON.stringify({
+            "code": domException.code, "message": domException.message,
+            "name": domException.name
+        });
+        add_result("Error in put()", domExceptionJSON, String(domException));
+        console.log(`Error in put() ${domExceptionJSON}`);
+    };
+    putRequest.onsuccess = (event) => add_result (
+        "OK put()", event.target.result);
+
+    transaction.oncomplete = () => {
+        dataBase.close();
+        add_result("Transaction complete.");
+    };
+}
+
+function descend(point, ...segments) {
+    const descent = {path: [], ok: true };
+    for(const segment of segments) {
+        if (point !== undefined && segment in point) {
+            point = point[segment];
+            descent.path.push(segment);
+        }
+        else {
+            descent.ok = false;
+            break;
+        }
+    }
+    descent.point = point;
+    return descent;
+}
+
+</script><a href="Index.html">Back to Index</a
+></body>
+</html>
