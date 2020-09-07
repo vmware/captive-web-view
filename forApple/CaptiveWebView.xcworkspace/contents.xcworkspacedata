@@ -12,6 +12,9 @@
       location = "group:Headless/Headless.xcodeproj">
    </FileRef>
    <FileRef
+      location = "group:CaptiveCrypto/CaptiveCrypto.xcodeproj">
+   </FileRef>
+   <FileRef
       location = "group:Skeleton/Skeleton.xcodeproj">
    </FileRef>
    <FileRef
