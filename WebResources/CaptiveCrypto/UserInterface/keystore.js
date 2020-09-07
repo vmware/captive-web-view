@@ -44,13 +44,13 @@ class KeyStore {
 
         const buttonGeneratePair = this._add_button(
             'Generate Native Pair "JS"', () => this._send(
-                {"command": "generate-pair", "parameters": {"alias": "JS"}}));
+                {"command": "generatePair", "parameters": {"alias": "JS"}}));
 
         const buttonDump = this._add_button(
             "Dump Key Store", () => this._send({"command": "dump"}));
 
         const buttonDeleteAll = this._add_button(
-            "Delete All Keys", () => this._send({"command": "delete-all"}));
+            "Delete All Keys", () => this._send({"command": "deleteAll"}));
         
         // const buttonClose = this._add_button(
         //     "Close", () => this._send({"command": "close"}));

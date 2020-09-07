@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2020 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 [
@@ -6,7 +6,7 @@
     ':captivewebview',
 
     // Sample applications:
-    ':Captivity', ':Headless', ':Skeleton',
+    ':Captivity', ':Headless', ':Skeleton', ':CaptiveCrypto',
 
     // Reference documentation placeholder:
     ':documentationOrchid'
