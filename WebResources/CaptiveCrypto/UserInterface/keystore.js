@@ -1,6 +1,8 @@
 // Copyright 2020 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
+import PageBuilder from "./pagebuilder.js";
+
 const crypto = window.crypto.subtle;
 
 function JSONable(obj, minLayers=0) {
@@ -50,8 +52,8 @@ class KeyStore {
         const buttonDeleteAll = this._add_button(
             "Delete All Keys", () => this._send({"command": "delete-all"}));
         
-        const buttonClose = this._add_button(
-            "Close", () => this._send({"command": "close"}));
+        // const buttonClose = this._add_button(
+        //     "Close", () => this._send({"command": "close"}));
 
         this._buttonClear = this._add_button("Clear Transcript", () => {
             // TOTH https://stackoverflow.com/a/22966637/7657675
@@ -65,7 +67,7 @@ class KeyStore {
 
         document.body.append(
             ...cryptoButtons, 
-            buttonGeneratePair, buttonDump, buttonDeleteAll, buttonClose,
+            buttonGeneratePair, buttonDump, buttonDeleteAll, //buttonClose,
             document.createElement('hr'), this._buttonClear, this._transcript
         );
 
@@ -75,10 +77,13 @@ class KeyStore {
         };
 
         this._send({"command": "dump"})
-        .then(() =>
-            document.getElementById('loading')
-            .firstChild.textContent = "Key Store Inspector"
-        );
+        .then(() => {
+            const loading = new PageBuilder(document.getElementById('loading'));
+            loading.node.firstChild.remove();
+            const anchor = loading.add_anchor(
+                "Main.html", "Key Store Inspector");
+            anchor.classList.add("cwv-anchor", "cwv-anchor_back");
+        });
     }
 
     _add_button(label, onClick) {
