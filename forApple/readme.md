@@ -379,8 +379,23 @@ TBD properly but in note form:
 
         self.launch(MainViewController.self)
 
-2.  Remove the UIMainStoryboard setting from the Info.plist file.
-3.  Remove the Main.storyboard file from the project.
+2.  Remove the scene session life cycle methods from your AppDelegate. Xcode
+    might have added them by default, as follows.
+
+        // MARK: UISceneSession Lifecycle
+
+        func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+            ...
+        }
+
+        func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
+            ...
+        }
+    
+    Delete the MARK and the methods.
+
+3.  Remove the UIMainStoryboard setting from the Info.plist file.
+4.  Remove the Main.storyboard file from the project.
 
 Legal
 =====
