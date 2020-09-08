@@ -47,7 +47,7 @@ extension CaptiveWebView.DefaultViewController {
         do {
             let commandAny:Any = command[COMMAND_KEY] ?? ""
             guard let commandString = commandAny as? String else {
-                throw ErrorMessage.message(
+                throw CaptiveWebView.ErrorMessage(
                     "Command isn't String: " + String(describing: commandAny))
             }
 
@@ -60,8 +60,8 @@ extension CaptiveWebView.DefaultViewController {
                 String(describing: type(of: viewController)) + " bridge OK."
             returning[SECURE_KEY] = viewController.webView.hasOnlySecureContent
         }
-        catch ErrorMessage.message(let message) {
-            returning[EXCEPTION_KEY] = message
+        catch let error as CaptiveWebView.ErrorMessage {
+            returning[EXCEPTION_KEY] = error.localizedDescription
         }
         catch {
             returning[EXCEPTION_KEY] = error.localizedDescription
@@ -89,7 +89,7 @@ extension CaptiveWebView.DefaultViewController {
             
         case .load:
             guard let page = parameters["page"] as? String else {
-                throw ErrorMessage.message("No page specified.")
+                throw CaptiveWebView.ErrorMessage("No page specified.")
             }
             
             // The Captive Web View for Android has a map of page to Activity
@@ -106,7 +106,7 @@ extension CaptiveWebView.DefaultViewController {
             // }
             
             guard let controllerClass = viewControllerMap[page] else {
-                throw ErrorMessage.message(
+                throw CaptiveWebView.ErrorMessage(
                     "Page \"\(page)\" isn't in viewControllerMap")
             }
             let loadedController = controllerClass.init()
@@ -159,17 +159,9 @@ extension CaptiveWebView.DefaultViewController {
             }
 
         default:
-            throw ErrorMessage.message("Unknown command \"\(command)\"")
+            throw CaptiveWebView.ErrorMessage("Unknown command \"\(command)\"")
         }
     }
-}
-
-// An enum subclass seems to be the simplest way to create a throw-able that has
-// a message that can be retrieved in the catch. Jim couldn't manage to create
-// an Error subclass that overrides localizedDescription. Also couldn't seem to
-// catch with a pattern and then access the thrown object in the catch block.
-private enum ErrorMessage: Error {
-    case message(_ message:String)
 }
 
 #endif
