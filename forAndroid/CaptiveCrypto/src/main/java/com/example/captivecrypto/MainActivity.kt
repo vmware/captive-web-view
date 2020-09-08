@@ -105,7 +105,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             mapOf(KEY.deleted to deleted, KEY.notDeleted to notDeleted)
         }
         catch (exception: Exception) {
-            mapOf(KEY.exception.name to exception.toString())
+            mapOf(KEY.exception to exception.toString())
         }
     }
 
