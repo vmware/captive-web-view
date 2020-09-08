@@ -109,6 +109,12 @@ class KeyStore {
 
     _transcribe(message) {
         const pre = document.createElement('pre');
+        if ('secure' in message && !message['secure']) {
+            // The `secure` item is a vestige of something Jim was trying in
+            // relation to WebRTC in iOS. It's always false, which is maybe
+            // worrying so remove it before transcribing here.
+            delete message['secure'];
+        }
         pre.append(JSON.stringify(message, undefined, 4));
         this._transcript.append(pre);
         this._buttonClear.removeAttribute('disabled');
