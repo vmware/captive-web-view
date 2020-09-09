@@ -122,15 +122,26 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             kSecReturnAttributes as String: true,
             kSecMatchLimit as String: kSecMatchLimitAll
         ]
-        // Above query uses kSecReturnAttributes to get a CFDictionary
-        // representation of each key. Setting kSecReturnRef true instead gets a
-        // SecKey for each key. A dictionary representation can be generated
-        // from a SecKey by calling SecKeyCopyAttributes(), which is done in the
-        // dump(key:) method, below. However the resulting dictionary has only a
-        // subset of the attributes. For example, it doesn't have these:
+        // Above query sets kSecMatchLimit: kSecMatchLimitAll so that the
+        // results will be a CFArray the type of each item in the array is
+        // determined by which kSecReturn options is set.
+        //
+        // kSecReturnAttributes true  
+        // Gets a CFDictionary representation of each key.
+        //
+        // kSecReturnRef true  
+        // Gets a SecKey object for each key. A dictionary representation can be
+        // generated from a SecKey by calling SecKeyCopyAttributes(), which is
+        // done in the dump(key:) method, below. However the resulting
+        // dictionary has only a subset of the attributes. For example, it
+        // doesn't have these:
         //
         // -   kSecAttrLabel
         // -   kSecAttrApplicationTag
+        //
+        // kSecReturnData true  
+        // Gets a CFData instance for each key. From the reference documentation
+        // it looks like the data should be a PKCS#1 representation.
         
         var itemRef: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &itemRef)
@@ -141,12 +152,11 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             : NSArray()
         
         // If SecItemCopyMatching failed, status will be a numeric error code.
-        // To find out what a particular number means, you can look it up on
-        // this:
+        // To find out what a particular number means, you can look it up here:
         // https://www.osstatus.com/search/results?platform=all&framework=all&search=errSec
         // That will get you the symbolic name.
         //
-        // Symbolic names can be looked up in the official reference:
+        // Symbolic names can be looked up in the official reference, here:  
         // https://developer.apple.com/documentation/security/1542001-security_framework_result_codes
         // But it isn't searchable by number.
         //
@@ -161,7 +171,15 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         // In case of errSecItemNotFound, items will be an empty array.
         items.enumerateObjects {
             (item: Any, index: Int, stop: UnsafeMutablePointer<ObjCBool>) in
+            // If using kSecReturnAttributes true, ucomment this code.
             store.append(self.dump(cfDictionary: item as! CFDictionary))
+            //
+            // If using kSecReturnRef true, uncomment this code.
+            // store.append(self.dump(key: item as! SecKey))
+            //
+            // If using kSecReturnData true, uncomment this code.
+            // let cfData = item as! CFData
+            // store.append(["data":"\(cfData)"])
         }
         
         return [KEY.keys: store, KEY.count: items.count].withStringKeys()
@@ -180,6 +198,13 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     }
     
     private func dump(cfDictionary: CFDictionary) -> Dictionary<String, Any> {
+        // Keys in the returned dictionary will sometimes be the short names
+        // that are the underlying values of the various kSecAttr constants. You
+        // can see a list of all the short names and corresponding kSecAttr
+        // names in the Apple Open Source SecItemConstants.c file. For example,
+        // here:
+        // https://opensource.apple.com/source/Security/Security-55471/sec/Security/SecItemConstants.c.auto.html
+
         var returning: Dictionary<String, Any> = [:]
         for (rawKey, rawValue) in cfDictionary as NSDictionary {
             let value = JSONSerialization.isValidJSONObject(rawValue)
