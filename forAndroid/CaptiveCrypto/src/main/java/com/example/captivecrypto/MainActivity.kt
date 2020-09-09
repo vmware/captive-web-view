@@ -13,6 +13,7 @@ import java.security.Key
 import java.security.KeyFactory
 import java.security.KeyPairGenerator
 import java.security.KeyStore
+import java.security.spec.RSAKeyGenParameterSpec
 
 class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
@@ -32,8 +33,9 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     enum class KEY {
         parameters, alias, deleted, notDeleted, string, strings, count, keys,
         private, public, entry, info, exception, canonicalName, keySize,
-        insideSecureHardware,
-        userAuthenticationRequirementEnforcedBySecureHardware;
+        insideSecureHardware, purposes, encryptionPaddings, digests,
+        userAuthenticationRequirementEnforcedBySecureHardware,
+        AndroidKeyStore;
 
         override fun toString(): String {
             return this.name
@@ -50,8 +52,48 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         return this.opt(key.name)
     }
 
+    // fun KeyStore.Companion.getInstance(key: KEY): KeyStore {
+    //    return KeyStore.getInstance(key.name)
+    // }
+    // This'd be nice but Kotlin can't extend the companion of a Java class.
+    // https://stackoverflow.com/questions/33911457/how-can-one-add-static-methods-to-java-classes-in-kotlin
+
     companion object {
-        const val ANDROID_KEY_STORE = "AndroidKeyStore"
+        private val purposeList = listOf(
+            Pair(KeyProperties.PURPOSE_ENCRYPT, "encrypt")
+            , Pair(KeyProperties.PURPOSE_DECRYPT, "decrypt")
+            , Pair(KeyProperties.PURPOSE_SIGN, "sign")
+            , Pair(KeyProperties.PURPOSE_VERIFY, "verify")
+            // Next purpose requires API 28
+            // , Pair(KeyProperties.PURPOSE_WRAP_KEY, "wrap")
+        )
+
+        // Utility function to take the `purposes` property bit map and turn it
+        // into a list of strings.
+        fun purposeStrings(keyInfo: KeyInfo):Array<String> {
+            var mask:Int = 0
+            val returning = mutableListOf<String>()
+            purposeList.forEach {
+                if (keyInfo.purposes and it.first != 0) {
+                    mask = mask or it.first
+                    returning.add(it.second)
+                }
+            }
+
+            // Check if there's anything in the purposes map that isn't in the
+            // purposesList. If there is, add an explanatory message to the
+            // purposes strings.
+            if (keyInfo.purposes != mask) {
+                returning.add(listOf(
+                    "Unmatched info:",
+                    keyInfo.purposes.toString(2).padStart(8, '0')
+                    , " returning:",
+                    mask.toString(2).padStart(8, '0')
+                ).joinToString(""))
+            }
+
+            return returning.toTypedArray()
+        }
     }
 
     override fun commandResponse(
@@ -80,9 +122,9 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
     private fun deleteAllKeys(): Map<String, Any> {
         return try {
-            val keyStore = KeyStore.getInstance(ANDROID_KEY_STORE).apply {
-                load(null)
-            }
+            val keyStore = KeyStore.getInstance(
+                KEY.AndroidKeyStore.name
+            ).apply { load(null) }
             val deleted = mutableListOf<String>()
             val notDeleted = mutableMapOf<String, String>()
             // Next part could maybe be done like this:
@@ -110,7 +152,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     }
 
     private fun dumpKeyStore(): Map<String, Any> {
-        return KeyStore.getInstance(ANDROID_KEY_STORE).apply {
+        return KeyStore.getInstance(KEY.AndroidKeyStore.name).apply {
             load(null)
         }.run { mapOf(
             KEY.string to toString(), KEY.count to size(),
@@ -147,11 +189,14 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     private fun Key.dumpKeyInfo(): Map<String, Any> {
         return try {
             return KeyFactory.getInstance(
-                this.algorithm, ANDROID_KEY_STORE
+                this.algorithm, KEY.AndroidKeyStore.name
             ).getKeySpec(this, KeyInfo::class.java).run { mapOf(
-                KEY.keySize to keySize,
-                KEY.insideSecureHardware to isInsideSecureHardware,
                 KEY.alias to keystoreAlias,
+                KEY.keySize to keySize,
+                KEY.purposes to purposeStrings(this),
+                KEY.encryptionPaddings to encryptionPaddings,
+                KEY.digests to digests,
+                KEY.insideSecureHardware to isInsideSecureHardware,
                 KEY.userAuthenticationRequirementEnforcedBySecureHardware to
                         isUserAuthenticationRequirementEnforcedBySecureHardware
             )}
@@ -171,15 +216,19 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
          * SHA-512 as the message digest.
          */
         return KeyPairGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_EC, ANDROID_KEY_STORE
+            KeyProperties.KEY_ALGORITHM_RSA, KEY.AndroidKeyStore.name
         ).apply { initialize(
             KeyGenParameterSpec.Builder(
                 alias,
-                KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
             ).run {
+                setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+//                setKeySize(4096)
+                setAlgorithmParameterSpec(RSAKeyGenParameterSpec(
+                    4096, RSAKeyGenParameterSpec.F4))
                 setDigests(
-                    KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512
-                )
+                    KeyProperties.DIGEST_NONE, // KeyProperties.DIGEST_SHA256,
+                    KeyProperties.DIGEST_SHA512)
                 build()
             }
         ) }.generateKeyPair().run { mapOf(
