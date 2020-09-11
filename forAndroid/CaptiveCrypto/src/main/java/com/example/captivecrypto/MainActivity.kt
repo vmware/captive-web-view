@@ -6,20 +6,19 @@ package com.example.captivecrypto
 import org.json.JSONObject
 import java.lang.Exception
 
-import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
-import java.security.Key
-import java.security.KeyFactory
-import java.security.KeyPairGenerator
-import java.security.KeyStore
-import java.security.spec.RSAKeyGenParameterSpec
+import java.security.*
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.IvParameterSpec
 
 class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
     // it shouldn't because it has to match what gets sent from the JS layer.
     private enum class Command {
-        deleteAll, dump, generatePair, ready, UNKNOWN;
+        deleteAll, dump, generateKey, generatePair, ready, UNKNOWN;
 
         companion object {
             fun matching(string: String?): Command? {
@@ -31,10 +30,15 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     }
 
     enum class KEY {
-        parameters, alias, deleted, notDeleted, string, strings, count, keys,
+        parameters, alias, deleted, notDeleted, string, count, keys,
         private, public, entry, info, exception, canonicalName, keySize,
         insideSecureHardware, purposes, encryptionPaddings, digests,
-        userAuthenticationRequirementEnforcedBySecureHardware,
+        userAuthenticationRequirementEnforcedBySecureHardware, encoded,
+
+        summary, services, algorithm, `class`, type,
+
+        iv, sentinel, encryptedSentinel, decryptedSentinel, passed,
+
         AndroidKeyStore;
 
         override fun toString(): String {
@@ -94,6 +98,31 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
             return returning.toTypedArray()
         }
+
+        fun providerSummay(providerName:String):Map<String, Any> {
+            return Security.getProvider(providerName).run { mapOf(
+                name to mapOf(
+                    KEY.string to toString(),
+                    KEY.summary to toMap(),
+                    KEY.services to services.map { service -> mapOf(
+                        KEY.algorithm to service.algorithm,
+                        KEY.`class` to service.className,
+                        KEY.type to service.type,
+                        KEY.summary to service.toString()
+                    )}
+                )
+            ) }
+        }
+
+        fun cipherSpecifier(key: Key): String { return when (key.algorithm) {
+
+            // For the "AES/CBC/PKCS5PADDING" magic, TOTH:
+            // https://developer.android.com/guide/topics/security/cryptography#encrypt-message
+            KeyProperties.KEY_ALGORITHM_AES -> "AES/CBC/PKCS5PADDING"
+
+            else -> key.algorithm
+
+        } }
     }
 
     override fun commandResponse(
@@ -104,6 +133,15 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             Command.deleteAll -> JSONObject(deleteAllKeys())
 
             Command.dump -> JSONObject(dumpKeyStore())
+
+            Command.generateKey ->
+                (jsonObject.opt(KEY.parameters) as? JSONObject)
+                    ?.run{ opt(KEY.alias) as? String }
+                    ?.let { JSONObject(generateKey(it)) }
+                    ?: throw Exception(listOf(
+                        "Key `", KEY.alias, "` must be specified in `",
+                        KEY.parameters, "`."
+                    ).joinToString(""))
 
             Command.generatePair ->
                 (jsonObject.opt(KEY.parameters) as? JSONObject)
@@ -155,7 +193,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         return KeyStore.getInstance(KEY.AndroidKeyStore.name).apply {
             load(null)
         }.run { mapOf(
-            KEY.string to toString(), KEY.count to size(),
+            KEY.summary to toString(), KEY.count to size(),
             KEY.keys to aliases().toList().map { mapOf(
                 KEY.entry to dumpKeyEntry(it),
                 KEY.info to getKey(it, null).dumpKeyInfo()
@@ -177,7 +215,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             // See: https://stackoverflow.com/a/52295484/7657675
             this.getEntry(alias, null)?.run { mapOf(
                 KEY.canonicalName to javaClass.canonicalName,
-                KEY.strings to toString().split("\n")
+                KEY.summary to toString().split("\n")
             ) } ?:
             throw Exception("getEntry(${alias},null) returned null.")
         }
@@ -189,51 +227,115 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     private fun Key.dumpKeyInfo(): Map<String, Any> {
         return try {
             return KeyFactory.getInstance(
-                this.algorithm, KEY.AndroidKeyStore.name
-            ).getKeySpec(this, KeyInfo::class.java).run { mapOf(
-                KEY.alias to keystoreAlias,
-                KEY.keySize to keySize,
-                KEY.purposes to purposeStrings(this),
-                KEY.encryptionPaddings to encryptionPaddings,
-                KEY.digests to digests,
-                KEY.insideSecureHardware to isInsideSecureHardware,
-                KEY.userAuthenticationRequirementEnforcedBySecureHardware to
-                        isUserAuthenticationRequirementEnforcedBySecureHardware
-            )}
-        } catch (exception: Exception) {
-            mapOf(KEY.exception to exception.toString())
+                this.algorithm //, KEY.AndroidKeyStore.name
+            ).getKeySpec(this, KeyInfo::class.java).run {
+                mapOf(
+                    KEY.alias to keystoreAlias,
+                    KEY.keySize to keySize,
+                    KEY.purposes to purposeStrings(this),
+                    KEY.encryptionPaddings to encryptionPaddings,
+                    KEY.digests to digests,
+                    KEY.insideSecureHardware to isInsideSecureHardware,
+                    KEY.userAuthenticationRequirementEnforcedBySecureHardware to
+                            isUserAuthenticationRequirementEnforcedBySecureHardware
+                )
+            }
         }
+        catch (exception: NoSuchAlgorithmException) { mapOf(
+            // This exception is raised if the key store can't transform a key
+            // of this algorithm into a key specification. This is true of AES,
+            // for example.
+            KEY.encoded to (this.encoded?.toString() ?: "No encoded form."),
+            KEY.algorithm to this.algorithm
+        ) }
+        catch (exception: Exception) { mapOf(
+            // Some other exception.
+            KEY.exception to exception.toString(),
+            KEY.encoded to (this.encoded?.toString() ?: "null"),
+            KEY.algorithm to this.algorithm
+        ) }
+    }
+
+    private fun generateKey(alias:String): Map<String, Any> {
+        val keyGenerator = KeyGenerator.getInstance(
+            KeyProperties.KEY_ALGORITHM_AES
+        ).apply { init(256) }
+        return keyGenerator.generateKey().let { mapOf(
+            KEY.sentinel to encryptSentinel("Single tient", it),
+            "provider" to keyGenerator.provider.name,
+            "key" to it.dumpKeyInfo()
+        ) }
     }
 
     private fun generateKeyPair(alias:String): Map<String, Any> {
-        // Code and comment here is originally from the Android developer
-        // website.
+        val keyPairGenerator = KeyPairGenerator.getInstance(
+            KeyProperties.KEY_ALGORITHM_RSA
+        ).apply { initialize(2048) }
+        return keyPairGenerator.generateKeyPair().let { mapOf(
+            KEY.sentinel to encryptSentinel("Sentient", it),
+            "provider" to keyPairGenerator.provider.name,
+            KEY.private to it.private.dumpKeyInfo(),
+            KEY.public to it.public.dumpKeyInfo()
+        ) }
+    }
 
-        /*
-         * Generate a new EC key pair entry in the Android Keystore by
-         * using the KeyPairGenerator API. The private key can only be
-         * used for signing or verification and only with SHA-256 or
-         * SHA-512 as the message digest.
-         */
-        return KeyPairGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_RSA, KEY.AndroidKeyStore.name
-        ).apply { initialize(
-            KeyGenParameterSpec.Builder(
-                alias,
-                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-            ).run {
-                setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
-//                setKeySize(4096)
-                setAlgorithmParameterSpec(RSAKeyGenParameterSpec(
-                    4096, RSAKeyGenParameterSpec.F4))
-                setDigests(
-                    KeyProperties.DIGEST_NONE, // KeyProperties.DIGEST_SHA256,
-                    KeyProperties.DIGEST_SHA512)
-                build()
-            }
-        ) }.generateKeyPair().run { mapOf(
-            KEY.private to this.private.dumpKeyInfo(),
-            KEY.public to this.public.dumpKeyInfo()
-        )}
+    private fun encryptSentinel(
+        sentinel: String, key: SecretKey
+    ): Map<String, Any>
+    {
+        val cipher = Cipher.getInstance(cipherSpecifier(key))
+
+        cipher.init(Cipher.ENCRYPT_MODE, key)
+        val sentinelBytes = sentinel.toByteArray(Charsets.UTF_8)
+        val encryptedSentinel = cipher.doFinal(sentinelBytes)
+
+        // The IV wasn't specified above. This means that the cipher will create
+        // a random one of its own. It has to be extracted in order to do the
+        // decryption leg.
+        // For IvParameterSpec, TOTH:
+        // https://medium.com/@hakkitoklu/aes256-encryption-decryption-in-android-2fae6938fc2b
+        val ivParameterSpec = IvParameterSpec(cipher.iv)
+
+        // Now re-initialise for decryption and insert back the IV.
+        cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec)
+        // If you don't set an IV spec, you get this:
+        //
+        //     java.lang.RuntimeException:
+        //     java.security.InvalidAlgorithmParameterException:
+        //     IV must be specified in CBC mode
+
+        val decryptedSentinel = String(
+            cipher.doFinal(encryptedSentinel), Charsets.UTF_8)
+
+        return mapOf(
+            KEY.algorithm to cipher.algorithm,
+            KEY.iv to cipher.iv,
+            KEY.sentinel to sentinel,
+            KEY.encryptedSentinel to encryptedSentinel.toString(),
+            KEY.decryptedSentinel to decryptedSentinel,
+            KEY.passed to sentinel.equals(decryptedSentinel)
+        )
+    }
+
+    private fun encryptSentinel(
+        sentinel: String, keyPair: KeyPair
+    ): Map<String, Any> {
+        val cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_RSA)
+        cipher.init(Cipher.ENCRYPT_MODE, keyPair.public)
+        val encryptedBytes = cipher.doFinal(
+            sentinel.toByteArray(Charsets.UTF_8))
+
+        cipher.init(Cipher.DECRYPT_MODE, keyPair.private)
+        val decryptedSentinel = String(cipher.doFinal(
+            encryptedBytes), Charsets.UTF_8)
+
+        return mapOf(
+            KEY.algorithm to cipher.algorithm,
+            KEY.iv to cipher.iv,
+            KEY.sentinel to sentinel,
+            KEY.encryptedSentinel to encryptedBytes.toString(),
+            KEY.decryptedSentinel to decryptedSentinel,
+            KEY.passed to sentinel.equals(decryptedSentinel)
+        )
     }
 }

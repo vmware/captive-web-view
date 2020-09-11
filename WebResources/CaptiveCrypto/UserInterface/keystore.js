@@ -42,6 +42,10 @@ class KeyStore {
             document.body.append(div);
         }
 
+        const buttonGenerateKey = this._add_button(
+            'Generate Native Key "JS1"', () => this._send(
+                {"command": "generateKey", "parameters": {"alias": "JS1"}}));
+
         const buttonGeneratePair = this._add_button(
             'Generate Native Pair "JS"', () => this._send(
                 {"command": "generatePair", "parameters": {"alias": "JS"}}));
@@ -52,9 +56,6 @@ class KeyStore {
         const buttonDeleteAll = this._add_button(
             "Delete All Keys", () => this._send({"command": "deleteAll"}));
         
-        // const buttonClose = this._add_button(
-        //     "Close", () => this._send({"command": "close"}));
-
         this._buttonClear = this._add_button("Clear Transcript", () => {
             // TOTH https://stackoverflow.com/a/22966637/7657675
             const transcript = this._transcript.cloneNode(false);
@@ -66,8 +67,8 @@ class KeyStore {
         this._buttonClear.setAttribute('disabled', true);
 
         document.body.append(
-            ...cryptoButtons, 
-            buttonGeneratePair, buttonDump, buttonDeleteAll, //buttonClose,
+            ...cryptoButtons,
+            buttonGenerateKey, buttonGeneratePair, buttonDump, buttonDeleteAll,
             document.createElement('hr'), this._buttonClear, this._transcript
         );
 
