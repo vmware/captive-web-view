@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2020 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.captivewebview
@@ -6,7 +6,7 @@ package com.example.captivewebview
 import android.content.Intent
 import com.example.captivewebview.ActivityMixIn.Companion.WEB_VIEW_ID
 import org.json.JSONObject
-import java.lang.Exception
+import java.io.File
 
 /**
  * This MixIn can be used in an application whose Activity subclasses cannot be
@@ -37,7 +37,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         // they shouldn't because they have to match what gets sent from the JS
         // layer.
         private enum class Command {
-            close, focus, load, UNKNOWN;
+            close, focus, load, write, UNKNOWN;
 
             companion object {
                 fun matching(string: String?): Command? {
@@ -46,6 +46,18 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                     catch (exception: Exception) { UNKNOWN }
                 }
             }
+        }
+
+        private enum class KEY {
+            text, filename, wrote
+        }
+        private fun JSONObject.opt(key: KEY): Any? {
+            return this.opt(key.name)
+        }
+        // Enables members of the KEY enumeration to be used as keys in mappings
+        // from String to any, for example as mapOf() parameters.
+        private infix fun <VALUE> KEY.to(that: VALUE): Pair<String, VALUE> {
+            return this.name to that
         }
 
         val activityMap = mutableMapOf<String, Class<android.app.Activity>>()
@@ -150,6 +162,9 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 jsonObject.put("loaded", this.loadActivity(it))
             }
 
+            Command.write ->
+                writeFile(jsonObject.get("parameters") as JSONObject)
+
             null -> jsonObject
 
             Command.UNKNOWN -> throw Exception("Unknown command \"$command\".")
@@ -168,6 +183,19 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         val intent = Intent(this, activityClass)
         this.startActivity(intent)
         return page
+    }
+
+    private fun writeFile(parameters: JSONObject): JSONObject {
+        this as Activity
+        val file = File(
+            filesDir,
+            parameters.opt(KEY.filename) as? String
+                ?: throw Exception("No file name specified")
+        ).absoluteFile
+        file.writeText(
+            parameters.opt(KEY.text) as? String
+            ?: throw Exception("No text specified"))
+        return JSONObject(mapOf(KEY.wrote to file.toString()))
     }
 
 }
