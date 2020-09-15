@@ -1,13 +1,47 @@
-//
-//  ViewController.swift
-//  CaptiveCrypto
-//
-//  Created by Jim Hawkins on 07/09/2020.
-//  Copyright © 2020 Jim Hawkins. All rights reserved.
-//
+// Copyright 2020 VMware, Inc.
+// SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
 import CaptiveWebView
+
+import CryptoKit
+
+// General approach to storing symmetric keys in the keychain, and code
+// snippets, are from here:
+// https://developer.apple.com/documentation/cryptokit/storing_cryptokit_keys_in_the_keychain
+
+// Declare protocol.
+protocol GenericPasswordConvertible: CustomStringConvertible {
+    /// Creates a key from a raw representation.
+    init<D>(rawRepresentation data: D) throws where D: ContiguousBytes
+    
+    /// A raw representation of the key.
+    var rawRepresentation: Data { get }
+}
+
+// Add extension that makes CryptoKey SymmetricKey satisfy the protocol.
+extension SymmetricKey: GenericPasswordConvertible {
+    public var description: String {
+        return "symmetrically"
+    }
+    
+    init<D>(rawRepresentation data: D) throws where D: ContiguousBytes {
+        self.init(data: data)
+    }
+    
+    var rawRepresentation: Data {
+//        var body:Data
+        return withUnsafeBytes{Data($0)}
+//        return dataRepresentation  // Contiguous bytes repackaged as a Data instance.
+    }
+}
+// End of first code to support storing CryptoKit symmetric key in the keychain.
+
+extension OSStatus {
+    var secErrorMessage: String? {
+        return SecCopyErrorMessageString(self, nil) as String?
+    }
+}
 
 // Convenience extension to facilitate use of the KEY enumeration as keys in a
 // dictionary.
@@ -33,9 +67,17 @@ extension Dictionary where Key == String {
 // Clunky but can be used to create a dictionary with String keys from a
 // dictionary literal with KEY keys.
 extension Dictionary where Key == MainViewController.KEY {
-    func withStringKeys() -> Dictionary<String, Value> {
+    func withStringKeys() -> [String: Value] {
         return Dictionary<String, Value>(uniqueKeysWithValues: self.map {
             ($0.rawValue, $1)
+        })
+    }
+}
+
+extension Dictionary where Key == CFString {
+    func withStringKeys() -> [String: Value] {
+        return Dictionary<String, Value>(uniqueKeysWithValues: self.map {
+            ($0 as String, $1)
         })
     }
 }
@@ -45,11 +87,18 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     // Implicit raw values, see:
     // https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html#ID535
     private enum Command: String {
-        case deleteAll, dump, generatePair
+        case deleteAll, dump, generateKey, generatePair
     }
     
     public enum KEY: String {
-        case alias, attributes, deletedAll, parameters, keys, count, dump, key
+        case alias, attributes, deletedAll, parameters, items, count, summary,
+        key,
+        
+        sentinel, encryptedSentinel, decryptedSentinel, passed, algorithm,
+        
+        stored, deletedFirst,
+        
+        raw
     }
     
     override func response(
@@ -60,10 +109,22 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         switch Command(rawValue: command) {
             
         case .deleteAll:
-            return try deleteAllKeys()
-            
+            return try clearStore()
+
         case .dump:
-            return try dumpKeyStore()
+            return try summariseStore()
+            
+        case .generateKey:
+            guard
+                let parameters = commandDictionary[KEY.parameters]
+                    as? Dictionary<String, Any>,
+                let alias = parameters[KEY.alias] as? String
+            else {
+                throw CaptiveWebView.ErrorMessage(
+                    "Key `", KEY.alias.rawValue,
+                    "` must be specified in `", KEY.parameters.rawValue, "`.")
+            }
+            return try generateKey(alias).withStringKeys()
 
         case .generatePair:
             guard
@@ -75,26 +136,48 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                     "Key `", KEY.alias.rawValue,
                     "` must be specified in `", KEY.parameters.rawValue, "`.")
             }
-            return try generateKeyPair(alias)
+            return try generateKeyPair(alias).withStringKeys()
 
         default:
             return try super.response(to: command, in: commandDictionary)
         }
     }
     
-    private func deleteAllKeys() throws -> Dictionary<String, Any> {
-        // Query to find all keys.
-        let query: [String: Any] = [kSecClass as String: kSecClassKey]
-        let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess else {
+    private func clearStore() throws -> Dictionary<String, Any> {
+        return try self.eachSecClass {secClass in
+            // Query to find all items of this security class.
+            let query: [CFString: Any] = [kSecClass: secClass]
+            let status = SecItemDelete(query as CFDictionary)
+            if status == errSecSuccess {
+                return true
+            }
+            if status == errSecItemNotFound {
+                return false
+            }
+            if let message = status.secErrorMessage {
+                return message
+            }
             throw osStatusError(status)
         }
-        return [KEY.deletedAll: true].withStringKeys()
     }
     
+    private func eachSecClass(
+        _ oneSecClass: (_ secClass: CFString) throws -> Any
+    ) rethrows -> [String:Any]
+    {
+        return Dictionary.init(uniqueKeysWithValues: try [
+            kSecClassGenericPassword, kSecClassKey
+        ].map {(
+            $0 == kSecClassKey ? "keys" :
+            $0 == kSecClassGenericPassword ? "generic" :
+            $0 as String,
+            try oneSecClass($0)
+        )})
+    }
+
     private func osStatusError(_ osStatus: OSStatus) -> Error {
         // Plan A: use the proper method to create an error message.
-        if let message = SecCopyErrorMessageString(osStatus, nil) {
+        if let message = osStatus.secErrorMessage {
             // The reference for SecCopyErrorMessageString is here:
             // https://developer.apple.com/documentation/security/1394686-seccopyerrormessagestring
             //
@@ -116,85 +199,85 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         return NSError(domain: NSOSStatusErrorDomain, code: Int(osStatus))
     }
     
-    private func dumpKeyStore() throws -> Dictionary<String, Any> {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassKey,
-            kSecReturnAttributes as String: true,
-            kSecMatchLimit as String: kSecMatchLimitAll
-        ]
-        // Above query sets kSecMatchLimit: kSecMatchLimitAll so that the
-        // results will be a CFArray the type of each item in the array is
-        // determined by which kSecReturn options is set.
-        //
-        // kSecReturnAttributes true  
-        // Gets a CFDictionary representation of each key.
-        //
-        // kSecReturnRef true  
-        // Gets a SecKey object for each key. A dictionary representation can be
-        // generated from a SecKey by calling SecKeyCopyAttributes(), which is
-        // done in the dump(key:) method, below. However the resulting
-        // dictionary has only a subset of the attributes. For example, it
-        // doesn't have these:
-        //
-        // -   kSecAttrLabel
-        // -   kSecAttrApplicationTag
-        //
-        // kSecReturnData true  
-        // Gets a CFData instance for each key. From the reference documentation
-        // it looks like the data should be a PKCS#1 representation.
-        
-        var itemRef: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &itemRef)
-        
-        // Set items to an NSArray of the return value, or an empty NSArray.
-        let items = status == errSecSuccess
-            ? (itemRef as! CFArray) as NSArray
-            : NSArray()
-        
-        // If SecItemCopyMatching failed, status will be a numeric error code.
-        // To find out what a particular number means, you can look it up here:
-        // https://www.osstatus.com/search/results?platform=all&framework=all&search=errSec
-        // That will get you the symbolic name.
-        //
-        // Symbolic names can be looked up in the official reference, here:  
-        // https://developer.apple.com/documentation/security/1542001-security_framework_result_codes
-        // But it isn't searchable by number.
-        //
-        // This is how Jim found out that -25300 is errSecItemNotFound.
-
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw osStatusError(status)
-        }
-        
-        var store:[Dictionary<String, Any>] = []
-
-        // In case of errSecItemNotFound, items will be an empty array.
-        items.enumerateObjects {
-            (item: Any, index: Int, stop: UnsafeMutablePointer<ObjCBool>) in
-            // If using kSecReturnAttributes true, ucomment this code.
-            store.append(self.dump(cfDictionary: item as! CFDictionary))
+    private func summariseStore() throws -> [String: Any] {
+        return try self.eachSecClass {secClass in
+            let query: [CFString: Any] = [
+                kSecClass: secClass,
+                kSecReturnAttributes: true,
+                kSecMatchLimit: kSecMatchLimitAll
+            ]
+            // Above query sets kSecMatchLimit: kSecMatchLimitAll so that the
+            // results will be a CFArray the type of each item in the array is
+            // determined by which kSecReturn option is set.
             //
-            // If using kSecReturnRef true, uncomment this code.
-            // store.append(self.dump(key: item as! SecKey))
+            // kSecReturnAttributes true
+            // Gets a CFDictionary representation of each key.
             //
-            // If using kSecReturnData true, uncomment this code.
-            // let cfData = item as! CFData
-            // store.append(["data":"\(cfData)"])
+            // kSecReturnRef true
+            // Gets a SecKey object for each key. A dictionary representation can be
+            // generated from a SecKey by calling SecKeyCopyAttributes(), which is
+            // done in the dump(key:) method, below. However the resulting
+            // dictionary has only a subset of the attributes. For example, it
+            // doesn't have these:
+            //
+            // -   kSecAttrLabel
+            // -   kSecAttrApplicationTag
+            //
+            // kSecReturnData true
+            // Gets a CFData instance for each key. From the reference documentation
+            // it looks like the data should be a PKCS#1 representation.
+            
+            var itemRef: CFTypeRef?
+            let status = SecItemCopyMatching(query as CFDictionary, &itemRef)
+            
+            // Set items to an NSArray of the return value, or an empty NSArray.
+            let items = status == errSecSuccess
+                ? (itemRef as! CFArray) as NSArray
+                : NSArray()
+            
+            // If SecItemCopyMatching failed, status will be a numeric error code.
+            // To find out what a particular number means, you can look it up here:
+            // https://www.osstatus.com/search/results?platform=all&framework=all&search=errSec
+            // That will get you the symbolic name.
+            //
+            // Symbolic names can be looked up in the official reference, here:
+            // https://developer.apple.com/documentation/security/1542001-security_framework_result_codes
+            // But it isn't searchable by number.
+            //
+            // This is how Jim found out that -25300 is errSecItemNotFound.
+            
+            guard status == errSecSuccess || status == errSecItemNotFound else {
+                throw osStatusError(status)
+            }
+            
+            var store:[Dictionary<String, Any>] = []
+            
+            // In case of errSecItemNotFound, items will be an empty array.
+            items.enumerateObjects {
+                (item: Any, index: Int, stop: UnsafeMutablePointer<ObjCBool>) in
+                // If using kSecReturnAttributes true, ucomment this code.
+                store.append(self.dump(cfDictionary: item as! CFDictionary))
+                //
+                // If using kSecReturnRef true, uncomment this code.
+                // store.append(self.dump(key: item as! SecKey))
+                //
+                // If using kSecReturnData true, uncomment this code.
+                // let cfData = item as! CFData
+                // store.append(["data":"\(cfData)"])
+            }
+            
+            return [.count: store.count, .items: store].withStringKeys()
         }
-        
-        return [KEY.keys: store, KEY.count: items.count].withStringKeys()
     }
     
-    private func dump(key secKey: SecKey) -> Dictionary<String, Any> {
+    private func dump(key secKey: SecKey) -> Dictionary<KEY, Any> {
         var dumpAttributes: Dictionary<String, Any>? = nil
         if let copyAttributes = SecKeyCopyAttributes(secKey) {
             dumpAttributes = self.dump(cfDictionary: copyAttributes)
         }
         
-        return [
-            KEY.dump: "\(secKey)".split(separator: ","),
-            KEY.attributes: dumpAttributes ?? "null"
-        ].withStringKeys()
+        return [.summary: "\(secKey)".split(separator: ","),
+                .attributes: dumpAttributes ?? "null"]
     }
     
     private func dump(cfDictionary: CFDictionary) -> Dictionary<String, Any> {
@@ -207,15 +290,19 @@ class MainViewController: CaptiveWebView.DefaultViewController {
 
         var returning: Dictionary<String, Any> = [:]
         for (rawKey, rawValue) in cfDictionary as NSDictionary {
-            let value = JSONSerialization.isValidJSONObject(rawValue)
-                ? rawValue
-                : "\(rawValue)"
+            let value:Any = rawValue as? NSNumber ?? (
+                JSONSerialization.isValidJSONObject(rawValue)
+                ? rawValue : "\(rawValue)"
+            )
             
             if let key = rawKey as? String {
                 if key == kSecAttrApplicationTag as String {
                     let cfValue = rawValue as! CFData
                     returning[key] = String(
                         data: cfValue as Data, encoding: .utf8)
+                }
+                else if key == kSecAttrKeyType as String {
+                    returning[key] = keyTypeSummary(rawValue).withStringKeys()
                 }
                 else {
                     returning[key] = value
@@ -228,46 +315,204 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         return returning
     }
 
-    private func generateKeyPair(_ alias:String) throws
-        -> Dictionary<String, Any>
-    {
+    private func generateKey(_ alias:String) throws -> Dictionary<KEY, Any> {
+        let key = SymmetricKey(size: .bits256)
+        let sentinel = "Sentinel"
+        guard let box = try
+            AES.GCM.seal(Data(sentinel.utf8) as NSData, using: key).combined
+            else
+        {
+            throw CaptiveWebView.ErrorMessage("Combined nil.")
+        }
         
+        let sealed = try AES.GCM.SealedBox(combined: box)
+        let decryptedData = try AES.GCM.open(sealed, using: key)
+        let decryptedSentinel =
+            String(data: decryptedData, encoding: .utf8) ?? "\(decryptedData)"
+
+        return [
+            .summary: "\(key.rawRepresentation) \(sealed) \(key)",
+            .decryptedSentinel: decryptedSentinel,
+            .passed: decryptedSentinel == sentinel,
+            .stored: try store(key: key, withName: alias).withStringKeys()]
+    }
+    
+    private func store(key:SymmetricKey, withName alias:String) throws -> [KEY: Any] {
+        // First delete any generic key chain item with the same label. If you
+        // don't, the add seems to fail as a duplicate.
+        let deleteQuery:[CFString:Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrLabel: alias,
+        ]
+        let deleted = SecItemDelete(deleteQuery as CFDictionary)
+        guard deleted == errSecSuccess || deleted == errSecItemNotFound else {
+            throw osStatusError(deleted)
+        }
+
+        // Merge in more query attributes, to create the add query.
+        let addQuery = deleteQuery.merging([
+            kSecReturnAttributes: true,
+            kSecValueData: key.rawRepresentation
+        ]) {(_, new) in new}
+        var result: CFTypeRef?
+        let status = SecItemAdd(addQuery as CFDictionary, &result)
+        guard status == errSecSuccess else {
+            throw osStatusError(status)
+        }
+        return [.summary: dump(cfDictionary: result as! CFDictionary),
+                .deletedFirst: deleted == errSecSuccess]
+    }
+    
+    private func tag(forAlias alias: String) -> (String, Data) {
+        let tagString = "com.example.keys.\(alias)"
+        return (tagString, tagString.data(using: .utf8)!)
+    }
+
+    private func generateKeyPair(_ alias:String) throws -> Dictionary<KEY, Any>
+    {
         // Code snippets are here:
         // https://developer.apple.com/documentation/security/certificate_key_and_trust_services/keys/generating_new_cryptographic_keys
+        
+        let tagSD = self.tag(forAlias: alias)
+        let attributes: [CFString: Any] = [
 
-        let tag = "com.example.keys.\(alias)"
-        let attributes: [String: Any] = [
-            
-            kSecAttrKeyType as String: kSecAttrKeyTypeRSA,
-            // Setting kSecAttrKeyTypeEC instead results in OSstatus -50, which
-            // indicates that a parameter has an invalid value.
+            // Next two lines are OK to create an RSA key.
+            kSecAttrKeyType: kSecAttrKeyTypeRSA,
+            kSecAttrKeySizeInBits: 2048,
 
-            kSecAttrKeySizeInBits as String: 2048,
-            kSecPrivateKeyAttrs as String: [
-                kSecAttrIsPermanent as String: true,
-                kSecAttrLabel as String: alias,
-                kSecAttrApplicationTag as String: tag.data(using: .utf8)!
+            // Next two lines are OK to create an elliptic curve key.
+            // kSecAttrKeySizeInBits: 256,
+            // kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
+
+            // If you set an incompatible combination of bit size and type, you
+            // get an OSstatus -50, which indicates that a parameter has an
+            // invalid value.
+
+            kSecPrivateKeyAttrs: [
+                kSecAttrIsPermanent: true,
+                kSecAttrLabel: alias,
+                kSecAttrApplicationTag: tagSD.1
             ]
         ]
         
         var error: Unmanaged<CFError>?
-        guard let privateKey = SecKeyCreateRandomKey(attributes as CFDictionary, &error) else {
+        guard let privateKey = SecKeyCreateRandomKey(
+            attributes as CFDictionary, &error) else
+        {
             throw error!.takeRetainedValue() as Error
         }
         
-        // Next statement includes a copy of the attributes dictionary except
-        // with all JSON serialisable values.
+        // Make a copy of the attributes dictionary except with values that are:
+        // -   Serialisable to JSON.
+        // -   Descriptive instead of numeric.
+        var returning = attributes
+        returning[kSecAttrKeyType] = keyTypeSummary(
+            attributes[kSecAttrKeyType]!).withStringKeys()
+        returning[kSecPrivateKeyAttrs] = (
+            attributes[kSecPrivateKeyAttrs] as! [CFString:Any])
+            .merging([kSecAttrApplicationTag: tagSD.0]) {(_, new) in new}
+            .withStringKeys()
+
         return [
-            KEY.attributes: [
-                kSecAttrKeyType as String: kSecAttrKeyTypeRSA as String,
-                 kSecAttrKeySizeInBits as String: 2048,
-                 kSecPrivateKeyAttrs as String: [
-                    kSecAttrIsPermanent as String: true,
-                    kSecAttrApplicationTag as String: tag
-                ]
-            ],
-            KEY.key: self.dump(key:privateKey)
-        ].withStringKeys()
+            .sentinel: try encrypt(
+                sentinel: "Centennial", basedOnPrivateKey: privateKey
+            ).withStringKeys(),
+            .attributes: returning.withStringKeys(),
+            .key: self.dump(key:privateKey).withStringKeys()
+        ]
+    }
+    
+    let keyTypes = [
+        kSecAttrKeyTypeRSA : "RSA",
+        kSecAttrKeyTypeECSECPrimeRandom : "EC"
+
+        // kSecAttrKeyTypeEC : "EC (deprecated)"
+        //
+        // kSecAttrKeyTypeEC is deprecated but has the same value as
+        // kSecAttrKeyTypeECSECPrimeRandom. This means that the both of them
+        // can't be keys in the same dictionary, and that there's no way to
+        // tell the difference by matching.
+    ]
+    
+    private func keyTypeSummary(_ specifier: Any) -> [KEY: Any] {
+        var typeText:String?
+
+        // The values for the key type attribute, kSecAttrKeyType, have slightly
+        // strange behaviour.
+        //
+        // In the dictionary passed to SecKeyCreateRandomKey, the value of the
+        // kSecAttrKeyType attribute is a CFString. However, the contents of the
+        // CFString will be numeric. For example, kSecAttrKeyTypeRSA has the
+        // value "42". See, for example:
+        // https://opensource.apple.com/source/Security/Security-55471/sec/Security/SecItemConstants.c.auto.html
+        //
+        // In the dictionary returned from SecItemCopyMatching, the value of the
+        // kSecAttrKeyType attribute will be a CFNumber.
+
+        // If the specifier is a number, compare to the numbers in each
+        // kSecAttrKeyType constant.
+        if let typeNumber = specifier as? NSNumber,
+            let typeInt = Int(exactly: typeNumber)
+        {
+            typeText = keyTypes.first(where: {
+                Int($0.key as String) == typeInt
+            })?.value
+        }
+
+        // If the specifier isn't a number, or didn't match, try it as a string
+        // instead.
+        if typeText == nil, let typeString = specifier as? String {
+            typeText = keyTypes[typeString as CFString] ?? typeString
+        }
+        
+        return [.key: typeText as Any, .raw: specifier]
+    }
+    
+    private let algorithms = [
+        SecKeyAlgorithm.eciesEncryptionStandardX963SHA1AESGCM,
+        SecKeyAlgorithm.rsaEncryptionOAEPSHA512
+    ]
+    
+    private func encrypt(
+        sentinel:String, basedOnPrivateKey privateKey:SecKey
+    ) throws -> Dictionary<KEY, Any>
+    {
+        // Official code snippets are here:
+        // https://developer.apple.com/documentation/security/certificate_key_and_trust_services/keys/using_keys_for_encryption
+
+        guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
+            throw CaptiveWebView.ErrorMessage("No public key.")
+        }
+
+        guard let algorithm = algorithms.first(
+            where: { SecKeyIsAlgorithmSupported(publicKey, .encrypt, $0)}
+            ) else
+        {
+            throw CaptiveWebView.ErrorMessage("No algorithms supported")
+        }
+        
+        var error: Unmanaged<CFError>?
+        guard let encryptedBytes = SecKeyCreateEncryptedData(
+            publicKey, algorithm, Data(sentinel.utf8) as CFData, &error) else {
+            throw error!.takeRetainedValue() as Error
+        }
+        
+        guard let decryptedBytes = SecKeyCreateDecryptedData(
+            privateKey, algorithm, encryptedBytes, &error) else {
+            throw error!.takeRetainedValue() as Error
+        }
+        
+        let decryptedSentinel = String(
+            data: decryptedBytes as Data, encoding: .utf8)
+            ?? "\(decryptedBytes)"
+        
+        return [
+            .sentinel: sentinel,
+            .encryptedSentinel: String(describing: encryptedBytes),
+            .decryptedSentinel: decryptedSentinel,
+            .passed: decryptedSentinel == sentinel,
+            .algorithm: algorithm.rawValue
+        ]
     }
 
 }

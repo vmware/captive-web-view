@@ -1,10 +1,5 @@
-//
-//  AppDelegate.swift
-//  CaptiveCrypto
-//
-//  Created by Jim Hawkins on 07/09/2020.
-//  Copyright © 2020 Jim Hawkins. All rights reserved.
-//
+// Copyright 2020 VMware, Inc.
+// SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
 import CaptiveWebView
