@@ -21,11 +21,15 @@ function JSONable(obj, minLayers=0) {
     return jsonAble;
 }
 
-function sorting_replacer(key, value) {
+function sorting_replacer(omit, key, value) {
     // TOTH: https://stackoverflow.com/a/31102605/7657675
     if (value !== null && typeof value === 'object') {
         const _return = {};
-        Object.keys(value).sort().forEach(key => _return[key] = value[key]);
+        Object.keys(value).filter(
+            objectKey => !(key === "" && omit.includes(objectKey))
+        ).sort().forEach(
+            key => _return[key] = value[key]
+        );
         return _return;
     }
     return value;
@@ -135,10 +139,13 @@ class KeyStore {
 
     get result() { return this._result; }
     set result(result) {
-        this._resultPanel.display.textContent = JSON.stringify(
-            result, sorting_replacer, 4);
-        this._resultPanel.writeButton.removeAttribute('disabled');
         this._result = result;
+        this._resultPanel.display.textContent = JSON.stringify(
+            result,
+            sorting_replacer.bind(this, ['command', 'confirm']),
+            4
+        );
+        this._resultPanel.writeButton.removeAttribute('disabled');
     }
 
     _add_button(label, onClick) {

@@ -3,6 +3,7 @@
 
 package com.example.captivecrypto
 
+import android.os.Build
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -101,9 +102,13 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         }
 
         fun providersSummary():Map<String, Any> {
+            val returning = mutableMapOf<String, Any>("build" to mapOf(
+                "manufacturer" to Build.MANUFACTURER,
+                "model" to Build.MODEL
+            ))
             return Security.getProviders().map {
                 it.name to it.toMap()
-            }.toMap()
+            }.toMap(returning)
         }
 
         fun providerSummay(providerName:String):Map<String, Any> {
@@ -137,11 +142,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         jsonObject: JSONObject
     ): JSONObject {
         return when(Command.matching(command)) {
-            Command.capabilities -> JSONObject(providersSummary()).also {
-                val file = File(filesDir, Command.capabilities.name + ".json").absoluteFile
-                file.writeText(it.toString(4))
-
-            }
+            Command.capabilities -> JSONObject(providersSummary())
 
             Command.deleteAll -> JSONObject(deleteAllKeys())
 
