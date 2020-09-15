@@ -8,6 +8,7 @@ import java.lang.Exception
 
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
+import java.io.File
 import java.security.*
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -18,7 +19,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
     // it shouldn't because it has to match what gets sent from the JS layer.
     private enum class Command {
-        deleteAll, dump, generateKey, generatePair, ready, UNKNOWN;
+        capabilities, deleteAll, dump, generateKey, generatePair, ready, UNKNOWN;
 
         companion object {
             fun matching(string: String?): Command? {
@@ -99,6 +100,12 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             return returning.toTypedArray()
         }
 
+        fun providersSummary():Map<String, Any> {
+            return Security.getProviders().map {
+                it.name to it.toMap()
+            }.toMap()
+        }
+
         fun providerSummay(providerName:String):Map<String, Any> {
             return Security.getProvider(providerName).run { mapOf(
                 name to mapOf(
@@ -130,6 +137,12 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         jsonObject: JSONObject
     ): JSONObject {
         return when(Command.matching(command)) {
+            Command.capabilities -> JSONObject(providersSummary()).also {
+                val file = File(filesDir, Command.capabilities.name + ".json").absoluteFile
+                file.writeText(it.toString(4))
+
+            }
+
             Command.deleteAll -> JSONObject(deleteAllKeys())
 
             Command.dump -> JSONObject(dumpKeyStore())

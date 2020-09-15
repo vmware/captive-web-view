@@ -21,9 +21,27 @@ function JSONable(obj, minLayers=0) {
     return jsonAble;
 }
 
+function sorting_replacer(key, value) {
+    // TOTH: https://stackoverflow.com/a/31102605/7657675
+    if (value !== null && typeof value === 'object') {
+        const _return = {};
+        Object.keys(value).sort().forEach(key => _return[key] = value[key]);
+        return _return;
+    }
+    return value;
+}
+
 class KeyStore {
     constructor(bridge) {
         this._bridge = bridge;
+
+        const page = new PageBuilder('div', undefined, document.body);
+        const capButton = page.add_button("Capabilities");
+        capButton.addEventListener('click', () => this._send(
+            {command: "capabilities"}, true));
+
+        this._resultPanel = this._build_result_panel();
+
         this._transcript = document.createElement('div');
 
         const cryptoButtons = [];
@@ -41,6 +59,8 @@ class KeyStore {
             div.append(`Subtle Crypto: ${crypto}.`);
             document.body.append(div);
         }
+
+
 
         const buttonGenerateKey = this._add_button(
             'Generate Native Key "JS1"', () => this._send(
@@ -87,6 +107,40 @@ class KeyStore {
         });
     }
 
+    _build_result_panel() {
+        const panel = {
+            builder: new PageBuilder('div', undefined, document.body)
+        };
+
+        const resultIdentifier = "result";
+        panel.display = panel.builder.add_node('textarea');
+        Object.entries({
+            id:resultIdentifier, name:resultIdentifier, readonly:true,
+            rows: 10, cols:50,
+            placeholder:"No results yet ..."
+        }).forEach(([key, value]) => panel.display.setAttribute(key, value));
+
+        panel.writeButton = panel.builder.add_button("Write");
+        panel.writeButton.setAttribute('disabled', true);
+        panel.writeButton.addEventListener('click', event => {
+            this._send({command: "write", parameters: {
+                text: this._resultPanel.display.textContent,
+                filename: this._result.command + ".json"
+            }});
+            event.target.setAttribute('disabled', true);
+        });
+
+        return panel;
+    }
+
+    get result() { return this._result; }
+    set result(result) {
+        this._resultPanel.display.textContent = JSON.stringify(
+            result, sorting_replacer, 4);
+        this._resultPanel.writeButton.removeAttribute('disabled');
+        this._result = result;
+    }
+
     _add_button(label, onClick) {
         const button = document.createElement('button');
         button.type = 'button';
@@ -103,9 +157,19 @@ class KeyStore {
         .catch(error => this._transcribe({"error": String(error)}));
     }
 
-    _send(command) {
+    _send(command, setResult) {
         return this._bridge.sendObject(command)
-        .then(response => this._transcribe(response));
+        .then(response => {
+            if (setResult) {
+                if (response.command === undefined) {
+                    response.command = command.command;
+                }
+                this.result = response;
+            }
+            else {
+                this._transcribe(response);
+            }
+        });
     }
 
     _transcribe(message) {
