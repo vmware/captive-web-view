@@ -9,8 +9,9 @@ import java.lang.Exception
 
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
-import java.io.File
 import java.security.*
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -103,8 +104,15 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
         fun providersSummary():Map<String, Any> {
             val returning = mutableMapOf<String, Any>("build" to mapOf(
+                "device" to Build.DEVICE,
+                "display" to Build.DISPLAY,
                 "manufacturer" to Build.MANUFACTURER,
-                "model" to Build.MODEL
+                "model" to Build.MODEL,
+                "brand" to Build.BRAND,
+                "product" to Build.PRODUCT,
+                "time" to SimpleDateFormat("ddMMMyyyy HH:MM")
+                    .format(Date(Build.TIME))
+                    .toLowerCase()
             ))
             return Security.getProviders().map {
                 it.name to it.toMap()
