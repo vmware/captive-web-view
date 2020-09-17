@@ -18,6 +18,7 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.OAEPParameterSpec
 
 class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
@@ -39,10 +40,12 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         private, public, entry, info, exception, canonicalName, keySize,
         insideSecureHardware, purposes, encryptionPaddings, digests,
         userAuthenticationRequirementEnforcedBySecureHardware, encoded,
+        blockModes,
 
         summary, services, algorithm, `class`, type,
 
-        provider, iv, sentinel, encryptedSentinel, decryptedSentinel, passed,
+        digest, provider, iv, sentinel, encryptedSentinel, decryptedSentinel,
+        passed,
 
         AndroidKeyStore;
 
@@ -142,6 +145,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             // https://developer.android.com/guide/topics/security/cryptography#encrypt-message
             // KeyProperties.KEY_ALGORITHM_AES -> "AES/CBC/PKCS5PADDING"
             KeyProperties.KEY_ALGORITHM_AES -> "AES/GCM/NoPADDING"
+
+            KeyProperties.KEY_ALGORITHM_RSA -> "RSA/ECB/OAEPPadding"
 
             else -> key.algorithm
 
@@ -256,7 +261,9 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             ).getKeySpec(this, KeyInfo::class.java).run {
                 mapOf(
                     KEY.alias to keystoreAlias,
+                    KEY.algorithm to algorithm,
                     KEY.keySize to keySize,
+                    KEY.blockModes to blockModes,
                     KEY.purposes to purposeStrings(this),
                     KEY.encryptionPaddings to encryptionPaddings,
                     KEY.digests to digests,
@@ -273,12 +280,19 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             KEY.encoded to (this.encoded?.toString() ?: "No encoded form."),
             KEY.algorithm to this.algorithm
         ) }
-        catch (exception: Exception) { mapOf(
+        catch (exception: Exception) {
             // Some other exception.
-            KEY.exception to exception.toString(),
-            KEY.encoded to (this.encoded?.toString() ?: "null"),
-            KEY.algorithm to this.algorithm
-        ) }
+
+            // Some have multiple sentences and get too long. Change those into
+            // an array.
+            val texts = exception.toString().splitToSequence(". ").toList()
+
+            mapOf(
+                KEY.exception to if (texts.size == 1) texts[0] else texts,
+                KEY.encoded to (this.encoded?.toString() ?: "null"),
+                KEY.algorithm to this.algorithm
+            )
+        }
     }
 
     private fun generateKey(alias:String): Map<String, Any> {
@@ -305,11 +319,22 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
     private fun generateKeyPair(alias:String): Map<String, Any> {
         val keyPairGenerator = KeyPairGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_RSA
-        ).apply { initialize(2048) }
+            KeyProperties.KEY_ALGORITHM_RSA, KEY.AndroidKeyStore.name
+        ).apply { initialize(
+            KeyGenParameterSpec.Builder(
+                alias,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            ).run {
+                setBlockModes(KeyProperties.BLOCK_MODE_ECB)
+                setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+                setDigests(
+                    KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                build()
+            }
+        ) }
         return keyPairGenerator.generateKeyPair().let { mapOf(
             KEY.sentinel to encryptSentinel("Sentient", it),
-            "provider" to keyPairGenerator.provider.name,
+            KEY.provider to keyPairGenerator.provider.name,
             KEY.private to it.private.dumpKeyInfo(),
             KEY.public to it.public.dumpKeyInfo()
         ) }
@@ -366,17 +391,38 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     private fun encryptSentinel(
         sentinel: String, keyPair: KeyPair
     ): Map<String, Any> {
-        val cipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_RSA)
-        cipher.init(Cipher.ENCRYPT_MODE, keyPair.public)
+        val cipher = Cipher.getInstance(cipherSpecifier(keyPair.public))
+
+        // Create a parameter specification based on the default but changing
+        // the digest algorithm to SHA-512. The default would be SHA-1, which is
+        // generally deprecated.
+        val oaepParameterSpec = OAEPParameterSpec(
+            KeyProperties.DIGEST_SHA512,
+            OAEPParameterSpec.DEFAULT.mgfAlgorithm,
+            OAEPParameterSpec.DEFAULT.mgfParameters,
+            OAEPParameterSpec.DEFAULT.pSource
+        )
+
+        // Encrypt with the public key.
+        cipher.init(Cipher.ENCRYPT_MODE, keyPair.public, oaepParameterSpec)
         val encryptedBytes = cipher.doFinal(
             sentinel.toByteArray(Charsets.UTF_8))
 
-        cipher.init(Cipher.DECRYPT_MODE, keyPair.private)
+        // Decrypt with the private key.
+        cipher.init(Cipher.DECRYPT_MODE, keyPair.private, oaepParameterSpec)
         val decryptedSentinel = String(cipher.doFinal(
             encryptedBytes), Charsets.UTF_8)
 
+        // If there are no digest algorithms in common between the
+        // OAEPParameterSpec and the key, you get this exception ...
+        // java.security.InvalidKeyException: Keystore operation failed
+        // ... with this cause
+        // android.security.KeyStoreException: Incompatible digest
+
         return mapOf(
             KEY.algorithm to cipher.algorithm,
+            KEY.provider to cipher.provider.name,
+            KEY.digest to oaepParameterSpec.digestAlgorithm,
             KEY.iv to cipher.iv,
             KEY.sentinel to sentinel,
             KEY.encryptedSentinel to encryptedBytes.toString(),
