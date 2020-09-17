@@ -5,8 +5,19 @@ package com.example.captivewebview
 
 import android.content.Intent
 import com.example.captivewebview.ActivityMixIn.Companion.WEB_VIEW_ID
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+
+class CauseIterator(private var throwable: Throwable?): Iterator<Throwable> {
+    override fun hasNext(): Boolean {
+        return throwable != null
+    }
+
+    override fun next(): Throwable {
+        return throwable!!.also { throwable = throwable?.cause }
+    }
+}
 
 /**
  * This MixIn can be used in an application whose Activity subclasses cannot be
@@ -140,7 +151,10 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 "${this.javaClass.simpleName} bridge OK."
             )
         } catch(exception: Exception) {
-            jsonObject.put(EXCEPTION_KEY, "$exception")
+            val exceptions = JSONArray(CauseIterator(exception)
+                .asSequence().map { it.toString() }.toList())
+            jsonObject.put(EXCEPTION_KEY,
+                if (exceptions.length() == 1) exceptions[0] else exceptions)
         }
     }
 
