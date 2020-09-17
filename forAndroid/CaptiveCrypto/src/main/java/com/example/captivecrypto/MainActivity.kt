@@ -4,6 +4,7 @@
 package com.example.captivecrypto
 
 import android.os.Build
+import android.security.keystore.KeyGenParameterSpec
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -15,6 +16,7 @@ import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.IvParameterSpec
 
 class MainActivity: com.example.captivewebview.DefaultActivity() {
@@ -40,7 +42,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
         summary, services, algorithm, `class`, type,
 
-        iv, sentinel, encryptedSentinel, decryptedSentinel, passed,
+        provider, iv, sentinel, encryptedSentinel, decryptedSentinel, passed,
 
         AndroidKeyStore;
 
@@ -138,7 +140,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
             // For the "AES/CBC/PKCS5PADDING" magic, TOTH:
             // https://developer.android.com/guide/topics/security/cryptography#encrypt-message
-            KeyProperties.KEY_ALGORITHM_AES -> "AES/CBC/PKCS5PADDING"
+            // KeyProperties.KEY_ALGORITHM_AES -> "AES/CBC/PKCS5PADDING"
+            KeyProperties.KEY_ALGORITHM_AES -> "AES/GCM/NoPADDING"
 
             else -> key.algorithm
 
@@ -249,7 +252,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     private fun Key.dumpKeyInfo(): Map<String, Any> {
         return try {
             return KeyFactory.getInstance(
-                this.algorithm //, KEY.AndroidKeyStore.name
+                this.algorithm, KEY.AndroidKeyStore.name
             ).getKeySpec(this, KeyInfo::class.java).run {
                 mapOf(
                     KEY.alias to keystoreAlias,
@@ -280,8 +283,19 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
     private fun generateKey(alias:String): Map<String, Any> {
         val keyGenerator = KeyGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_AES
-        ).apply { init(256) }
+            KeyProperties.KEY_ALGORITHM_AES, KEY.AndroidKeyStore.name
+        ).apply { init(
+            KeyGenParameterSpec.Builder(
+                alias,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+            ).run {
+                setKeySize(256)
+                setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                build()
+            }
+        ) }
+
         return keyGenerator.generateKey().let { mapOf(
             KEY.sentinel to encryptSentinel("Single tient", it),
             "provider" to keyGenerator.provider.name,
@@ -314,13 +328,22 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         // The IV wasn't specified above. This means that the cipher will create
         // a random one of its own. It has to be extracted in order to do the
         // decryption leg.
+
+        // In CBC mode, only the IV need be specified. In GCM mode, the tag id
+        // length must also be specified.
+
         // For IvParameterSpec, TOTH:
         // https://medium.com/@hakkitoklu/aes256-encryption-decryption-in-android-2fae6938fc2b
-        val ivParameterSpec = IvParameterSpec(cipher.iv)
+        // val parameterSpec = IvParameterSpec(cipher.iv)
+
+        // For GCMParameterSpec, TOTH:
+        // https://medium.com/@josiassena/using-the-android-keystore-system-to-store-sensitive-information-3a56175a454b
+        val parameterSpec = GCMParameterSpec(128, cipher.iv)
 
         // Now re-initialise for decryption and insert back the IV.
-        cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec)
-        // If you don't set an IV spec, you get this:
+        cipher.init(Cipher.DECRYPT_MODE, key, parameterSpec)
+
+        // In CBC mode, if you don't set an IV spec, you get this:
         //
         //     java.lang.RuntimeException:
         //     java.security.InvalidAlgorithmParameterException:
@@ -331,6 +354,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
         return mapOf(
             KEY.algorithm to cipher.algorithm,
+            KEY.provider to cipher.provider.name,
             KEY.iv to cipher.iv,
             KEY.sentinel to sentinel,
             KEY.encryptedSentinel to encryptedSentinel.toString(),
