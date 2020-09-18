@@ -281,7 +281,7 @@ class KeyStore {
                 }
                 this.result = response;
             }
-            else if (response.command === "summariseStore") {
+            else if (command.command === "summariseStore") {
                 this.keyStore = response.keyStore;
             }
             else {

@@ -10,6 +10,7 @@ import java.lang.Exception
 
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
+import org.json.JSONArray
 import java.security.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -17,14 +18,13 @@ import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
-import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.OAEPParameterSpec
 
 class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
     // it shouldn't because it has to match what gets sent from the JS layer.
     private enum class Command {
-        capabilities, deleteAll, dump, generateKey, generatePair, ready, UNKNOWN;
+        capabilities, deleteAll, summariseStore, generateKey, generatePair, ready, UNKNOWN;
 
         companion object {
             fun matching(string: String?): Command? {
@@ -162,7 +162,10 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
             Command.deleteAll -> JSONObject(deleteAllKeys())
 
-            Command.dump -> JSONObject(dumpKeyStore())
+            Command.summariseStore -> jsonObject.put("keyStore", JSONArray(
+                    KeyStore.getInstance(KEY.AndroidKeyStore.name)
+                        .apply { load(null) }.summarise()
+            ))
 
             Command.generateKey ->
                 (jsonObject.opt(KEY.parameters) as? JSONObject)
@@ -175,12 +178,12 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
             Command.generatePair ->
                 (jsonObject.opt(KEY.parameters) as? JSONObject)
-                ?.run{ opt(KEY.alias) as? String }
-                ?.let { JSONObject(generateKeyPair(it)) }
-                ?: throw Exception(listOf(
-                    "Key `", KEY.alias, "` must be specified in `",
-                    KEY.parameters, "`."
-                ).joinToString(""))
+                    ?.run{ opt(KEY.alias) as? String }
+                    ?.let { JSONObject(generateKeyPair(it)) }
+                    ?: throw Exception(listOf(
+                        "Key `", KEY.alias, "` must be specified in `",
+                        KEY.parameters, "`."
+                    ).joinToString(""))
 
             Command.ready -> jsonObject
 
@@ -219,21 +222,20 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         }
     }
 
-    private fun dumpKeyStore(): Map<String, Any> {
-        return KeyStore.getInstance(KEY.AndroidKeyStore.name).apply {
-            load(null)
-        }.run { mapOf(
-            KEY.summary to toString(), KEY.count to size(),
-            KEY.keys to aliases().toList().map { mapOf(
-                KEY.entry to dumpKeyEntry(it),
-                KEY.info to getKey(it, null).dumpKeyInfo()
-            ) }
-        )}
-        // Near here, it would be quite nice to use `attributes` but it's
-        // API level 26, which is too high.
+    private fun KeyStore.summarise(): List<Map<String, Any>> {
+        return aliases().toList().map {
+            val keySummary = this.getKey(it, null).summarise().toMutableMap()
+
+            mapOf(
+                "store" to "",
+                "name" to it,
+                "type" to keySummary[KEY.algorithm.name] as String,
+                "summary" to summariseEntry(it).toMap(keySummary)
+            )
+        }
     }
 
-    private fun KeyStore.dumpKeyEntry(alias: String): Map<String, Any> {
+     fun KeyStore.summariseEntry(alias: String): Map<String, Any> {
         return try {
             // The getEntry() on the following line will generate an exception
             // in the adb logcat, but still returns a value, and doesn't throw
@@ -252,9 +254,12 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         catch (exception: Exception) {
             mapOf(KEY.exception to exception.toString())
         }
+
+        // Near here, it would be quite nice to use `attributes` but it's
+        // API level 26, which is too high.
     }
 
-    private fun Key.dumpKeyInfo(): Map<String, Any> {
+    private fun Key.summarise(): Map<String, Any> {
         return try {
             return KeyFactory.getInstance(
                 this.algorithm, KEY.AndroidKeyStore.name
@@ -313,7 +318,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         return keyGenerator.generateKey().let { mapOf(
             KEY.sentinel to encryptSentinel("Single tient", it),
             "provider" to keyGenerator.provider.name,
-            "key" to it.dumpKeyInfo()
+            "key" to it.summarise()
         ) }
     }
 
@@ -335,8 +340,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         return keyPairGenerator.generateKeyPair().let { mapOf(
             KEY.sentinel to encryptSentinel("Sentient", it),
             KEY.provider to keyPairGenerator.provider.name,
-            KEY.private to it.private.dumpKeyInfo(),
-            KEY.public to it.public.dumpKeyInfo()
+            KEY.private to it.private.summarise(),
+            KEY.public to it.public.summarise()
         ) }
     }
 
