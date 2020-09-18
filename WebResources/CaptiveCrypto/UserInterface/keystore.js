@@ -59,13 +59,10 @@ class KeyStore {
     constructor(bridge) {
         this._bridge = bridge;
 
-        const page = new PageBuilder('div', undefined, document.body);
-        const capButton = page.add_button("Capabilities");
-        capButton.addEventListener('click', () => this._send(
-            {command: "capabilities"}, true));
-
-        this._build_result_panel();
         this._build_key_store_panel();
+        this._build_add_key_panel();
+        this._build_button_panel();
+        this._build_result_panel();
 
         this._transcript = document.createElement('div');
 
@@ -85,22 +82,9 @@ class KeyStore {
             document.body.append(div);
         }
 
-
-
-        const buttonGenerateKey = this._add_button(
-            'Generate Native Key "JS1"', () => this._send(
-                {"command": "generateKey", "parameters": {"alias": "JS1"}}));
-
-        const buttonGeneratePair = this._add_button(
-            'Generate Native Pair "JS"', () => this._send(
-                {"command": "generatePair", "parameters": {"alias": "JS"}}));
-
         const buttonDump = this._add_button(
             "Summarise Store", () => this._send({"command": "summariseStore"}));
 
-        const buttonDeleteAll = this._add_button(
-            "Delete All Keys", () => this._send({"command": "deleteAll"}));
-        
         this._buttonClear = this._add_button("Clear Transcript", () => {
             // TOTH https://stackoverflow.com/a/22966637/7657675
             const transcript = this._transcript.cloneNode(false);
@@ -113,7 +97,7 @@ class KeyStore {
 
         document.body.append(
             ...cryptoButtons,
-            buttonGenerateKey, buttonGeneratePair, buttonDump, buttonDeleteAll,
+            buttonDump,
             document.createElement('hr'), this._buttonClear, this._transcript
         );
 
@@ -132,19 +116,17 @@ class KeyStore {
     }
 
     _build_result_panel() {
-        const panel = {
-            builder: new PageBuilder('div', undefined, document.body)
-        };
+        const builder = new PageBuilder('div', undefined, document.body);
+        const panel = { display: builder.add_node('textarea') };
 
         const resultIdentifier = "result";
-        panel.display = panel.builder.add_node('textarea');
         Object.entries({
             id:resultIdentifier, name:resultIdentifier, readonly:true,
             rows: 10, cols:50,
             placeholder:"No results yet ..."
         }).forEach(([key, value]) => panel.display.setAttribute(key, value));
 
-        panel.writeButton = panel.builder.add_button("Write");
+        panel.writeButton = builder.add_button("Write");
         panel.writeButton.setAttribute('disabled', true);
         panel.writeButton.addEventListener('click', event => {
             this._send({command: "write", parameters: {
@@ -169,16 +151,14 @@ class KeyStore {
     }
 
     _build_key_store_panel() {
-        const panel = {
-            builder: new PageBuilder('div', undefined, document.body),
-            entries: []
-        };
-        panel.builder.node.classList.add('kst__key-store');
+        const builder = new PageBuilder('div', undefined, document.body);
+        const panel = { entries: [] };
+        builder.node.classList.add('kst__key-store');
 
-        panel.emptyMessage = panel.builder.add_node('div', "Key store empty.");
+        panel.emptyMessage = builder.add_node('div', "Key store empty.");
         panel.emptyMessage.classList.add('kst__key-store-message');
 
-        panel.entriesNode = panel.builder.add_node('div');
+        panel.entriesNode = builder.add_node('div');
 
         this._keyStorePanel = panel;
     }
@@ -197,8 +177,6 @@ class KeyStore {
         }}).sort((a, b) => (
             a.sortValue < b.sortValue ? -1 : a.sortValue > b.sortValue ? 1 : 0
         ));
-        this._resultPanel.display.textContent = JSON.stringify(
-            updatedEntries, undefined, 4);
 
         // Cheeky use of .every() method. An early `return true` serves as a
         // continue would in a for loop.
@@ -256,6 +234,56 @@ class KeyStore {
         return builder;
     }
 
+    _build_add_key_panel() {
+        const builder = new PageBuilder('fieldset', undefined, document.body);
+        builder.add_node('legend', "Add Key");
+        // const panel = { entries: [] };
+        const nameInput = builder.add_input('alias', "Alias:", true, "text");
+        nameInput.inputNode.setAttribute('size', 6);
+        nameInput.node.classList.add('kst__key-alias');
+
+        const pairButton = builder.add_button("Key Pair");
+        pairButton.addEventListener(
+            'click', () => this._send_add_key("generatePair", nameInput));
+
+        const keyButton = builder.add_button("Key");
+        keyButton.addEventListener(
+            'click', () => this._send_add_key("generateKey", nameInput));
+    }
+
+    _send_add_key(command, input) {
+        this._send({command: command, parameters: {alias: input.value}})
+        .then(response => {
+            input.value = "";
+            this._send({"command": "summariseStore"});
+        });
+    }
+
+    _build_button_panel() {
+        const builder = new PageBuilder('div', undefined, document.body);
+        const capButton = builder.add_button("Capabilities");
+        capButton.addEventListener(
+            'click', () => this._send_for_results("capabilities"));
+
+        const clearButton = builder.add_button("Delete All");
+        clearButton.addEventListener(
+            'click', () => this._send_for_results("deleteAll", true));
+    }
+
+    _send_for_results(command, update) {
+        this._send({command: command})
+        .then(response => {
+            if (response.command === undefined) {
+                response.command = command.command;
+            }
+            this.result = response;
+            if (update) {
+                this._send({command: "summariseStore"});
+            }
+            return response;
+        });
+    }
+
     _add_button(label, onClick) {
         const button = document.createElement('button');
         button.type = 'button';
@@ -272,21 +300,16 @@ class KeyStore {
         .catch(error => this._transcribe({"error": String(error)}));
     }
 
-    _send(command, setResult) {
+    _send(command) {
         return this._bridge.sendObject(command)
         .then(response => {
-            if (setResult) {
-                if (response.command === undefined) {
-                    response.command = command.command;
-                }
-                this.result = response;
-            }
-            else if (command.command === "summariseStore") {
+            if (command.command === "summariseStore") {
                 this.keyStore = response.keyStore;
             }
             else {
                 this._transcribe(response);
             }
+            return response;
         });
     }
 
