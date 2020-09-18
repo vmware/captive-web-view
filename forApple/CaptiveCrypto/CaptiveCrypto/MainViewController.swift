@@ -87,18 +87,18 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     // Implicit raw values, see:
     // https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html#ID535
     private enum Command: String {
-        case deleteAll, dump, generateKey, generatePair
+        case deleteAll, summariseStore, generateKey, generatePair
     }
     
     public enum KEY: String {
-        case alias, attributes, deletedAll, parameters, items, count, summary,
-        key,
+        case alias, attributes, deleted, parameters, items, count, summary,
+        key, keyStore,
         
         sentinel, encryptedSentinel, decryptedSentinel, passed, algorithm,
         
         stored, deletedFirst,
         
-        raw
+        raw, store, name, type
     }
     
     override func response(
@@ -111,8 +111,8 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         case .deleteAll:
             return try clearStore()
 
-        case .dump:
-            return try summariseStore()
+        case .summariseStore:
+            return [KEY.keyStore: try summariseStore()].withStringKeys()
             
         case .generateKey:
             guard
@@ -143,36 +143,39 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         }
     }
     
-    private func clearStore() throws -> Dictionary<String, Any> {
-        return try self.eachSecClass {secClass in
+    private func clearStore() throws -> [String:Any] {
+        var deleted:[String:Any] = [:]
+        try self.eachSecClass {selector, label in
             // Query to find all items of this security class.
-            let query: [CFString: Any] = [kSecClass: secClass]
+            let query: [CFString: Any] = [kSecClass: selector]
             let status = SecItemDelete(query as CFDictionary)
-            if status == errSecSuccess {
-                return true
+            if let rhs:Any = status == errSecSuccess ? true
+                : status == errSecItemNotFound ? false : nil
+            {
+                return [[label:rhs]]
             }
-            if status == errSecItemNotFound {
-                return false
-            }
-            if let message = status.secErrorMessage {
-                return message
+            if let rhs = status.secErrorMessage {
+                return [[label:rhs]]
             }
             throw osStatusError(status)
+        }.forEach {
+            deleted.merge($0, uniquingKeysWith: {(_, new) in new})
         }
+        return [KEY.deleted: deleted].withStringKeys()
     }
     
-    private func eachSecClass(
-        _ oneSecClass: (_ secClass: CFString) throws -> Any
-    ) rethrows -> [String:Any]
+    private func eachSecClass(_ oneSecClass:
+        (_ selector: CFString, _ label: String) throws -> [[String:Any]]
+    ) rethrows -> [[String:Any]]
     {
-        return Dictionary.init(uniqueKeysWithValues: try [
-            kSecClassGenericPassword, kSecClassKey
-        ].map {(
-            $0 == kSecClassKey ? "keys" :
-            $0 == kSecClassGenericPassword ? "generic" :
-            $0 as String,
-            try oneSecClass($0)
-        )})
+        return try [kSecClassGenericPassword, kSecClassKey].flatMap {
+            try oneSecClass(
+                $0,
+                $0 == kSecClassKey ? "key" :
+                    $0 == kSecClassGenericPassword ? "generic" :
+                    $0 as String
+            )
+        }
     }
 
     private func osStatusError(_ osStatus: OSStatus) -> Error {
@@ -199,10 +202,10 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         return NSError(domain: NSOSStatusErrorDomain, code: Int(osStatus))
     }
     
-    private func summariseStore() throws -> [String: Any] {
-        return try self.eachSecClass {secClass in
+    private func summariseStore() throws -> [[String: Any]] {
+        return try self.eachSecClass {selector, label in
             let query: [CFString: Any] = [
-                kSecClass: secClass,
+                kSecClass: selector,
                 kSecReturnAttributes: true,
                 kSecMatchLimit: kSecMatchLimitAll
             ]
@@ -250,14 +253,21 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                 throw osStatusError(status)
             }
             
-            var store:[Dictionary<String, Any>] = []
+            var store:[[String:Any]] = []
             
             // In case of errSecItemNotFound, items will be an empty array.
             items.enumerateObjects {
                 (item: Any, index: Int, stop: UnsafeMutablePointer<ObjCBool>) in
-                // If using kSecReturnAttributes true, ucomment this code.
-                store.append(self.dump(cfDictionary: item as! CFDictionary))
-                //
+                let summary = self.dump(cfDictionary: item as! CFDictionary)
+                // If using kSecReturnAttributes true, uncomment this code.
+                store.append([
+                    KEY.store: label, KEY.summary: summary,
+                    KEY.name: summary[kSecAttrLabel as String] ?? "",
+                    KEY.type: (
+                        summary[kSecAttrKeyType as String] as? [String:Any]
+                        )?[KEY.key] ?? ""
+                ].withStringKeys())
+
                 // If using kSecReturnRef true, uncomment this code.
                 // store.append(self.dump(key: item as! SecKey))
                 //
@@ -266,7 +276,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                 // store.append(["data":"\(cfData)"])
             }
             
-            return [.count: store.count, .items: store].withStringKeys()
+            return store
         }
     }
     

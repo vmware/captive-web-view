@@ -35,6 +35,26 @@ function sorting_replacer(omit, key, value) {
     return value;
 }
 
+const prefix = "CaptiveCrypto ";
+function key_item_labels(keySummary) {
+    const name = (
+        keySummary.name.startsWith(prefix)
+        ? keySummary.name.slice(prefix.length)
+        : keySummary.name
+    );
+    return [
+        ...(name === "" ? [] : [' "', name, '" ']),
+        keySummary.type === "" ? keySummary.store : keySummary.type
+    ];
+}
+
+function key_sort_value(keySummary) {
+    return [
+        ...key_item_labels(keySummary),
+        JSON.stringify(keySummary.summary, sorting_replacer.bind(null, []))
+    ].join("");
+}
+
 class KeyStore {
     constructor(bridge) {
         this._bridge = bridge;
@@ -44,7 +64,8 @@ class KeyStore {
         capButton.addEventListener('click', () => this._send(
             {command: "capabilities"}, true));
 
-        this._resultPanel = this._build_result_panel();
+        this._build_result_panel();
+        this._build_key_store_panel();
 
         this._transcript = document.createElement('div');
 
@@ -75,7 +96,7 @@ class KeyStore {
                 {"command": "generatePair", "parameters": {"alias": "JS"}}));
 
         const buttonDump = this._add_button(
-            "Dump Key Store", () => this._send({"command": "dump"}));
+            "Summarise Store", () => this._send({"command": "summariseStore"}));
 
         const buttonDeleteAll = this._add_button(
             "Delete All Keys", () => this._send({"command": "deleteAll"}));
@@ -101,12 +122,11 @@ class KeyStore {
             return Object.assign(command, {"confirm": "KeyStore"});
         };
 
-        this._send({"command": "dump"})
+        this._send({"command": "summariseStore"})
         .then(() => {
             const loading = new PageBuilder(document.getElementById('loading'));
             loading.node.firstChild.remove();
-            const anchor = loading.add_anchor(
-                "Main.html", "Key Store Inspector");
+            const anchor = loading.add_anchor("Main.html", "Key Store");
             anchor.classList.add("cwv-anchor", "cwv-anchor_back");
         });
     }
@@ -134,7 +154,7 @@ class KeyStore {
             event.target.setAttribute('disabled', true);
         });
 
-        return panel;
+        this._resultPanel = panel;
     }
 
     get result() { return this._result; }
@@ -146,6 +166,94 @@ class KeyStore {
             4
         );
         this._resultPanel.writeButton.removeAttribute('disabled');
+    }
+
+    _build_key_store_panel() {
+        const panel = {
+            builder: new PageBuilder('div', undefined, document.body),
+            entries: []
+        };
+        panel.builder.node.classList.add('kst__key-store');
+
+        panel.emptyMessage = panel.builder.add_node('div', "Key store empty.");
+        panel.emptyMessage.classList.add('kst__key-store-message');
+
+        panel.entriesNode = panel.builder.add_node('div');
+
+        this._keyStorePanel = panel;
+    }
+
+    get keyStore() { return this._keyStore; }
+    set keyStore(keyStore) {
+        this._keyStore = keyStore;
+
+        const panel = this._keyStorePanel;
+        panel.emptyMessage.classList.toggle(
+            'kst__key-store-message_empty', keyStore.length <= 0);
+
+        // Add a sort value for every key entry in the key store summary.
+        const updatedEntries = keyStore.map(keySummary => {return {
+            summary:keySummary, sortValue:key_sort_value(keySummary)
+        }}).sort((a, b) => (
+            a.sortValue < b.sortValue ? -1 : a.sortValue > b.sortValue ? 1 : 0
+        ));
+        this._resultPanel.display.textContent = JSON.stringify(
+            updatedEntries, undefined, 4);
+
+        // Cheeky use of .every() method. An early `return true` serves as a
+        // continue would in a for loop.
+        updatedEntries.every((storeEntry, index) => {
+            const {summary, sortValue} = storeEntry;
+            if (index >= panel.entries.length) {
+                panel.entries.push(storeEntry);
+            }
+            else if (sortValue != panel.entries[index].sortValue) {
+                panel.entries[index] = storeEntry;
+            }
+            else {
+                // No change from incumbent.
+                return true;
+            }
+
+            this._new_key_entry(summary, index);
+            return true;
+        });
+
+        while(panel.entriesNode.children.length > updatedEntries.length) {
+            panel.entriesNode.children[updatedEntries.length].remove();
+        }
+        panel.entries = updatedEntries;
+    }
+
+    _new_key_entry(summary, index) {
+        const builder = new PageBuilder('fieldset');
+        const parent = this._keyStorePanel.entriesNode;
+        if (index >= parent.children.length) {
+            parent.append(builder.node);
+        }
+        else {
+            parent.children[index].replaceWith(builder.node);
+        }
+        const legend = [
+            `${index + 1}`, ...key_item_labels(summary)
+        ].join("");
+        builder.add_node('legend', legend);
+        const button = builder.add_button();
+        const label = PageBuilder.add_node('label', "Details", button);
+        const textarea = builder.add_node('textarea');
+        textarea.classList.add(
+            'kst__key-details', 'kst__key-details_collapsed');
+        const identifier = `key-${index}`;
+        Object.entries({
+            id:identifier, name:identifier, 
+            readonly:true, rows: 10, cols:50
+        }).forEach(([key, value]) => textarea.setAttribute(key, value));
+        textarea.textContent = JSON.stringify(summary, undefined, 4);
+        label.setAttribute('for', identifier);
+        button.addEventListener('click', () => {
+            textarea.classList.toggle('kst__key-details_collapsed');
+        });
+        return builder;
     }
 
     _add_button(label, onClick) {
@@ -173,6 +281,9 @@ class KeyStore {
                 }
                 this.result = response;
             }
+            else if (response.command === "summariseStore") {
+                this.keyStore = response.keyStore;
+            }
             else {
                 this._transcribe(response);
             }
@@ -194,6 +305,7 @@ class KeyStore {
 }
 
 export default function(bridge) {
+    PageBuilder.add_css_file("keystore.css");
     new KeyStore(bridge);
     return null;
 }
