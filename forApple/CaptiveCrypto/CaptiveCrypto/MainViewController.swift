@@ -178,7 +178,8 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         }
     }
 
-    private func osStatusError(_ osStatus: OSStatus) -> Error {
+    private func osStatusError(_ preamble:String?, _ osStatus: OSStatus) -> Error
+    {
         // Plan A: use the proper method to create an error message.
         if let message = osStatus.secErrorMessage {
             // The reference for SecCopyErrorMessageString is here:
@@ -195,13 +196,21 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             // It also says to pass NULL as the second parameter, which
             // isn't accepted by the compiler. This code passes nil instead.
 
-            return CaptiveWebView.ErrorMessage(message)
+            return preamble == nil
+                ? CaptiveWebView.ErrorMessage(message as String)
+                : CaptiveWebView.ErrorMessage(preamble!, " ", message as String)
         }
         
         // Plan B: create an NSError instead.
-        return NSError(domain: NSOSStatusErrorDomain, code: Int(osStatus))
+        return preamble == nil
+            ? NSError(domain: NSOSStatusErrorDomain, code: Int(osStatus))
+            : NSError(domain: NSOSStatusErrorDomain, code: Int(osStatus),
+                      userInfo: ["information":preamble!])
     }
-    
+    private func osStatusError(_ osStatus: OSStatus) -> Error {
+        return osStatusError(nil, osStatus)
+    }
+
     private func summariseStore() throws -> [[String: Any]] {
         return try self.eachSecClass {selector, label in
             let query: [CFString: Any] = [
@@ -219,7 +228,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             // kSecReturnRef true
             // Gets a SecKey object for each key. A dictionary representation can be
             // generated from a SecKey by calling SecKeyCopyAttributes(), which is
-            // done in the dump(key:) method, below. However the resulting
+            // done in the summarise(key:) method, below. However the resulting
             // dictionary has only a subset of the attributes. For example, it
             // doesn't have these:
             //
@@ -258,7 +267,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             // In case of errSecItemNotFound, items will be an empty array.
             items.enumerateObjects {
                 (item: Any, index: Int, stop: UnsafeMutablePointer<ObjCBool>) in
-                let summary = self.dump(cfDictionary: item as! CFDictionary)
+                let summary = self.summarise(cfDictionary: item as! CFDictionary)
                 // If using kSecReturnAttributes true, uncomment this code.
                 store.append([
                     KEY.store: label, KEY.summary: summary,
@@ -269,7 +278,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                 ].withStringKeys())
 
                 // If using kSecReturnRef true, uncomment this code.
-                // store.append(self.dump(key: item as! SecKey))
+                // store.append(self.summarise(key: item as! SecKey))
                 //
                 // If using kSecReturnData true, uncomment this code.
                 // let cfData = item as! CFData
@@ -280,17 +289,17 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         }
     }
     
-    private func dump(key secKey: SecKey) -> Dictionary<KEY, Any> {
-        var dumpAttributes: Dictionary<String, Any>? = nil
+    private func summarise(key secKey: SecKey) -> Dictionary<KEY, Any> {
+        var attributes: Dictionary<String, Any>? = nil
         if let copyAttributes = SecKeyCopyAttributes(secKey) {
-            dumpAttributes = self.dump(cfDictionary: copyAttributes)
+            attributes = self.summarise(cfDictionary: copyAttributes)
         }
         
         return [.summary: "\(secKey)".split(separator: ","),
-                .attributes: dumpAttributes ?? "null"]
+                .attributes: attributes ?? "null"]
     }
     
-    private func dump(cfDictionary: CFDictionary) -> Dictionary<String, Any> {
+    private func summarise(cfDictionary: CFDictionary) -> Dictionary<String, Any> {
         // Keys in the returned dictionary will sometimes be the short names
         // that are the underlying values of the various kSecAttr constants. You
         // can see a list of all the short names and corresponding kSecAttr
@@ -353,23 +362,32 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         let deleteQuery:[CFString:Any] = [
             kSecClass: kSecClassGenericPassword,
             kSecAttrLabel: alias,
+            
+            // Generic passwords in the keychain use the following two items as
+            // identifying attributes. If you don't set them, a first keychain
+            // item will still be stored, but a second keychain item will be
+            // rejected as a duplicate.
+            // TOTH: https://useyourloaf.com/blog/keychain-duplicate-item-when-adding-password/
+            kSecAttrAccount: "Account \(alias)",
+            kSecAttrService: "Service \(alias)"
+
         ]
         let deleted = SecItemDelete(deleteQuery as CFDictionary)
         guard deleted == errSecSuccess || deleted == errSecItemNotFound else {
-            throw osStatusError(deleted)
+            throw osStatusError("Failed SecItemDelete(\(deleteQuery)).", deleted)
         }
 
         // Merge in more query attributes, to create the add query.
         let addQuery = deleteQuery.merging([
             kSecReturnAttributes: true,
-            kSecValueData: key.rawRepresentation
+            kSecValueData: key.rawRepresentation,
         ]) {(_, new) in new}
         var result: CFTypeRef?
         let status = SecItemAdd(addQuery as CFDictionary, &result)
         guard status == errSecSuccess else {
-            throw osStatusError(status)
+            throw osStatusError("Failed SecItemAdd(\(addQuery),)", status)
         }
-        return [.summary: dump(cfDictionary: result as! CFDictionary),
+        return [.summary: summarise(cfDictionary: result as! CFDictionary),
                 .deletedFirst: deleted == errSecSuccess]
     }
     
@@ -428,7 +446,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                 sentinel: "Centennial", basedOnPrivateKey: privateKey
             ).withStringKeys(),
             .attributes: returning.withStringKeys(),
-            .key: self.dump(key:privateKey).withStringKeys()
+            .key: self.summarise(key:privateKey).withStringKeys()
         ]
     }
     
