@@ -12,7 +12,34 @@ private let LOAD_PAGE_KEY = "load"
 private let SECURE_KEY = "secure"
 
 private enum Command: String {
-    case close, focus, load, EMPTY = ""
+    case close, focus, load, write, EMPTY = ""
+}
+
+private enum KEY: String {
+    // Keys used by `write` command.
+    case text, filename, wrote
+    
+    // ToDo replace all the _KEY constants, above, with enumerated values.
+}
+
+// Convenience extension to facilitate use of the KEY enumeration as keys in a
+// dictionary.
+extension Dictionary where Key == String {
+    fileprivate subscript(_ key:KEY) -> Value? {
+        get {
+            return self[key.rawValue]
+        }
+    }
+}
+
+// Clunky but can be used to create a dictionary with String keys from a
+// dictionary literal with KEY keys.
+extension Dictionary where Key == KEY {
+    func withStringKeys() -> [String: Value] {
+        return Dictionary<String, Value>(uniqueKeysWithValues: self.map {
+            ($0.rawValue, $1)
+        })
+    }
 }
 
 extension CaptiveWebView.DefaultViewController {
@@ -127,6 +154,41 @@ extension CaptiveWebView.DefaultViewController {
                 loadedController.view.layer.borderWidth = 0
             }
             return ["loaded": page]
+            
+        case .write:
+            // Get the parameters.
+            guard let text = parameters[KEY.text] as? String else {
+                throw CaptiveWebView.ErrorMessage(
+                    "No text in parameters for write command: \(parameters)")
+            }
+            guard let filename = parameters[KEY.filename] as? String else {
+                throw CaptiveWebView.ErrorMessage(
+                    "No filename in parameters for write command: \(parameters)")
+            }
+
+            // Get the Documents/ directory for the app, and append the
+            // specified file name.
+            // If the app declares UISupportsDocumentBrowser:YES in its
+            // Info.plist file then the files written here will be accessible
+            // to, for example, the Files app on the device.
+            let fileURL = try FileManager.default.url(
+                for: .documentDirectory, in: .userDomainMask,
+                appropriateFor: nil, create: true)
+                .appendingPathComponent(filename)
+
+            // Write the file.
+            try text.write(to:fileURL, atomically: true, encoding: .utf8)
+
+            // Generate a relative path that should be meaningful to the user.
+            let root = URL.init(fileURLWithPath: NSHomeDirectory())
+                .absoluteString
+            let absolutePath = fileURL.absoluteString
+            let relativePath = absolutePath.hasPrefix(root)
+                ? String(fileURL.absoluteString.suffix(
+                            absolutePath.count - root.count))
+                : absolutePath
+                
+            return [KEY.wrote: relativePath].withStringKeys()
             
         case .EMPTY:
             if let page = commandDictionary[LOAD_PAGE_KEY] as? String {

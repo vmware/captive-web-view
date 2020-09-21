@@ -82,12 +82,30 @@ extension Dictionary where Key == CFString {
     }
 }
 
-class MainViewController: CaptiveWebView.DefaultViewController {
+class SimpleDateFormatter {
+    private static let formats = ["dd", "MMM", "yyyy HH:mm z"]
+    private static let formatters: [DateFormatter] = { formats.map {
+        let formatter = DateFormatter()
+        formatter.dateFormat = $0
+        return formatter
+    } }()
+    
+    private init() {}
+    
+    static func string(from date:Date) -> String {
+        let formatted = formatters.map{ $0.string(from: date) }
+        return [
+            formatted[0], formatted[1].lowercased(), formatted[2]
+        ].joined()
+    }
+}
 
+class MainViewController: CaptiveWebView.DefaultViewController {
+    
     // Implicit raw values, see:
     // https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html#ID535
     private enum Command: String {
-        case deleteAll, summariseStore, generateKey, generatePair
+        case capabilities, deleteAll, summariseStore, generateKey, generatePair
     }
     
     public enum KEY: String {
@@ -98,7 +116,9 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         
         stored, deletedFirst,
         
-        raw, store, name, type
+        raw, store, name, type,
+        
+        secureEnclave, date
     }
     
     override func response(
@@ -107,6 +127,9 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         ) throws -> Dictionary<String, Any>
     {
         switch Command(rawValue: command) {
+        
+        case .capabilities:
+            return summariseCapabilities().withStringKeys()
             
         case .deleteAll:
             return try clearStore()
@@ -141,6 +164,13 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         default:
             return try super.response(to: command, in: commandDictionary)
         }
+    }
+    
+    private func summariseCapabilities() -> [KEY:Any] {
+        return [
+            .secureEnclave: SecureEnclave.isAvailable,
+            .date: SimpleDateFormatter.string(from: Date())
+        ]
     }
     
     private func clearStore() throws -> [String:Any] {
