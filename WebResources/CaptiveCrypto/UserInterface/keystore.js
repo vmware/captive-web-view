@@ -63,8 +63,7 @@ class KeyStore {
         this._build_add_key_panel();
         this._build_button_panel();
         this._build_result_panel();
-
-        this._transcript = document.createElement('div');
+        this._transcript = PageBuilder.add_transcript(document.body, true);
 
         const cryptoButtons = [];
         if (crypto) {
@@ -82,23 +81,8 @@ class KeyStore {
             document.body.append(div);
         }
 
-        const buttonDump = this._add_button(
-            "Summarise Store", () => this._send({"command": "summariseStore"}));
-
-        this._buttonClear = this._add_button("Clear Transcript", () => {
-            // TOTH https://stackoverflow.com/a/22966637/7657675
-            const transcript = this._transcript.cloneNode(false);
-            this._transcript.parentNode.replaceChild(
-                transcript, this._transcript);
-            this._transcript = transcript;
-            this._buttonClear.setAttribute('disabled', true);
-        });
-        this._buttonClear.setAttribute('disabled', true);
-
         document.body.append(
-            ...cryptoButtons,
-            buttonDump,
-            document.createElement('hr'), this._buttonClear, this._transcript
+            ...cryptoButtons
         );
 
         bridge.receiveObjectCallback = command => {
@@ -213,7 +197,7 @@ class KeyStore {
             parent.children[index].replaceWith(builder.node);
         }
         const legend = [
-            `${index + 1}`, ...key_item_labels(summary)
+            `Key ${index + 1}:`, ...key_item_labels(summary)
         ].join("");
         builder.add_node('legend', legend);
         const button = builder.add_button();
@@ -237,7 +221,7 @@ class KeyStore {
     _build_add_key_panel() {
         const builder = new PageBuilder('fieldset', undefined, document.body);
         builder.add_node('legend', "Add Key");
-        // const panel = { entries: [] };
+
         const nameInput = builder.add_input('alias', "Alias:", true, "text");
         nameInput.inputNode.setAttribute('size', 6);
         nameInput.node.classList.add('kst__key-alias');
@@ -261,6 +245,12 @@ class KeyStore {
 
     _build_button_panel() {
         const builder = new PageBuilder('div', undefined, document.body);
+        builder.node.classList.add('kst__button-panel');
+
+        const refreshButton = builder.add_button("Refresh");
+        refreshButton.addEventListener(
+            'click', () => this._send({"command": "summariseStore"}));
+
         const capButton = builder.add_button("Capabilities");
         capButton.addEventListener(
             'click', () => this._send_for_results("capabilities"));
@@ -274,7 +264,7 @@ class KeyStore {
         this._send({command: command})
         .then(response => {
             if (response.command === undefined) {
-                response.command = command.command;
+                response.command = command;
             }
             this.result = response;
             if (update) {
@@ -303,7 +293,11 @@ class KeyStore {
     _send(command) {
         return this._bridge.sendObject(command)
         .then(response => {
-            if (command.command === "summariseStore") {
+            if (
+                command.command === "summariseStore" &&
+                response.keyStore !== undefined
+            ) {
+                // Setter invocation that reloads the key store items UI.
                 this.keyStore = response.keyStore;
             }
             else {
@@ -314,16 +308,13 @@ class KeyStore {
     }
 
     _transcribe(message) {
-        const pre = document.createElement('pre');
         if ('secure' in message && !message['secure']) {
             // The `secure` item is a vestige of something Jim was trying in
             // relation to WebRTC in iOS. It's always false, which is maybe
             // worrying so remove it before transcribing here.
             delete message['secure'];
         }
-        pre.append(JSON.stringify(message, undefined, 4));
-        this._transcript.append(pre);
-        this._buttonClear.removeAttribute('disabled');
+        this._transcript.add(JSON.stringify(message, undefined, 4), 'pre');
     }
 }
 

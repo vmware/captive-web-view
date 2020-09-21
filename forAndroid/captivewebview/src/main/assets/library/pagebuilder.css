@@ -78,6 +78,7 @@ pre.cwv-transcript__log_line {
     border-radius: var(--border-radius);
     outline: none;
 }
+.cwv-input + .cwv-button,
 .cwv-button + .cwv-button {
     margin-left: 0.5em;
 }
