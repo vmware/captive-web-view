@@ -107,18 +107,31 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             return returning.toTypedArray()
         }
 
+        private val formats = listOf("dd", "MMM", "yyyy HH:MM", " z")
+        private val formatters = formats.map { SimpleDateFormat(it) }
+        private fun fancyFormatted(date:Date, withZone:Boolean):String {
+            return formatters.withIndex()
+                .filter { withZone || it.index < formats.size - 1 }
+                .map {
+                    val piece: String = it.value.format(date)
+                    if (it.index == 1) piece.toLowerCase() else piece
+                }
+                .joinToString("")
+        }
+
         fun providersSummary():Map<String, Any> {
-            val returning = mutableMapOf<String, Any>("build" to mapOf(
-                "device" to Build.DEVICE,
-                "display" to Build.DISPLAY,
-                "manufacturer" to Build.MANUFACTURER,
-                "model" to Build.MODEL,
-                "brand" to Build.BRAND,
-                "product" to Build.PRODUCT,
-                "time" to SimpleDateFormat("ddMMMyyyy HH:MM")
-                    .format(Date(Build.TIME))
-                    .toLowerCase()
-            ))
+            val returning = mutableMapOf<String, Any>(
+                "build" to mapOf(
+                    "device" to Build.DEVICE,
+                    "display" to Build.DISPLAY,
+                    "manufacturer" to Build.MANUFACTURER,
+                    "model" to Build.MODEL,
+                    "brand" to Build.BRAND,
+                    "product" to Build.PRODUCT,
+                    "time" to fancyFormatted(Date(Build.TIME), false)
+                ),
+                "date" to fancyFormatted(Date(), true)
+            )
             return Security.getProviders().map {
                 it.name to it.toMap()
             }.toMap(returning)
