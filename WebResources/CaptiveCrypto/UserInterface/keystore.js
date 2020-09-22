@@ -200,22 +200,82 @@ class KeyStore {
             `Key ${index + 1}:`, ...key_item_labels(summary)
         ].join("");
         builder.add_node('legend', legend);
-        const button = builder.add_button();
+
+        const divButtons = new PageBuilder(builder.add_node('div'));
+        const divControls = new PageBuilder(builder.add_node('div'));
+        const buttons = [
+            divButtons.add_button(), divButtons.add_button("Test")];
+
+        const controls = [
+
+            this._build_key_details_controls(
+                buttons[0], divControls, summary, index),
+
+            this._build_key_test_controls(divControls, summary.name, index)
+
+        ];
+        const collapsedClass = 'kst__key-controls_collapsed';
+        controls.forEach(control => control.classList.add(
+            'kst__key-controls', collapsedClass));
+        buttons.forEach((button, buttonIndex) => button.addEventListener(
+            'click', () => {
+                const collapsed = controls[buttonIndex].classList.contains(
+                    collapsedClass);
+                controls.forEach(
+                    (control, controlIndex) => control.classList.toggle(
+                        collapsedClass,
+                        (controlIndex != buttonIndex) || !collapsed
+                    )
+                );
+            }
+        ));
+
+        return builder;
+    }
+
+    _build_key_details_controls(button, builder, summary, index) {
         const label = PageBuilder.add_node('label', "Details", button);
+
         const textarea = builder.add_node('textarea');
-        textarea.classList.add(
-            'kst__key-details', 'kst__key-details_collapsed');
-        const identifier = `key-${index}`;
+        const identifier = `key-details-${index}`;
         Object.entries({
             id:identifier, name:identifier, 
             readonly:true, rows: 10, cols:50
         }).forEach(([key, value]) => textarea.setAttribute(key, value));
         textarea.textContent = JSON.stringify(summary, undefined, 4);
         label.setAttribute('for', identifier);
-        button.addEventListener('click', () => {
-            textarea.classList.toggle('kst__key-details_collapsed');
+
+        return textarea;
+    }
+
+    _build_key_test_controls(builder, alias, index) {
+        const identifier = `key-test-${index}`;
+        const testPanel = new PageBuilder(builder.add_node('div'));
+
+        const sentinelInput = testPanel.add_input(
+            identifier, "Sentinel:", true, "text");
+        sentinelInput.inputNode.setAttribute('size', 6);
+
+        const runButton = testPanel.add_button("Run");
+        runButton.setAttribute('disabled', true);
+
+        sentinelInput.inputNode.addEventListener('input', () => {
+            if (sentinelInput.value.length > 0) {
+                runButton.removeAttribute('disabled');
+            }
+            else {
+                runButton.setAttribute('disabled', true);
+            }
         });
-        return builder;
+
+        runButton.addEventListener('click', () => this._send({
+            command: "encrypt", parameters: {
+                sentinel: sentinelInput.value,
+                alias: alias
+            }
+        }));
+
+        return testPanel.node;
     }
 
     _build_add_key_panel() {

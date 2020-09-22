@@ -6,7 +6,6 @@ package com.example.captivecrypto
 import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import org.json.JSONObject
-import java.lang.Exception
 
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
@@ -19,12 +18,14 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.OAEPParameterSpec
+import kotlin.Exception
 
 class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
     // it shouldn't because it has to match what gets sent from the JS layer.
     private enum class Command {
-        capabilities, deleteAll, summariseStore, generateKey, generatePair, ready, UNKNOWN;
+        capabilities, deleteAll, encrypt, summariseStore,
+        generateKey, generatePair, ready, UNKNOWN;
 
         companion object {
             fun matching(string: String?): Command? {
@@ -47,6 +48,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         digest, provider, iv, sentinel, encryptedSentinel, decryptedSentinel,
         passed,
 
+        testResults,
+
         AndroidKeyStore;
 
         override fun toString(): String {
@@ -62,6 +65,10 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
     private fun JSONObject.opt(key: KEY): Any? {
         return this.opt(key.name)
+    }
+
+    private fun JSONObject.put(key: KEY, value: Any?): JSONObject {
+        return this.put(key.name, value)
     }
 
     // fun KeyStore.Companion.getInstance(key: KEY): KeyStore {
@@ -164,6 +171,10 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             else -> key.algorithm
 
         } }
+
+        fun loadKeyStore(name: String = KEY.AndroidKeyStore.name): KeyStore {
+            return KeyStore.getInstance(name).apply { load(null) }
+        }
     }
 
     override fun commandResponse(
@@ -175,9 +186,28 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
             Command.deleteAll -> JSONObject(deleteAllKeys())
 
+            Command.encrypt -> {
+                val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
+                    ?: throw Exception(listOf(
+                        "Command `", Command.encrypt, "` requires `",
+                        KEY.parameters, "`."
+                    ).joinToString(""))
+                val alias = parameters.opt(KEY.alias) as? String
+                    ?: throw Exception(listOf(
+                        "Command `", Command.encrypt, "` requires `",
+                        KEY.parameters, "` with `", KEY.alias, "` element."
+                    ).joinToString(""))
+                val sentinel = parameters.opt(KEY.sentinel) as? String
+                    ?: throw Exception(listOf(
+                        "Command `", Command.encrypt, "` requires `",
+                        KEY.parameters, "` with `", KEY.sentinel, "` element."
+                    ).joinToString(""))
+
+                jsonObject.put(KEY.testResults, testKey(alias, sentinel))
+            }
+
             Command.summariseStore -> jsonObject.put("keyStore", JSONArray(
-                    KeyStore.getInstance(KEY.AndroidKeyStore.name)
-                        .apply { load(null) }.summarise()
+                loadKeyStore().summarise()
             ))
 
             Command.generateKey ->
@@ -206,9 +236,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
     private fun deleteAllKeys(): Map<String, Any> {
         return try {
-            val keyStore = KeyStore.getInstance(
-                KEY.AndroidKeyStore.name
-            ).apply { load(null) }
+            val keyStore = loadKeyStore()
             val deleted = mutableListOf<String>()
             val notDeleted = mutableMapOf<String, String>()
             // Next part could maybe be done like this:
@@ -311,6 +339,17 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
                 KEY.algorithm to this.algorithm
             )
         }
+    }
+
+    private fun testKey(alias: String, sentinel: String): JSONArray {
+        val key = loadKeyStore().getKey(alias, null)
+        val getKeyResult = JSONObject(
+            key?.summarise()
+                ?: mapOf("failed" to "getKey(${alias}, null) returned null.")
+        )
+
+
+        return JSONArray(listOf(getKeyResult))
     }
 
     private fun generateKey(alias:String): Map<String, Any> {
