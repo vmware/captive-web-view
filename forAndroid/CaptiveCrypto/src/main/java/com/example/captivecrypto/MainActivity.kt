@@ -9,6 +9,8 @@ import org.json.JSONObject
 
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
+import com.example.captivewebview.CauseIterator
+import com.example.captivewebview.DefaultActivityMixIn
 import org.json.JSONArray
 import java.security.*
 import java.text.SimpleDateFormat
@@ -19,6 +21,8 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.crypto.spec.OAEPParameterSpec
 import kotlin.Exception
+
+data class EncryptedMessage(val ciphertext:ByteArray, val iv:ByteArray?)
 
 class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
@@ -175,6 +179,128 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         fun loadKeyStore(name: String = KEY.AndroidKeyStore.name): KeyStore {
             return KeyStore.getInstance(name).apply { load(null) }
         }
+
+        private fun encryptWithStoredKey(
+            plaintext: String,
+            alias: String,
+            providerName: String = KEY.AndroidKeyStore.name
+        ): EncryptedMessage
+        {
+            val keyStore = loadKeyStore(providerName)
+            val entry = keyStore.getEntry(alias, null)
+            val key = when(entry) {
+                is KeyStore.PrivateKeyEntry ->
+                    // Encrypt with the public key. The public key isn't stored
+                    // as a key; it is stored in a certificate that is created
+                    // by the creation of the private key.
+                    keyStore.getCertificate(alias).publicKey
+
+                is KeyStore.SecretKeyEntry -> entry.secretKey
+
+                else -> throw Exception(listOf(
+                    "Cannot encrypt with stored item \"${alias}\".",
+                    " Summary of entry:${entry}."
+                ).joinToString(""))
+            }
+
+            val parameterSpec = when(key.algorithm) {
+
+                // For RSA: Create a parameter specification based on the
+                // default but changing the digest algorithm to SHA-512. The
+                // default would be SHA-1, which is generally deprecated.
+                KeyProperties.KEY_ALGORITHM_RSA -> OAEPParameterSpec(
+                    KeyProperties.DIGEST_SHA512,
+                    OAEPParameterSpec.DEFAULT.mgfAlgorithm,
+                    OAEPParameterSpec.DEFAULT.mgfParameters,
+                    OAEPParameterSpec.DEFAULT.pSource
+                )
+
+                // For AES: Don't specify an IV so a random one will be
+                // generated.
+                KeyProperties.KEY_ALGORITHM_AES -> null
+
+                else -> throw Exception(listOf(
+                    "Cannot encrypt with stored item \"${alias}\".",
+                    " Unsupported algorithm: \"${key.algorithm}\"."
+                ).joinToString(""))
+            }
+
+            val cipher = Cipher.getInstance(cipherSpecifier(key))
+
+            cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec)
+            val encryptedBytes = cipher.doFinal(
+                plaintext.toByteArray(Charsets.UTF_8)
+            )
+
+            return EncryptedMessage(encryptedBytes, cipher.iv)
+        }
+
+        private fun decryptWithStoredKey(
+            encryptedMessage: EncryptedMessage,
+            alias: String,
+            providerName: String = KEY.AndroidKeyStore.name
+        ): String
+        {
+            val keyStore = loadKeyStore(providerName)
+            val entry = keyStore.getEntry(alias, null)
+            val key:Key = when(entry) {
+                // Decrypt with the private key.
+                is KeyStore.PrivateKeyEntry -> entry.privateKey
+
+                is KeyStore.SecretKeyEntry -> entry.secretKey
+
+                else -> throw Exception(listOf(
+                    "Cannot decrypt with stored item \"${alias}\".",
+                    " Summary of entry:${entry}."
+                ).joinToString(""))
+            }
+
+            // Next statement creates a parameter specification object. In this
+            // version, assumptions are made, about block mode, RSA digest and
+            // padding for example. In an ideal version, those parameters would
+            // be deduced from the key entry, or would be passed in to this
+            // function maybe.
+            val parameterSpec = when(key.algorithm) {
+
+                // For RSA: Create a parameter specification based on the
+                // default but changing the digest algorithm to SHA-512. The
+                // default would be SHA-1, which is generally deprecated.
+                KeyProperties.KEY_ALGORITHM_RSA -> OAEPParameterSpec(
+                    KeyProperties.DIGEST_SHA512,
+                    OAEPParameterSpec.DEFAULT.mgfAlgorithm,
+                    OAEPParameterSpec.DEFAULT.mgfParameters,
+                    OAEPParameterSpec.DEFAULT.pSource
+                )
+
+                // For AES, an IV is needed. It will have been created at or
+                // before encryptiong time.
+
+                // In CBC mode, only the IV need be specified. In GCM mode, the tag id
+                // length must also be specified.
+
+                // For IvParameterSpec, TOTH:
+                // https://medium.com/@hakkitoklu/aes256-encryption-decryption-in-android-2fae6938fc2b
+                // val parameterSpec = IvParameterSpec(cipher.iv)
+
+                // For GCMParameterSpec, TOTH:
+                // https://medium.com/@josiassena/using-the-android-keystore-system-to-store-sensitive-information-3a56175a454b
+                KeyProperties.KEY_ALGORITHM_AES ->
+                    GCMParameterSpec(128, encryptedMessage.iv)
+
+                else -> throw Exception(listOf(
+                    "Cannot decrypt with stored item \"${alias}\".",
+                    " Unsupported algorithm: \"${key.algorithm}\"."
+                ).joinToString(""))
+            }
+
+            val cipher = Cipher.getInstance(cipherSpecifier(key))
+
+            cipher.init(Cipher.DECRYPT_MODE, key, parameterSpec)
+            return String(cipher.doFinal(
+                encryptedMessage.ciphertext), Charsets.UTF_8)
+        }
+
+
     }
 
     override fun commandResponse(
@@ -308,6 +434,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
                 mapOf(
                     KEY.alias to keystoreAlias,
                     KEY.algorithm to algorithm,
+                    KEY.canonicalName to javaClass.canonicalName,
                     KEY.keySize to keySize,
                     KEY.blockModes to blockModes,
                     KEY.purposes to purposeStrings(this),
@@ -342,14 +469,84 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     }
 
     private fun testKey(alias: String, sentinel: String): JSONArray {
-        val key = loadKeyStore().getKey(alias, null)
-        val getKeyResult = JSONObject(
-            key?.summarise()
-                ?: mapOf("failed" to "getKey(${alias}, null) returned null.")
-        )
+        val keyStore = loadKeyStore()
+        val entry = keyStore.getEntry(alias, null)
+        val key = keyStore.getKey(alias, null)
+        val entryType =
+            if (entry is KeyStore.PrivateKeyEntry)
+                KeyStore.PrivateKeyEntry::class.java.simpleName
+            else if (entry is KeyStore.SecretKeyEntry)
+                KeyStore.SecretKeyEntry::class.java.simpleName
+            else null
 
+        val result = JSONArray(listOf(
+            JSONObject(
+                key?.summarise() ?: mapOf(
+                    "failed" to "getKey(${alias}, null) returned null.")
+            ).put(
+                KEY.type, entryType
+            )
+        ))
 
-        return JSONArray(listOf(getKeyResult))
+//        when (entry) {
+//            is KeyStore.SecretKeyEntry -> {
+//                result.put(JSONObject(
+//                    this.encryptSentinel(sentinel, entry.secretKey)))
+//            }
+//            is KeyStore.PrivateKeyEntry -> {
+//                val factory = KeyFactory.getInstance(
+//                    entry.privateKey.algorithm, KEY.AndroidKeyStore.name
+//                )
+//                val keyInfo = factory.getKeySpec(
+//                    entry.privateKey, KeyInfo::class.java)
+//                result.put(JSONObject(mapOf("info" to keyInfo.toString())))
+//
+//                val certificate = keyStore.getCertificate(alias)
+//                val publicKey = certificate.publicKey
+////                val publicKey = factory.generatePublic(keyInfo)
+//                result.put(JSONObject(mapOf("public" to publicKey.toString())))
+//
+////                entry.privateKey.encoded.
+//            }
+//        }
+
+        val encrypted = try {
+            encryptWithStoredKey(sentinel, alias).apply {
+                result.put(JSONObject(mapOf(
+                    KEY.encryptedSentinel to ciphertext.toString(),
+                    KEY.iv to iv
+                )))
+            }
+        }
+        catch (exception: Exception) {
+            val exceptions = JSONArray(CauseIterator(exception)
+                .asSequence().map { it.toString() }.toList())
+            result.put(JSONObject(mapOf(
+                DefaultActivityMixIn.EXCEPTION_KEY to
+                        if (exceptions.length() == 1) exceptions[0]
+                        else exceptions)))
+            return result
+        }
+
+        val decrypted = try {
+            decryptWithStoredKey(encrypted, alias).also {
+                result.put(JSONObject(mapOf(
+                    KEY.decryptedSentinel to it,
+                    KEY.passed to sentinel.equals(it)
+                )))
+            }
+        }
+        catch (exception: Exception) {
+            val exceptions = JSONArray(CauseIterator(exception)
+                .asSequence().map { it.toString() }.toList())
+            result.put(JSONObject(mapOf(
+                DefaultActivityMixIn.EXCEPTION_KEY to
+                        if (exceptions.length() == 1) exceptions[0]
+                        else exceptions)))
+            return result
+        }
+
+        return result
     }
 
     private fun generateKey(alias:String): Map<String, Any> {
@@ -487,4 +684,5 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             KEY.passed to sentinel.equals(decryptedSentinel)
         )
     }
+
 }
