@@ -3,8 +3,6 @@
 
 import PageBuilder from "./pagebuilder.js";
 
-const crypto = window.crypto.subtle;
-
 function JSONable(obj, minLayers=0) {
     if (minLayers <= 0) {
         const stringified = JSON.stringify(obj);
@@ -66,26 +64,6 @@ class KeyStore {
         this._build_result_panel();
         this._transcript = this._page.add_transcript(true);
         this._transcript.node.classList.remove('cwv-transcript');
-
-        const cryptoButtons = [];
-        if (crypto) {
-            // Add button here.
-            cryptoButtons.push( this._add_button(
-                "Generate JS Key Pair", () => this._generate_key(
-                    {name: "ECDSA", namedCurve: "P-384"},
-                    false, ["sign", "verify"]
-                )
-            ));
-        }
-        else {
-            const div = document.createElement('div');
-            div.append(`Subtle Crypto: ${crypto}.`);
-            document.body.append(div);
-        }
-
-        document.body.append(
-            ...cryptoButtons
-        );
 
         bridge.receiveObjectCallback = command => {
             this._transcribe(command);
@@ -323,6 +301,10 @@ class KeyStore {
         const clearButton = builder.add_button("Delete All");
         clearButton.addEventListener(
             'click', () => this._send_for_results("deleteAll", true));
+        
+        const webViewKeyButton = builder.add_button("Store Web View Key");
+        webViewKeyButton.addEventListener(
+            'click', () => this._generate_web_view_key());
     }
 
     _send_for_results(command, update) {
@@ -339,20 +321,82 @@ class KeyStore {
         });
     }
 
-    _add_button(label, onClick) {
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.append(label);
-        button.addEventListener('click', onClick);
-        return button;
+    _generate_web_view_key() {
+        new Promise((resolve, reject) => {
+            const crypto = window.crypto.subtle;
+            if (crypto) {
+                resolve(crypto);
+            }
+            else {
+                reject(`Subtle Crypto: ${crypto}.`);
+            }
+        })
+        .then(crypto =>
+            crypto.generateKey({
+                name: "RSA-OAEP",
+                modulusLength: 4096,
+                publicExponent: new Uint8Array([1, 0, 1]),
+                hash: "SHA-256"
+            }, false, ["encrypt", "decrypt"])
+        )
+        .catch(error => this._transcribe({"error": String(error)}))
+        .then(keyPair => {
+            this._transcribe(JSONable(keyPair, 1));
+            return new Promise((resolve, reject) => {
+                const name = "Keys";
+                const openRequest = indexedDB.open(name, 1);
+    
+                openRequest.onerror = event => reject({
+                    store: "open error", event: String(event)
+                });
+    
+                // Create the schema, if needed.
+                openRequest.onupgradeneeded = event =>
+                    event.target.result.createObjectStore(
+                        name, {keyPath: "identifier"});
+            
+                openRequest.onsuccess = event => 
+                    this._store_key(resolve, reject, event, keyPair);
+            });
+        })
+        .then(result => {
+            this._transcribe(result);
+            this._send({"command": "summariseStore"});
+        })
+        .catch(error => this._transcribe(error));
     }
 
-    _generate_key(...parameters) {
-        return crypto.generateKey(...parameters).then(key => {
-            this._transcribe(JSONable(key, 1));
-            return key;
-        })
-        .catch(error => this._transcribe({"error": String(error)}));
+    _store_key(resolve, reject, eventOpen, keyPair) {
+        const dataBase = eventOpen.target.result;
+        const transaction = dataBase.transaction(dataBase.name, "readwrite");
+        const store = transaction.objectStore(dataBase.name);
+
+        try {
+            // If you comment out the identifier key and value, in order to
+            // generate an error, the .put will throw immediately instead of
+            // invoking its onerror handler.
+            const putRequest = store.put({"identifier":1, "key":keyPair});
+
+            putRequest.onerror = domException => reject({
+                store: "put error",
+                code: domException.code,
+                message: domException.message,
+                name: domException.name,
+                domException: String(domException)
+            });
+            putRequest.onsuccess = event => resolve({
+                store: "OK", result: event.target.result
+            });
+        }
+        catch(exception) {
+            reject({
+                store: "caught error",
+                code: exception.code,
+                message: exception.message,
+                name: exception.name,
+                exception: String(exception)
+            });
+        }
     }
 
     _send(command) {
