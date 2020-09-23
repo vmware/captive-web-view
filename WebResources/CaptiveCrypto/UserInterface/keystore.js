@@ -59,11 +59,13 @@ class KeyStore {
     constructor(bridge) {
         this._bridge = bridge;
 
+        this._page = new PageBuilder('div', undefined, document.body);
         this._build_key_store_panel();
         this._build_add_key_panel();
         this._build_button_panel();
         this._build_result_panel();
-        this._transcript = PageBuilder.add_transcript(document.body, true);
+        this._transcript = this._page.add_transcript(true);
+        this._transcript.node.classList.remove('cwv-transcript');
 
         const cryptoButtons = [];
         if (crypto) {
@@ -100,15 +102,20 @@ class KeyStore {
     }
 
     _build_result_panel() {
-        const builder = new PageBuilder('div', undefined, document.body);
+        const builder = new PageBuilder(this._page.add_node('fieldset'));
+        const legend = builder.add_node('legend');
+
         const panel = { display: builder.add_node('textarea') };
 
         const resultIdentifier = "result";
         Object.entries({
             id:resultIdentifier, name:resultIdentifier, readonly:true,
-            rows: 10, cols:50,
+            rows: 10, cols:45,
             placeholder:"No results yet ..."
         }).forEach(([key, value]) => panel.display.setAttribute(key, value));
+        
+        const label = PageBuilder.add_node('label', "Results", legend);
+        label.setAttribute('for', resultIdentifier);
 
         panel.writeButton = builder.add_button("Write");
         panel.writeButton.setAttribute('disabled', true);
@@ -135,14 +142,12 @@ class KeyStore {
     }
 
     _build_key_store_panel() {
-        const builder = new PageBuilder('div', undefined, document.body);
         const panel = { entries: [] };
-        builder.node.classList.add('kst__key-store');
 
-        panel.emptyMessage = builder.add_node('div', "Key store empty.");
+        panel.emptyMessage = this._page.add_node('div', "Key store empty.");
         panel.emptyMessage.classList.add('kst__key-store-message');
 
-        panel.entriesNode = builder.add_node('div');
+        panel.entriesNode = this._page.add_node('div');
 
         this._keyStorePanel = panel;
     }
@@ -279,7 +284,7 @@ class KeyStore {
     }
 
     _build_add_key_panel() {
-        const builder = new PageBuilder('fieldset', undefined, document.body);
+        const builder = new PageBuilder(this._page.add_node('fieldset'));
         builder.add_node('legend', "Add Key");
 
         const nameInput = builder.add_input('alias', "Alias:", true, "text");
@@ -304,7 +309,7 @@ class KeyStore {
     }
 
     _build_button_panel() {
-        const builder = new PageBuilder('div', undefined, document.body);
+        const builder = new PageBuilder(this._page.add_node('div'));
         builder.node.classList.add('kst__button-panel');
 
         const refreshButton = builder.add_button("Refresh");
