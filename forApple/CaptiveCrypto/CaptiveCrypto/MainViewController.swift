@@ -82,7 +82,7 @@ extension Dictionary where Key == CFString {
     }
 }
 
-class SimpleDateFormatter {
+class FancyDateFormatter {
     private static let formats = ["dd", "MMM", "yyyy HH:mm z"]
     private static let formatters: [DateFormatter] = { formats.map {
         let formatter = DateFormatter()
@@ -100,12 +100,167 @@ class SimpleDateFormatter {
     }
 }
 
+class StoredKey {
+    private enum KeyType: String {case generic, key}
+    private let keyType:KeyType
+    let selector:CFString
+    let secKey:SecKey?
+    let keyData:Data?
+    
+    init(_ secKey:SecKey) {
+        keyType = .key
+        selector = kSecClassKey
+        self.secKey = secKey
+        keyData = nil
+    }
+    
+    init(_ keyData:Data) {
+        keyType = .generic
+        selector = kSecClassGenericPassword
+        secKey = nil
+        self.keyData = keyData
+    }
+    
+    private let algorithms = [
+        SecKeyAlgorithm.eciesEncryptionStandardX963SHA1AESGCM,
+        SecKeyAlgorithm.rsaEncryptionOAEPSHA512
+    ]
+    
+    public struct Encrypted {
+        let message:Data
+        let algorithm:SecKeyAlgorithm?
+    }
+    func encrypt(_ message:String) throws -> Encrypted
+    {
+        switch keyType {
+        case .key:
+            return try encryptBasedOnPrivateKey(message)
+        case .generic:
+            return try encryptWithSymmetricKey(message)
+        }
+    }
+
+    func decrypt(_ encrypted:Data) throws -> String {
+        switch keyType {
+        case .key:
+            return try decryptWithPrivateKey(encrypted as CFData)
+        case .generic:
+            return try decryptWithSymmetricKey(encrypted)
+        }
+    }
+    func decrypt(_ encrypted:Encrypted) throws -> String {
+        return try decrypt(encrypted.message)
+    }
+
+    private func encryptBasedOnPrivateKey(_ message:String) throws -> Encrypted
+    {
+        guard let publicKey = SecKeyCopyPublicKey(secKey!) else {
+            throw ErrorMessage("No public key.")
+        }
+
+        guard let algorithm = algorithms.first(
+            where: { SecKeyIsAlgorithmSupported(publicKey, .encrypt, $0)}
+            ) else
+        {
+            throw ErrorMessage("No algorithms supported.")
+        }
+        
+        var error: Unmanaged<CFError>?
+        guard let encryptedBytes = SecKeyCreateEncryptedData(
+            publicKey, algorithm, Data(message.utf8) as CFData, &error) else {
+            throw error!.takeRetainedValue() as Error
+        }
+        return Encrypted(message: encryptedBytes as Data, algorithm:algorithm)
+    }
+    
+    private func decryptWithPrivateKey(_ encrypted:CFData) throws -> String {
+        guard let publicKey = SecKeyCopyPublicKey(secKey!) else {
+            throw ErrorMessage("No public key.")
+        }
+        guard let algorithm = algorithms.first(
+            where: { SecKeyIsAlgorithmSupported(publicKey, .encrypt, $0)}
+            ) else
+        {
+            throw ErrorMessage("No algorithms supported.")
+        }
+
+        var error: Unmanaged<CFError>?
+        guard let decryptedBytes = SecKeyCreateDecryptedData(
+            secKey!, algorithm, encrypted, &error) else {
+            throw error!.takeRetainedValue() as Error
+        }
+        
+        let message = String(
+            data: decryptedBytes as Data, encoding: .utf8)
+            ?? "\(decryptedBytes)"
+        return message
+    }
+    
+    private func encryptWithSymmetricKey(_ message:String) throws -> Encrypted {
+        let key = try SymmetricKey(rawRepresentation:keyData!)
+        guard let box = try
+            AES.GCM.seal(Data(message.utf8) as NSData, using: key).combined
+            else
+        {
+            throw ErrorMessage("Combined nil.")
+        }
+        return Encrypted(message:box, algorithm: nil)
+    }
+
+    private func decryptWithSymmetricKey(_ encrypted:Data) throws -> String {
+        let sealed = try AES.GCM.SealedBox(combined: encrypted)
+        let key = try SymmetricKey(rawRepresentation:keyData!)
+        let decryptedData = try AES.GCM.open(sealed, using: key)
+        let message =
+            String(data: decryptedData, encoding: .utf8) ?? "\(decryptedData)"
+        return message
+    }
+
+    // Swift seems to have made it rather difficult to create a throw-able that
+    // has a message that can be retrieved in the catch. So, there's a custom
+    // class here.
+    //
+    // Having created a custom class anyway, it seemed like a code-saver to pack
+    // it with convenience initialisers for an array of strings, variadic
+    // strings, and CFString.
+
+    public class ErrorMessage: Error {
+        let _message:String
+        
+        public init(_ message:String) {
+            self._message = message
+        }
+        public convenience init(_ message:[String]) {
+            self.init(message.joined())
+        }
+        public convenience init(_ message:String...) {
+            self.init(message)
+        }
+        public convenience init(_ message:CFString) {
+            self.init(NSString(string: message) as String)
+        }
+        
+        var message: String {
+            return self._message
+        }
+        
+        var localizedDescription: String {
+            return self._message
+        }
+        
+        var description: String {
+            return self._message
+        }
+    }
+}
+
 class MainViewController: CaptiveWebView.DefaultViewController {
     
     // Implicit raw values, see:
     // https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html#ID535
     private enum Command: String {
-        case capabilities, deleteAll, summariseStore, generateKey, generatePair
+        case capabilities, deleteAll, encrypt, summariseStore,
+             generateKey, generatePair
     }
     
     public enum KEY: String {
@@ -133,6 +288,29 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             
         case .deleteAll:
             return try clearStore()
+            
+        case .encrypt:
+            guard let parameters = commandDictionary[KEY.parameters]
+                    as? Dictionary<String, Any> else
+            {
+                throw CaptiveWebView.ErrorMessage(
+                    "Command `", Command.encrypt.rawValue, "` requires `"
+                    , KEY.parameters.rawValue, "`.")
+            }
+            guard let alias = parameters[KEY.alias] as? String else {
+                throw CaptiveWebView.ErrorMessage(
+                    "Command `", Command.encrypt.rawValue, "` requires `"
+                    , KEY.parameters.rawValue, "` with `", KEY.alias.rawValue
+                    , "`.")
+            }
+            guard let sentinel = parameters[KEY.sentinel] as? String else {
+                throw CaptiveWebView.ErrorMessage(
+                    "Command `", Command.encrypt.rawValue, "` requires `"
+                    , KEY.parameters.rawValue, "` with `", KEY.sentinel.rawValue
+                    , "`.")
+            }
+            return try [
+                "testResults": testKey(alias: alias, sentinel: sentinel)]
 
         case .summariseStore:
             return [KEY.keyStore: try summariseStore()].withStringKeys()
@@ -169,7 +347,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     private func summariseCapabilities() -> [KEY:Any] {
         return [
             .secureEnclave: SecureEnclave.isAvailable,
-            .date: SimpleDateFormatter.string(from: Date())
+            .date: FancyDateFormatter.string(from: Date())
         ]
     }
     
@@ -194,9 +372,9 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         return [KEY.deleted: deleted].withStringKeys()
     }
     
-    private func eachSecClass(_ oneSecClass:
-        (_ selector: CFString, _ label: String) throws -> [[String:Any]]
-    ) rethrows -> [[String:Any]]
+    private func eachSecClass<T>(_ oneSecClass:
+        (_ selector: CFString, _ label: String) throws -> [T]
+    ) rethrows -> [T]
     {
         return try [kSecClassGenericPassword, kSecClassKey].flatMap {
             try oneSecClass(
@@ -239,6 +417,127 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     }
     private func osStatusError(_ osStatus: OSStatus) -> Error {
         return osStatusError(nil, osStatus)
+    }
+    
+    private func testKey(alias: String, sentinel: String)
+    throws -> [[String:Any]]
+    {
+        var results: [[String:Any]] = []
+        let (key, keyError) = try keyWith(alias: alias)
+        guard key != nil else
+        {
+            results.append(keyError!)
+            return results
+        }
+
+        results.append(["key": "\(key)" as Any])
+        
+        let encrypted:StoredKey.Encrypted
+        do {
+            encrypted = try key!.encrypt(sentinel)
+            results.append([
+                KEY.encryptedSentinel: String(describing: encrypted.message),
+                KEY.algorithm: encrypted.algorithm?.rawValue as Any
+            ].withStringKeys())
+        }
+        catch let error as StoredKey.ErrorMessage {
+            results.append(["failed":error.localizedDescription])
+            return results
+        }
+        catch {
+            results.append(["failed":error.localizedDescription])
+            return results
+        }
+
+        let decryptedSentinel:String
+        do {
+            decryptedSentinel = try key!.decrypt(encrypted.message)
+            results.append([
+                KEY.decryptedSentinel: decryptedSentinel,
+                KEY.passed: decryptedSentinel == sentinel,
+            ].withStringKeys())
+        }
+        catch let error as StoredKey.ErrorMessage {
+            results.append(["failed":error.localizedDescription])
+            return results
+        }
+        catch {
+            results.append(["failed":error.localizedDescription])
+            return results
+        }
+
+        
+        // Move keyWith into KeyUnion and make it keysWith plural.
+        // Put KeyUnion into a separate file.
+        // Make eachSecClass a static method in KeyUnion.
+        
+        return results
+    }
+    
+    private func keyWith(alias:String)
+    throws -> (key:StoredKey?, error:[String: Any]?)
+    {
+        let keys:[StoredKey] = try self.eachSecClass {selector, label in
+            var query: [CFString: Any] = [
+                kSecClass: selector,
+                kSecAttrLabel: alias,
+                kSecMatchLimit: kSecMatchLimitAll
+            ]
+            
+            switch(selector) {
+            case kSecClassKey:
+                query[kSecReturnRef] = true
+            case kSecClassGenericPassword:
+                query[kSecReturnData] = true
+            default:
+                break
+            }
+            
+            var itemRef: CFTypeRef?
+            let status = SecItemCopyMatching(query as CFDictionary, &itemRef)
+            
+            guard status == errSecSuccess || status == errSecItemNotFound else {
+                throw self.osStatusError("Query \(query).", status)
+            }
+            
+            // Set items to an NSArray of the return value, or an empty NSArray.
+            let items = status == errSecSuccess
+                ? (itemRef as! CFArray) as NSArray
+                : NSArray()
+            
+            let retItems:[StoredKey] = items.compactMap {item in
+                switch(selector) {
+                case kSecClassKey:
+                    return StoredKey(item as! SecKey)
+                case kSecClassGenericPassword:
+                    return StoredKey(item as! Data)
+                default:
+                    return nil
+                }
+            }
+
+//            var
+//            items.enumerateObjects {
+//                (item: Any, index: Int, stop: UnsafeMutablePointer<ObjCBool>) in
+//
+//            }
+
+            return retItems// as [CFTypeRef]
+        }// as (_ selector: CFString, _ label: String) throws -> [Any])
+
+        if keys.count <= 0 { return (
+            nil, ["reason": "No key found for alias", "alias": alias]
+        ) }
+        
+        if keys.count > 1 { return (
+            nil, [
+                "reason": "Too many keys found for alias",
+                "alias": alias,
+                "count": keys.count
+            ]
+        ) }
+        
+        return (keys.first, nil)
     }
 
     private func summariseStore() throws -> [[String: Any]] {
