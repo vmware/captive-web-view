@@ -29,9 +29,7 @@ extension SymmetricKey: GenericPasswordConvertible {
     }
     
     var rawRepresentation: Data {
-//        var body:Data
         return withUnsafeBytes{Data($0)}
-//        return dataRepresentation  // Contiguous bytes repackaged as a Data instance.
     }
 }
 // End of first code to support storing CryptoKit symmetric key in the keychain.
@@ -43,6 +41,7 @@ extension OSStatus {
     }
 }
 
+// Extensions to make some pre-Swift classes conform to Encodable.
 extension NSNumber: Encodable {
     public func encode(to encoder: Encoder) throws {
         try Int(exactly: self).encode(to: encoder)
@@ -51,9 +50,6 @@ extension NSNumber: Encodable {
 
 extension CFNumber: Encodable {
     public func encode(to encoder: Encoder) throws {
-//        var container = encoder.singleValueContainer()
-//        try container.encode(Int(exactly: self as NSNumber))
-//        try Int(exactly: self as NSNumber).encode(to: encoder)
         try (self as NSNumber).encode(to: encoder)
     }
 }
@@ -63,25 +59,13 @@ extension CFString: Encodable {
     }
 }
 
-//extension String: CodingKey {
-//    public init?(intValue: Int) {
-//        return nil
-//    }
-//
-//    public init?(stringValue: String) {
-//        self.init(stringValue)
-//    }
-//
-//    public var intValue: Int? {
-//        nil
-//    }
-//
-//    public var stringValue: String {
-//        self
-//    }
-//}
-
+// Main class in this file.
 class StoredKey {
+    
+    // Enumeration for different storage of keys supported by this class, either
+    // as generic passwords in the keychain, or as keys in the keychain. The
+    // keychain only stores private keys as keys, so symmetric keys must be
+    // stored as generic passwords.
     enum Storage: String, CaseIterable {
         case generic, key
 
@@ -94,8 +78,21 @@ class StoredKey {
             }
         }
     }
-
     
+    // Enumeration for descriptive names for types of key pair.
+    //
+    // The values for the key type attribute, kSecAttrKeyType, have slightly
+    // strange behaviour.
+    //
+    // In the dictionary passed to SecKeyCreateRandomKey, the value of the
+    // kSecAttrKeyType attribute is a CFString. However, the contents of the
+    // CFString will be numeric. For example, kSecAttrKeyTypeRSA has the
+    // value "42". See, for example:
+    // https://opensource.apple.com/source/Security/Security-55471/sec/Security/SecItemConstants.c.auto.html
+    //
+    // In the dictionary returned from SecItemCopyMatching, the value of the
+    // kSecAttrKeyType attribute will be a CFNumber instead.
+    //
     private enum KeyType: String, CaseIterable {
         case RSA, EC
 
@@ -112,157 +109,59 @@ class StoredKey {
         // there's no way to tell the difference by matching.
 
         static func matching(_ secAttrKeyTypeValue:CFString) -> KeyType? {
-            Self.allCases.first(where: {
+            // self.allCases on the next line is enabled by CaseIterable in the
+            // declaration.
+            self.allCases.first(where: {
                 $0.secAttrKeyType == secAttrKeyTypeValue
             })
         }
-        
-        struct Description<RAW:Encodable>:Encodable {
+
+        // Nested struct for a description tuple containing:
+        //
+        // -   String, like "RSA" or "EC".
+        // -   Raw value from a keychain query, or keychain attribute
+        //     dictionary.
+        //
+        // In practice, the raw value will be CFNumber or CFString.
+        struct Description:Encodable {
             let keyType:String
-            let raw:RAW // Raw
+            let raw:AnyEncodable
 
-//            enum Raw:Encodable {
-//                case cfString(CFString)
-//                case cfNumber(CFNumber)
-//
-//                func encode(to encoder: Encoder) throws {
-////                    var container = encoder.singleValueContainer()
-//                    switch self {
-//                    case .cfNumber(let raw):
-//                        try raw.encode(to: encoder)
-////                        try container.encode(Int(exactly: raw as NSNumber))
-//                    case .cfString(let raw):
-//                        try (raw as String).encode(to: encoder)
-////                        try container.encode(raw as String)
-//                    }
-//                }
-//            }
-
-//            init(keyType:String, raw:Raw) {
-//                self.keyType = keyType
-//                self.raw = raw
-//            }
-            init<ENCODABLE:Encodable>(keyType:String, raw:ENCODABLE) {
+            private init(keyType:String, raw:Encodable) {
                 self.keyType = keyType
-                self.raw = raw as! RAW // Raw.cfString(raw)
-            }
-//            init<CFNumber(keyType:String, raw:CFNumber) {
-//                self.keyType = keyType
-//                self.raw = Raw.cfNumber(raw)
-//            }
-            
-            static func ifCFNumber(_ specifier: Any)
-            -> KeyType.Description<CFNumber>?
-            {
-                // If the specifier is a number, compare to the numbers in each
-                // kSecAttrKeyType constant.
-                if let typeNumber = specifier as? NSNumber,
-                   let typeInt = Int(exactly: typeNumber),
-                   let keyType = KeyType.allCases.first(where: {
-                    Int($0.secAttrKeyType as String) == typeInt
-                   })
-                {
-                    return KeyType.Description.init(
-                        keyType: keyType.rawValue, raw: typeNumber as CFNumber)
-                }
-                else {
-                    return nil
-                }
-            }
-
-            static func asCFString(_ specifier: Any) -> Self<CFString> {
-                if let typeString = specifier as? String {
-                    return Self.init(
-                        keyType:
-                            KeyType.matching(typeString as CFString)?.rawValue
-                            ?? typeString,
-                        raw: typeString as CFString
-                    )
-                }
-                
-                return Self.init(
-                    keyType: "\(specifier)",
-                    raw: "\(specifier)" as CFString
-                )
+                self.raw = AnyEncodable(raw)
             }
             
-            static func describe(_ specifier:Any, into destination: inout Any) {
-                if let description = ifCFNumber(specifier) {
-                    destination = description
-                }
-                else {
-                    destination = asCFString(specifier)
-                }
-            }
-
             init(fromCopyAttribute specifier: Any) {
-//                var keyType:String?
-//                var raw:Raw?
-
-                // The values for the key type attribute, kSecAttrKeyType, have slightly
-                // strange behaviour.
-                //
-                // In the dictionary passed to SecKeyCreateRandomKey, the value of the
-                // kSecAttrKeyType attribute is a CFString. However, the contents of the
-                // CFString will be numeric. For example, kSecAttrKeyTypeRSA has the
-                // value "42". See, for example:
-                // https://opensource.apple.com/source/Security/Security-55471/sec/Security/SecItemConstants.c.auto.html
-                //
-                // In the dictionary returned from SecItemCopyMatching, the value of the
-                // kSecAttrKeyType attribute will be a CFNumber.
-
-                // If the specifier is a number, compare to the numbers in each
-                // kSecAttrKeyType constant.
+                // If the specifier is a number, compare numerically to the
+                // numbers in each kSecAttrKeyType constant.
                 if let typeNumber = specifier as? NSNumber,
                    let typeInt = Int(exactly: typeNumber),
                    let keyType = KeyType.allCases.first(where: {
                     Int($0.secAttrKeyType as String) == typeInt
                    })
                 {
-                    self.init(keyType: keyType.rawValue, raw: typeNumber as CFNumber)
-                    return
-                    
-//                        ?.rawValue
-//                    raw = .cfNumber(typeNumber)
+                    self.init(keyType: keyType.rawValue, raw: typeNumber)
                 }
-
-                // If the specifier isn't a number, or didn't match, try it as a string
-                // instead.
-//                if keyType == nil, let typeString = specifier as? String {
-                if let typeString = specifier as? String {
+                // Otherwise, compare as a string.
+                else if let typeString = specifier as? String {
                     self.init(
                         keyType:
                             KeyType.matching(typeString as CFString)?.rawValue
                             ?? typeString,
-                        raw: typeString as CFString
+                        raw: typeString
                     )
-                    return
                 }
-                
-                self.init(
-                    keyType: "\(specifier)",
-                    raw: "\(specifier)" as CFString
-                )
-
-                
-//                self.init(keyType: keyType!, raw: raw!)
+                // Otherwise, go through a catch-all.
+                else {
+                    self.init(keyType: "Unknown", raw: "\(specifier)")
+                }
             }
-        }
-        
-        static func describe(_ specifier:Any) -> Encodable {
-            if let description = KeyType.Description<CFNumber>
-                .ifCFNumber(specifier)
-            {
-                return description
-            }
-            else {
-                return KeyType.Description<CFString>
-                    .asCFString(specifier)
-            }
-
         }
     }
 
+    // Clears the keychain and returns a summary of what storage types were
+    // deleted or not deleted because of an error.
     static func deleteAll() -> (deleted:[String], notDeleted:[String:String]) {
         var deleted:[String] = []
         var notDeleted:[String:String] = [:]
@@ -320,30 +219,21 @@ class StoredKey {
         }
     }
     
-    public struct Encrypted {
-        let message:Data
-        let algorithm:SecKeyAlgorithm?
-    }
-
-    static func encrypt(_ message:String, withFirstKeyNamed alias:String)
-    throws -> Encrypted
-    {
-        guard let key = try keysWithName(alias).first else {
-            throw StoredKeyError(errSecItemNotFound)
-        }
-        return try key.encrypt(message)
-    }
-    
-    static func decrypt(_ encrypted:Encrypted, withFirstKeyNamed alias:String)
-    throws -> String
-    {
-        guard let key = try keysWithName(alias).first else {
-            throw StoredKeyError(errSecItemNotFound)
-        }
-        return try key.decrypt(encrypted)
-    }
-    
-    struct EncodableElement:Encodable {
+    // Dummy type to wrap any Encodable value.
+    //
+    // This is here because the following doesn't compile:
+    //
+    //     public struct Description:Encodable {
+    //         let storage:String
+    //         let name:String
+    //         let type:String
+    //         let attributes:[String:Encodable] // This line is an error.
+    //     }
+    //
+    // It appears that there has to be an enum, struct or class wrapped around
+    // the object that is Encodable.
+    //
+    struct AnyEncodable:Encodable {
         let encodable:Encodable
         
         init(_ encodable:Encodable) {
@@ -354,146 +244,97 @@ class StoredKey {
             try encodable.encode(to: encoder)
         }
     }
-    
-//    enum EncodableElement:Encodable {
-////        case int(Int)
-////        case string(String)
-////        case dictionary([String:AttributeValue])
-//        case encodable(Encodable)
-//
-//        func encode(to encoder: Encoder) throws {
-//            switch self {
-////            case .int(let int):
-////                try int.encode(to: encoder)
-////            case .dictionary(let dictionary):
-////                try dictionary.encode(to: encoder)
-////            case .string(let string):
-////                try string.encode(to: encoder)
-//            case .encodable(let encodable):
-//                try encodable.encode(to: encoder)
-//            }
-//        }
-//    }
-    
+
+    // Encodable representation of a key, as returned by a keychain query.
     public struct Description:Encodable {
         let storage:String
         let name:String
         let type:String
-        let attributes:[String:EncodableElement]
+        let attributes:[String:AnyEncodable]
         
         init(_ storage:Storage, _ attributes:CFDictionary) {
             self.storage = storage.rawValue
+            
+            // Create a dictionary of normalised values. Some of the normalised
+            // values are also used in the rest of the constructor.
             self.attributes = Description.normalise(cfAttributes: attributes)
+            
+            // `name` will be the kSecAttrLabel if it can be a String, or the
+            // empty string otherwise.
             self.name =
-                (attributes as NSDictionary)[kSecAttrLabel as String] as? String ?? ""
+                (attributes as NSDictionary)[kSecAttrLabel as String] as? String
+                ?? ""
+
+            // `type` will be a string derived by the KeyType.Description
+            // constructor.
             let keyType:String
             if let element = self.attributes[kSecAttrKeyType as String] {
-               if let keyDescription = element.encodable
-                    as? KeyType.Description<CFNumber>
-               {
-                keyType = keyDescription.keyType
-               }
-               else if let keyDescription = element.encodable as?
-                        KeyType.Description<CFString>
-               {
-                keyType = keyDescription.keyType
-               }
-               else {
-                keyType = ""
-               }
+                if let description = element.encodable as? KeyType.Description {
+                    keyType = description.keyType
+                }
+                else {
+                    // Code reaches this point if there is somehow a value in
+                    // the normalised dictionary that isn't a
+                    // KeyType.Description, which shouldn't happen but just in
+                    // case.
+                    keyType = "\(element.encodable)"
+                }
             }
             else {
                 keyType = ""
             }
-            
-//                (
-//            switch self.attributes[kSecAttrKeyType as String] {
-//            case .encodable(let encodable):
-//                if let keyDescription =
-//                    encodable as? KeyType.Description<CFNumber>
-//                {
-//                    keyType = keyDescription.keyType
-//                }
-//                else if let keyDescription =
-//                            encodable as? KeyType.Description<CFString>
-//                {
-//                    keyType = keyDescription.keyType
-//                }
-//                else {
-//                    keyType = ""
-//                }
-//            default:
-//                keyType = ""
-//            }
             self.type = keyType
-//                (keyDescription as? KeyType.Description<CFNumber>)?.keyType
-//                ?? (keyDescription as? KeyType.Description<CFString>)?.keyType
-//                ?? ""
         }
 
-//        enum CodingKeys: String, CodingKey {
-//            case storage
-//            case name
-//            case type
-//            case attributes
-//        }
-//
-//        public func encode(to encoder: Encoder) throws {
-//            var container = encoder.container(keyedBy: CodingKeys.self)
-//            try container.encode(storage, forKey: .storage)
-//            try container.encode(name, forKey: .name)
-//
-//            try attributes.encode(to: encoder)
-//
-////            var attributesContainer = container.nestedContainer(
-////                keyedBy: String.self, forKey: .attributes)
-////            try attributes.forEach {
-////                var elementContainer = encoder.singleValueContainer()
-////                elementContainer.encode($1)
-////                attributesContainer.encode($1, forKey: $0)
-////            }
-//
-//        }
-
-        static func normalise(cfAttributes:CFDictionary) -> [String:EncodableElement] {
-            // Keys in the returned dictionary will sometimes be the short names
-            // that are the underlying values of the various kSecAttr constants. You
-            // can see a list of all the short names and corresponding kSecAttr
-            // names in the Apple Open Source SecItemConstants.c file. For example,
-            // here:
+        static private func fallbackValue(_ rawValue:Any) -> Encodable {
+            return rawValue as? NSNumber
+                ?? (rawValue as? Encodable ?? "\(rawValue)")
+        }
+        
+        static func normalise(cfAttributes:CFDictionary) -> [String:AnyEncodable] {
+            // Keys in the attribute dictionary will sometimes be the short
+            // names that are the underlying values of the various kSecAttr
+            // constants. You can see a list of all the short names and
+            // corresponding kSecAttr names in the Apple Open Source
+            // SecItemConstants.c file. For example, here:
             // https://opensource.apple.com/source/Security/Security-55471/sec/Security/SecItemConstants.c.auto.html
             
-            var returning: Dictionary<String, EncodableElement> = [:]
+            var returning: [String:AnyEncodable] = [:]
             for (rawKey, rawValue) in cfAttributes as NSDictionary {
-                let value:Encodable = rawValue as? NSNumber ??
-                    (rawValue as? Encodable ?? "\(rawValue)")
-                
-            
-                
-                //                let value:Any = rawValue as? NSNumber ?? (
-//                    JSONSerialization.isValidJSONObject(rawValue)
-//                        ? rawValue : "\(rawValue)"
-//                )
-                
+                let value:Encodable
+                    
                 if let key = rawKey as? String {
+                    // Check for known attributes with special handling first.
                     if key == kSecAttrApplicationTag as String {
-                        let cfValue = rawValue as! CFData
-                        returning[key] = EncodableElement(
-                            String(data: cfValue as Data, encoding: .utf8)
-                                ?? "\(cfValue)"
-                        )
+                        if let rawData = rawValue as? Data {
+                            value = String(data: rawData, encoding: .utf8)
+                        }
+                        else {
+                            // If rawValue is a String already, or any other
+                            // Encodable, the fallbackValue will return it.
+                            value = fallbackValue(rawValue)
+                        }
                     }
                     else if key == kSecAttrKeyType as String {
-                        returning[key] = EncodableElement(KeyType.describe(rawValue))
+                        value = KeyType.Description(fromCopyAttribute: rawValue)
+                    }
+                    //
+                    // Key isn't a known value with special handling.
+                    else if let nsDictionary = rawValue as? NSDictionary {
+                        // Recursive call to preserve hierarchy, for example if
+                        // this is an attribute dictionary for a key pair.
+                        value = normalise(cfAttributes: nsDictionary)
                     }
                     else {
-                        returning[key] = EncodableElement(value) //(value as! Encodable)
+                        value = fallbackValue(rawValue)
                     }
+                    returning[key] = AnyEncodable(value)
                 }
                 else {
+                    // Code reaches this point if the key couldn't be cast to
+                    // String. This is a catch all.
                     returning[String(describing: rawKey)] =
-                        EncodableElement(value)
-//                        (value as! Encodable)
+                        AnyEncodable(fallbackValue(rawValue))
                 }
             }
             return returning
@@ -509,18 +350,17 @@ class StoredKey {
                 kSecMatchLimit: kSecMatchLimitAll
             ]
             // Above query sets kSecMatchLimit: kSecMatchLimitAll so that the
-            // results will be a CFArray the type of each item in the array is
+            // results will be a CFArray. The type of each item in the array is
             // determined by which kSecReturn option is set.
             //
             // kSecReturnAttributes true
             // Gets a CFDictionary representation of each key.
             //
             // kSecReturnRef true
-            // Gets a SecKey object for each key. A dictionary representation can be
-            // generated from a SecKey by calling SecKeyCopyAttributes(), which is
-            // done in the summarise(key:) method, below. However the resulting
-            // dictionary has only a subset of the attributes. For example, it
-            // doesn't have these:
+            // Would get a SecKey object for each key. A dictionary
+            // representation can be generated from a SecKey by calling
+            // SecKeyCopyAttributes(). However the resulting dictionary has only
+            // a subset of the attributes. For example, it doesn't have these:
             //
             // -   kSecAttrLabel
             // -   kSecAttrApplicationTag
@@ -532,8 +372,9 @@ class StoredKey {
             var itemRef: CFTypeRef?
             let status = SecItemCopyMatching(query as CFDictionary, &itemRef)
             
-            // If SecItemCopyMatching failed, status will be a numeric error code.
-            // To find out what a particular number means, you can look it up here:
+            // If SecItemCopyMatching failed, status will be a numeric error
+            // code. To find out what a particular number means, you can look it
+            // up here:
             // https://www.osstatus.com/search/results?platform=all&framework=all&search=errSec
             // That will get you the symbolic name.
             //
@@ -546,39 +387,27 @@ class StoredKey {
             guard status == errSecSuccess || status == errSecItemNotFound else {
                 throw StoredKeyError(status)
             }
-            
-            // Set items to an NSArray of the return value, or an empty NSArray.
+
+            // Set items to an NSArray of the return value, or an empty NSArray
+            // in case of errSecItemNotFound.
             let items = status == errSecSuccess
                 ? (itemRef as! CFArray) as NSArray
                 : NSArray()
             
             return items.map { item -> Description in
                 Description(storage, item as! CFDictionary)
-//                let attributes = summarise(cfDictionary: item as! CFDictionary)
-//                Description(
-//                    keyType: storage.rawValue,
-//                    name: attributes[kSecAttrLabel as String] ?? "",
-//                    type: (
-//                        attributes[kSecAttrKeyType as String] as? [String:Any]
-//                        )?[KEY.key] ?? "",
-//
-//                    attributes: attributes)
             }
-
-                // If using kSecReturnRef true, uncomment this code.
-                // store.append(self.summarise(key: item as! SecKey))
-                //
-                // If using kSecReturnData true, uncomment this code.
-                // let cfData = item as! CFData
-                // store.append(["data":"\(cfData)"])
         }
     }
         
-    struct KeyGeneration {
+    struct KeyGeneration:Encodable {
         let deletedFirst:Bool
-        let attributes:[String:Any]
+        let summary:[String]
+        let attributes:[String:AnyEncodable]
     }
     
+    // Generate a symmetric key and store it in the keychain, as a generic
+    // password.
     static func generateKey(withName alias:String) throws -> KeyGeneration {
         // First delete any generic key chain item with the same label. If you
         // don't, the add seems to fail as a duplicate.
@@ -601,6 +430,7 @@ class StoredKey {
                 deleted, "Failed SecItemDelete(\(deleteQuery)).")
         }
 
+        // Generate the random symmetric key.
         let key = SymmetricKey(size: .bits256)
         
         // Merge in more query attributes, to create the add query.
@@ -614,14 +444,18 @@ class StoredKey {
         guard added == errSecSuccess else {
             throw StoredKeyError(added, "Failed SecItemAdd(\(addQuery),)")
         }
-
+        
+        // The KeyGeneration here is a little different to the generateKeyPair
+        // return value. That's because this key is created in memory and then
+        // put in the keychain with a query, as two steps. Key pair generation
+        // is already in the keychain as a single step.
         return KeyGeneration(
             deletedFirst: deleted == errSecSuccess,
+            summary: [String(describing:key)],
             attributes:
                 Description.normalise(cfAttributes: result as! CFDictionary)
         )
     }
-
     
     private static func tag(forAlias alias: String) -> (String, Data) {
         let tagString = "com.example.keys.\(alias)"
@@ -630,17 +464,16 @@ class StoredKey {
 
     static func generateKeyPair(withName alias:String) throws -> KeyGeneration
     {
-        // Code snippets are here:
+        // Official code snippets are here:
         // https://developer.apple.com/documentation/security/certificate_key_and_trust_services/keys/generating_new_cryptographic_keys
         
         let tagSD = StoredKey.tag(forAlias: alias)
         let attributes: [CFString: Any] = [
-
             // Next two lines are OK to create an RSA key.
             kSecAttrKeyType: kSecAttrKeyTypeRSA,
             kSecAttrKeySizeInBits: 2048,
             
-            // Next two lines are OK to create an elliptic curve key.
+            // Next two lines would be OK to create an elliptic curve key.
             // kSecAttrKeySizeInBits: 256,
             // kSecAttrKeyType: kSecAttrKeyTypeECSECPrimeRandom,
             
@@ -656,57 +489,81 @@ class StoredKey {
         ]
         
         var error: Unmanaged<CFError>?
-        guard let _ = SecKeyCreateRandomKey(
+        guard let secKey = SecKeyCreateRandomKey(
             attributes as CFDictionary, &error) else
         {
             throw error!.takeRetainedValue() as Error
         }
-        
-        // Make a copy of the attributes dictionary except with values that are:
-        // -   Serialisable to JSON.
-        // -   Descriptive instead of numeric.
+
+        // Make a copy of the attributes dictionary except with a String for the
+        // tag, instead of data, and with String keys instead of CFString.
         var returning = attributes
-        returning[kSecAttrKeyType] =
-            KeyType.describe(returning[kSecAttrKeyType]!)
         returning[kSecPrivateKeyAttrs] = (
             attributes[kSecPrivateKeyAttrs] as! [CFString:Any])
             .merging([kSecAttrApplicationTag: tagSD.0]) {(_, new) in new}
-            .withStringKeys()
-        return KeyGeneration(
-            deletedFirst: false, attributes: returning.withStringKeys())
 
-//        return [
-//            .sentinel: try encrypt(
-//                sentinel: "Centennial", basedOnPrivateKey: privateKey
-//            ).withStringKeys(),
-//            .attributes: returning.withStringKeys(),
-//            .key: self.summarise(key:privateKey).withStringKeys()
-//        ]
+        let summary = String(describing:secKey).split(separator: ",").map{
+            String($0).trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        // The String(describing:) in the above will return a value like this:
+        //
+        //     <SecKeyRef
+        //         algorithm id: 1,
+        //         key type: RSAPrivateKey,
+        //         version: 4,
+        //         block size: 2048 bits,
+        //         addr: 0x280e3b560>
+        //
+        // (Split onto multiple lines here for readability.)
+        //
+        // That summary contains information that doesn't seem to be in the
+        // attributes dictionary returned by:
+        //
+        //     SecKeyCopyAttributes(secKey)
+        
+        return KeyGeneration(
+            deletedFirst: false, summary: summary,
+            attributes:
+                Description.normalise(cfAttributes: returning as CFDictionary)
+        )
     }
     
-    private let storage:Storage
+    // Properties and methods of a StoredKey instance. It isn't necessary to use
+    // StoredKey instances externally. The static methods, like
+    // encypt(message withFirstKeyNamed:) for example, can be used instead.
+    private let _storage:Storage
     let secKey:SecKey?
     let keyData:Data?
-    
-    init(_ secKey:SecKey) {
-        storage = .key
-        self.secKey = secKey
-        keyData = nil
-    }
-    
+
+    var storage:String {_storage.rawValue}
+
+    // Symmetric key constructor.
     init(_ keyData:Data) {
-        storage = .generic
+        _storage = .generic
         secKey = nil
         self.keyData = keyData
     }
     
-    private let algorithms = [
-        SecKeyAlgorithm.eciesEncryptionStandardX963SHA1AESGCM,
-        SecKeyAlgorithm.rsaEncryptionOAEPSHA512
-    ]
+    // Key pair constructor. The SecKey will be the private key. The
+    // corresponding private key will be generated if needed in the
+    // encryptBasedOnPrivateKey() method, below.
+    init(_ secKey:SecKey) {
+        _storage = .key
+        self.secKey = secKey
+        keyData = nil
+    }
+
+    // Tuple for encrypted data and the algorithm. The algorithm is for
+    // description only. It is nil in the symmetric key case.
+    public struct Encrypted {
+        let message:Data
+        let algorithm:SecKeyAlgorithm?
+    }
+
+    // Instance methods for encryption and decryption.
     func encrypt(_ message:String) throws -> Encrypted
     {
-        switch storage {
+        switch _storage {
         case .key:
             return try encryptBasedOnPrivateKey(message)
         case .generic:
@@ -715,7 +572,7 @@ class StoredKey {
     }
 
     func decrypt(_ encrypted:Data) throws -> String {
-        switch storage {
+        switch _storage {
         case .key:
             return try decryptWithPrivateKey(encrypted as CFData)
         case .generic:
@@ -725,6 +582,32 @@ class StoredKey {
     func decrypt(_ encrypted:Encrypted) throws -> String {
         return try decrypt(encrypted.message)
     }
+    
+    private func encryptWithSymmetricKey(_ message:String) throws -> Encrypted {
+        let key = try SymmetricKey(rawRepresentation:keyData!)
+        guard let box = try
+            AES.GCM.seal(Data(message.utf8) as NSData, using: key).combined
+            else
+        {
+            throw StoredKeyError("Combined nil.")
+        }
+        return Encrypted(message:box, algorithm: nil)
+    }
+
+    private func decryptWithSymmetricKey(_ encrypted:Data) throws -> String {
+        let sealed = try AES.GCM.SealedBox(combined: encrypted)
+        let key = try SymmetricKey(rawRepresentation:keyData!)
+        let decryptedData = try AES.GCM.open(sealed, using: key)
+        let message =
+            String(data: decryptedData, encoding: .utf8) ?? "\(decryptedData)"
+        return message
+    }
+
+    // List of algorithms for public key encryption.
+    private let algorithms = [
+        SecKeyAlgorithm.eciesEncryptionStandardX963SHA1AESGCM,
+        SecKeyAlgorithm.rsaEncryptionOAEPSHA512
+    ]
 
     private func encryptBasedOnPrivateKey(_ message:String) throws -> Encrypted
     {
@@ -769,27 +652,27 @@ class StoredKey {
             ?? "\(decryptedBytes)"
         return message
     }
-    
-    private func encryptWithSymmetricKey(_ message:String) throws -> Encrypted {
-        let key = try SymmetricKey(rawRepresentation:keyData!)
-        guard let box = try
-            AES.GCM.seal(Data(message.utf8) as NSData, using: key).combined
-            else
-        {
-            throw StoredKeyError("Combined nil.")
+
+    // Static methods that work with a key alias instead of a StoredKey
+    // instance.
+
+    static func encrypt(_ message:String, withFirstKeyNamed alias:String)
+    throws -> Encrypted
+    {
+        guard let key = try keysWithName(alias).first else {
+            throw StoredKeyError(errSecItemNotFound)
         }
-        return Encrypted(message:box, algorithm: nil)
+        return try key.encrypt(message)
     }
-
-    private func decryptWithSymmetricKey(_ encrypted:Data) throws -> String {
-        let sealed = try AES.GCM.SealedBox(combined: encrypted)
-        let key = try SymmetricKey(rawRepresentation:keyData!)
-        let decryptedData = try AES.GCM.open(sealed, using: key)
-        let message =
-            String(data: decryptedData, encoding: .utf8) ?? "\(decryptedData)"
-        return message
+    
+    static func decrypt(_ encrypted:Encrypted, withFirstKeyNamed alias:String)
+    throws -> String
+    {
+        guard let key = try keysWithName(alias).first else {
+            throw StoredKeyError(errSecItemNotFound)
+        }
+        return try key.decrypt(encrypted)
     }
-
 }
 
 extension Array {
@@ -806,7 +689,7 @@ extension Array {
 //
 // Having created a custom class anyway, it seemed like a code-saver to pack
 // it with convenience initialisers for an array of strings, variadic
-// strings, and CFString.
+// strings, CFString, and OSStatus.
 
 public class StoredKeyError: Error, CustomStringConvertible {
     let _message:String
