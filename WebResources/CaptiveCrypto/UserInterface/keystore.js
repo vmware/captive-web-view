@@ -21,7 +21,7 @@ function JSONable(obj, minLayers=0) {
 
 function sorting_replacer(omit, key, value) {
     // TOTH: https://stackoverflow.com/a/31102605/7657675
-    if (value !== null && typeof value === 'object') {
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         const _return = {};
         Object.keys(value).filter(
             objectKey => !(key === "" && omit.includes(objectKey))
@@ -42,7 +42,7 @@ function key_item_labels(keySummary) {
     );
     return [
         ...(name === "" ? [] : [' "', name, '" ']),
-        keySummary.type === "" ? keySummary.store : keySummary.type
+        keySummary.type === "" ? keySummary.storage : keySummary.type
     ];
 }
 
