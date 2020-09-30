@@ -94,6 +94,9 @@ class KeyStore {
         
         const label = PageBuilder.add_node('label', "Results", legend);
         label.setAttribute('for', resultIdentifier);
+        // Default in the iOS web view is to select the textarea, and zoom in.
+        // That isn't wanted here, so suppress it.
+        label.addEventListener('click', event => event.preventDefault());
 
         panel.writeButton = builder.add_button("Write");
         panel.writeButton.setAttribute('disabled', true);
@@ -200,18 +203,28 @@ class KeyStore {
         const collapsedClass = 'kst__key-controls_collapsed';
         controls.forEach(control => control.classList.add(
             'kst__key-controls', collapsedClass));
-        buttons.forEach((button, buttonIndex) => button.addEventListener(
-            'click', () => {
+        buttons.forEach((buttonBuild, buttonIndex) => {
+            buttonBuild.classList.add(
+                'kst__key-button', 'kst__key-button_collapsed');
+            
+            buttonBuild.addEventListener('click', () => {
                 const collapsed = controls[buttonIndex].classList.contains(
                     collapsedClass);
+
+                buttons.forEach(
+                    (button, clickedIndex) => button.classList.toggle(
+                        'kst__key-button_collapsed',
+                        (clickedIndex != buttonIndex) || !collapsed)
+                );
+
                 controls.forEach(
                     (control, controlIndex) => control.classList.toggle(
                         collapsedClass,
                         (controlIndex != buttonIndex) || !collapsed
                     )
                 );
-            }
-        ));
+            })
+        });
 
         return builder;
     }
@@ -227,6 +240,9 @@ class KeyStore {
         }).forEach(([key, value]) => textarea.setAttribute(key, value));
         textarea.textContent = JSON.stringify(summary, undefined, 4);
         label.setAttribute('for', identifier);
+        // Default in the iOS web view is to select the textarea, and zoom in.
+        // That isn't wanted here, so suppress it.
+        label.addEventListener('click', event => event.preventDefault());
 
         return textarea;
     }
