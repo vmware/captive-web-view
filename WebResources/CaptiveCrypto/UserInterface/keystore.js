@@ -125,7 +125,7 @@ class KeyStore {
     _build_key_store_panel() {
         const panel = { entries: [] };
 
-        panel.emptyMessage = this._page.add_node('div', "Key store empty.");
+        panel.emptyMessage = this._page.add_node('div', "Key store empty");
         panel.emptyMessage.classList.add('kst__key-store-message');
 
         panel.entriesNode = this._page.add_node('div');
@@ -360,18 +360,20 @@ class KeyStore {
             this._transcribe(JSONable(keyPair, 1));
             return new Promise((resolve, reject) => {
                 const name = "Keys";
-                const openRequest = indexedDB.open(name, 1);
+                const request = indexedDB.open(name, 1);
     
-                openRequest.onerror = event => reject({
+                request.onerror = event => reject({
                     store: "open error", event: String(event)
                 });
     
                 // Create the schema, if needed.
-                openRequest.onupgradeneeded = event =>
+                request.onupgradeneeded = event =>
                     event.target.result.createObjectStore(
                         name, {keyPath: "identifier"});
             
-                openRequest.onsuccess = event => 
+                // The resolve and reject functions are passed as parameters so
+                // that the _store_key method can finalise the Promise.
+                request.onsuccess = event => 
                     this._store_key(resolve, reject, event, keyPair);
             });
         })

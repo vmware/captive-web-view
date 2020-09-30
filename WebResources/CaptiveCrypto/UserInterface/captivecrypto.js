@@ -9,10 +9,12 @@ class CaptiveCrypto {
         this._bridge = bridge;
 
         const builder = new PageBuilder('div', undefined, document.body);
-        builder.add_anchor("SubtleCrypto.html", "HTML 5 Subtle Crypto");
         builder.add_anchor("KeyStore.html", "Native Key Store");
+        builder.add_anchor(
+            "SubtleCrypto.html", "HTML 5 Subtle Crypto Scratch Code");
 
         loading.firstChild.textContent = "Captive Cryptography";
+        loading.classList.add('loaded');
     }
 }
 
