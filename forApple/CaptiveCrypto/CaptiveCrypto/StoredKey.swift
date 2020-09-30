@@ -159,10 +159,15 @@ class StoredKey {
             }
         }
     }
+    
+    struct Deletion: Encodable {
+        let deleted: [String]
+        let notDeleted: [String:String]
+    }
 
     // Clears the keychain and returns a summary of what storage types were
     // deleted or not deleted because of an error.
-    static func deleteAll() -> (deleted:[String], notDeleted:[String:String]) {
+    static func deleteAll() -> Deletion {
         var deleted:[String] = []
         var notDeleted:[String:String] = [:]
         
@@ -178,7 +183,7 @@ class StoredKey {
             }
         }
         
-        return (deleted:deleted, notDeleted:notDeleted)
+        return Deletion(deleted: deleted, notDeleted: notDeleted)
     }
     
     static func keysWithName(_ alias:String) throws -> [StoredKey] {

@@ -6,6 +6,7 @@ package com.example.captivecrypto
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
+import com.example.captivecrypto.StoredKey.description
 import kotlinx.serialization.*
 import java.security.*
 import javax.crypto.Cipher
@@ -95,27 +96,14 @@ object StoredKey {
         return Deletion(deleted.toList(), notDeleted)
     }
 
-    fun describeKeyNamed(alias:String):String {
-        val keyStore = loadKeyStore()
-        val entry = keyStore.getEntry(alias, null)
-            ?: throw Exception("No store entry with alias \"$alias\".")
-        val key = keyStore.getKey(alias, null)
-            ?: throw Exception("No key with alias \"$alias\".")
-        return if (entry is KeyStore.PrivateKeyEntry)
-            KeyStore.PrivateKeyEntry::class.java.simpleName
-        else if (entry is KeyStore.SecretKeyEntry)
-            KeyStore.SecretKeyEntry::class.java.simpleName
-        else entry.toString()
-    }
-
     @Serializable
     data class EntryDescription(
         // Properties of the key store entry.
         val name: String,
         val type: String,
-        val key: KeyDescription,
         val entryClassName: String,
-        val summary: List<String>
+        val summary: List<String>,
+        val key: KeyDescription
     )
 
     @Serializable
@@ -214,33 +202,43 @@ object StoredKey {
     }
 
     private fun KeyStore.describeAll(): List<EntryDescription> {
-        return aliases().toList().map {
-            // The getEntry() on the following line will generate an exception
-            // in the adb logcat, but still returns a value, and doesn't throw
-            // the exception in a way that can be caught.
-            //
-            // The exception starts with:
-            // KeyStore exception android.os.ServiceSpecificException: (code 7)
-            //
-            // See: https://stackoverflow.com/a/52295484/7657675
-            val entry = getEntry(it, null)
-                ?: throw Exception("No store entry with alias \"$it\".")
-            val keyDescription = getKey(it, null)?.description
-                ?: throw Exception("No key with alias \"$it\".")
-            val canonicalName = if (entry is KeyStore.PrivateKeyEntry)
+        return aliases().toList().map { this.describeKeyNamed(it) }
+    }
+
+    fun describeKeyNamed(
+        alias: String, providerName: String = KEY.AndroidKeyStore.name
+    ) : EntryDescription
+    {
+        return loadKeyStore(providerName).describeKeyNamed(alias)
+    }
+
+    fun KeyStore.describeKeyNamed(alias:String):EntryDescription {
+        // The getEntry() on the following line will generate an exception
+        // in the adb logcat, but still returns a value, and doesn't throw
+        // the exception in a way that can be caught.
+        //
+        // The exception starts with:
+        // KeyStore exception android.os.ServiceSpecificException: (code 7)
+        //
+        // See: https://stackoverflow.com/a/52295484/7657675
+        val entry = getEntry(alias, null)
+            ?: throw Exception("No store entry with alias \"$alias\".")
+        val keyDescription = getKey(alias, null)?.description
+            ?: throw Exception("No key with alias \"$alias\".")
+
+        return EntryDescription(
+            alias,
+            keyDescription.algorithm,
+
+            if (entry is KeyStore.PrivateKeyEntry)
                 KeyStore.PrivateKeyEntry::class.java.simpleName
             else if (entry is KeyStore.SecretKeyEntry)
                 KeyStore.SecretKeyEntry::class.java.simpleName
-            else entry.toString()
+            else entry.toString(),
 
-            EntryDescription(
-                it,
-                keyDescription.algorithm,
-                keyDescription,
-                canonicalName,
-                entry.toString().split("\n")
-            )
-        }
+            entry.toString().split("\n"),
+            keyDescription
+        )
 
         // Near here, it would be quite nice to use `attributes` but it's
         // API level 26, which is too high.

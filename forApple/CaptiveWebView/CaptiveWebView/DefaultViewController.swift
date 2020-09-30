@@ -64,31 +64,6 @@ extension CaptiveWebView.DefaultViewController {
             // webView.reload()
         }
     }
-    
-    struct AnyEncodable:Encodable {
-        let encodable:Encodable
-        
-        init(_ encodable:Encodable) {
-            self.encodable = encodable
-        }
-
-        func encode(to encoder: Encoder) throws {
-            try encodable.encode(to: encoder)
-        }
-    }
-
-    // Utility function to attempt to generate a generic object from an
-    // Encodable, via the JSON encoder. This facilitates a View Controller whose
-    // results are Encodable.
-    public func jsonObject(_ encodable:Encodable) throws -> Any {
-        let encoder = JSONEncoder()
-        if let encoded = try? encoder.encode(AnyEncodable(encodable)) {
-            return try JSONSerialization.jsonObject(with: encoded, options: [])
-        }
-        else {
-            return encodable
-        }
-    }
 
     static func handleCommand(
         _ viewController: CaptiveWebView.DefaultViewController,

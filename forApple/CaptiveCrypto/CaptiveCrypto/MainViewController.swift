@@ -82,33 +82,55 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             // Keys for capabilities command:
             secureEnclave, date,
             
-            // Keys for deleteAll command:
-            deleted, notDeleted,
-            
             // Keys for encrypt command, which is a test.
-            parameters, alias, sentinel, results, failed, reason, count,
-            keyStore, encryptedSentinel, algorithm, decryptedSentinel, passed
+            parameters, alias, sentinel, results, failed, reason, count, storage,
+            encryptedSentinel, algorithm, decryptedSentinel, passed, type
         
         // There are no extra keys for the summariseStore, generateKey, and
         // generateKeyPair commands. This is because their return values are
         // Encodable.
     }
     
+    private struct AnyEncodable:Encodable {
+        let encodable:Encodable
+        
+        init(_ encodable:Encodable) {
+            self.encodable = encodable
+        }
+
+        func encode(to encoder: Encoder) throws {
+            try encodable.encode(to: encoder)
+        }
+    }
+
+    // Utility function to attempt to generate a generic object from an
+    // Encodable, via the JSON encoder, and put it in a `results` mapping.
+    private func result(of encodable:Encodable) throws -> [String: Any] {
+        let encoder = JSONEncoder()
+        let any:Any
+        if let encoded = try? encoder.encode(AnyEncodable(encodable)) {
+            any = try JSONSerialization.jsonObject(with: encoded, options: [])
+        }
+        else {
+            any = encodable
+        }
+
+        return [KEY.results.rawValue: any]
+    }
+    
     override func response(
         to command: String,
         in commandDictionary: Dictionary<String, Any>
-        ) throws -> Dictionary<String, Any>
+    ) throws -> [String: Any]
     {
         switch Command(rawValue: command) {
         
         case .capabilities:
-            return summariseCapabilities().withStringKeys()
-            
-        case .deleteAll:
-            let tuple = StoredKey.deleteAll()
             return [
-                KEY.deleted: tuple.deleted, KEY.notDeleted: tuple.notDeleted
+                KEY.results: summariseCapabilities().withStringKeys()
             ].withStringKeys()
+            
+        case .deleteAll: return try result(of: StoredKey.deleteAll())
             
         case .encrypt:
             guard let parameters = commandDictionary[KEY.parameters]
@@ -134,10 +156,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                 KEY.results: testKey(alias: alias, sentinel: sentinel)
             ].withStringKeys()
 
-        case .summariseStore:
-            return [
-                KEY.keyStore: try jsonObject(try StoredKey.describeAll())
-            ].withStringKeys()
+        case .summariseStore: return try result(of: StoredKey.describeAll())
             
         case .generateKey:
             guard
@@ -149,9 +168,8 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                     "Key `", KEY.alias.rawValue,
                     "` must be specified in `", KEY.parameters.rawValue, "`.")
             }
-            return [KEY.results: try jsonObject(
-                StoredKey.generateKey(withName: alias)
-            )].withStringKeys()
+            
+            return try result(of: StoredKey.generateKey(withName: alias))
 
         case .generatePair:
             guard
@@ -163,9 +181,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                     "Key `", KEY.alias.rawValue,
                     "` must be specified in `", KEY.parameters.rawValue, "`.")
             }
-            return [KEY.results: try jsonObject(
-                StoredKey.generateKeyPair(withName: alias)
-            )].withStringKeys()
+            return try result(of: StoredKey.generateKeyPair(withName: alias))
 
         default:
             return try super.response(to: command, in: commandDictionary)
@@ -207,7 +223,10 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             return results
         }
 
-        results.append([KEY.keyStore.rawValue: keys.first?.storage as Any])
+        results.append([
+            KEY.type.rawValue: keys.first?.storage as Any,
+            KEY.alias.rawValue: alias
+        ])
         
         let encrypted:StoredKey.Encrypted
         do {
