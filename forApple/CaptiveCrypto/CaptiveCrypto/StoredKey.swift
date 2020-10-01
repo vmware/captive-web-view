@@ -59,6 +59,16 @@ extension CFString: Encodable {
     }
 }
 
+protocol StoredKeyBasis {
+    func storedKey() -> StoredKey
+}
+extension SecKey: StoredKeyBasis {
+    func storedKey() -> StoredKey { return StoredKey(self) }
+}
+extension SymmetricKey: StoredKeyBasis {
+    func storedKey() -> StoredKey { return StoredKey(self) }
+}
+
 // Main class in this file.
 class StoredKey {
     
@@ -216,7 +226,7 @@ class StoredKey {
             return items.map({item in
                 switch(storage) {
                 case .generic:
-                    return StoredKey(item as! Data)
+                    return StoredKey(SymmetricKey(data: item as! Data))
                 case .key:
                     return StoredKey(item as! SecKey)
                 }
@@ -405,8 +415,31 @@ class StoredKey {
         }
     }
         
+    private enum GenerationSentinelResult:String, Encodable {
+        case passed, failed, multipleKeys
+    }
+    
+    private static func generationSentinel(
+        _ basis:StoredKeyBasis, _ alias:String
+    ) throws -> GenerationSentinelResult
+    {
+        let keys = try self.keysWithName(alias)
+        if keys.count == 1 {
+            let storedKey = basis.storedKey()
+            let sentinel = "InMemorySentinel"
+            let encrypted = try storedKey.encrypt(sentinel)
+            let decrypted = try self.decrypt(
+                encrypted, withFirstKeyNamed: alias)
+            return sentinel == decrypted ? .passed : .failed
+        }
+        else {
+            return .multipleKeys
+        }
+    }
+    
     struct KeyGeneration:Encodable {
         let deletedFirst:Bool
+        let sentinelCheck:String
         let summary:[String]
         let attributes:[String:AnyEncodable]
     }
@@ -456,6 +489,7 @@ class StoredKey {
         // is already in the keychain as a single step.
         return KeyGeneration(
             deletedFirst: deleted == errSecSuccess,
+            sentinelCheck: try generationSentinel(key, alias).rawValue,
             summary: [String(describing:key)],
             attributes:
                 Description.normalise(cfAttributes: result as! CFDictionary)
@@ -499,6 +533,7 @@ class StoredKey {
         {
             throw error!.takeRetainedValue() as Error
         }
+        
 
         // Make a copy of the attributes dictionary except with a String for the
         // tag, instead of data, and with String keys instead of CFString.
@@ -527,7 +562,9 @@ class StoredKey {
         //     SecKeyCopyAttributes(secKey)
         
         return KeyGeneration(
-            deletedFirst: false, summary: summary,
+            deletedFirst: false,
+            sentinelCheck: try generationSentinel(secKey, alias).rawValue,
+            summary: summary,
             attributes:
                 Description.normalise(cfAttributes: returning as CFDictionary)
         )
@@ -538,15 +575,15 @@ class StoredKey {
     // encypt(message withFirstKeyNamed:) for example, can be used instead.
     private let _storage:Storage
     let secKey:SecKey?
-    let keyData:Data?
+    let symmetricKey:SymmetricKey?
 
     var storage:String {_storage.rawValue}
 
     // Symmetric key constructor.
-    init(_ keyData:Data) {
+    init(_ symmetricKey:SymmetricKey) {
         _storage = .generic
         secKey = nil
-        self.keyData = keyData
+        self.symmetricKey = symmetricKey
     }
     
     // Key pair constructor. The SecKey will be the private key. The
@@ -555,7 +592,7 @@ class StoredKey {
     init(_ secKey:SecKey) {
         _storage = .key
         self.secKey = secKey
-        keyData = nil
+        symmetricKey = nil
     }
 
     // Tuple for encrypted data and the algorithm. The algorithm is for
@@ -589,10 +626,10 @@ class StoredKey {
     }
     
     private func encryptWithSymmetricKey(_ message:String) throws -> Encrypted {
-        let key = try SymmetricKey(rawRepresentation:keyData!)
         guard let box = try
-            AES.GCM.seal(Data(message.utf8) as NSData, using: key).combined
-            else
+            AES.GCM.seal(
+                Data(message.utf8) as NSData, using: symmetricKey!
+            ).combined else
         {
             throw StoredKeyError("Combined nil.")
         }
@@ -601,8 +638,7 @@ class StoredKey {
 
     private func decryptWithSymmetricKey(_ encrypted:Data) throws -> String {
         let sealed = try AES.GCM.SealedBox(combined: encrypted)
-        let key = try SymmetricKey(rawRepresentation:keyData!)
-        let decryptedData = try AES.GCM.open(sealed, using: key)
+        let decryptedData = try AES.GCM.open(sealed, using: symmetricKey!)
         let message =
             String(data: decryptedData, encoding: .utf8) ?? "\(decryptedData)"
         return message
