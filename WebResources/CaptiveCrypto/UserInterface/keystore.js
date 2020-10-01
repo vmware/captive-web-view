@@ -35,16 +35,21 @@ function sorting_replacer(omit, key, value) {
 
 // Cheeky constants that are strings but declared without strings being used.
 const KEY = {
-    confirm:null,
-    summariseStore:null,
-    secure:null,
-
+    // Commands that can be sent to the native layer.
     encrypt:null,
     write:null,
     capabilities: null,
-    deleteAll: null
+    deleteAll: null,
+    summariseStore:null,
+
+    // Parameter names used in exchanges with the native layer.
+    command:null, // Can't always be used.
+    confirm:null,
+    secure:null
 };
 Object.keys(KEY).forEach(key => KEY[key] = key);
+
+const databaseName = "Keys";
 
 const prefix = "CaptiveCrypto ";
 function key_item_labels(keySummary) {
@@ -185,7 +190,7 @@ class KeyStore {
         this._result = result;
         this._resultPanel.display.textContent = JSON.stringify(
             result,
-            sorting_replacer.bind(this, ['command', 'confirm']),
+            sorting_replacer.bind(this, [KEY.command, KEY.confirm]),
             4
         );
         this._resultPanel.writeButton.removeAttribute('disabled');
@@ -384,8 +389,17 @@ class KeyStore {
             'click', () => this._send({command:KEY.capabilities}, true, false));
 
         const clearButton = builder.add_button("Delete All");
-        clearButton.addEventListener(
-            'click', () => this._send({command:KEY.deleteAll}));
+        clearButton.addEventListener('click', () => {
+            this._send({command:KEY.deleteAll})
+            .then(() => this._delete_web_view_key())
+            .then(deleteResult => this.result = Object.assign(
+                (!this.result) ? {} : this.result, {indexedDB:deleteResult}));
+            // The send here will resolve after the result has been set into
+            // `this.result`, unless this is being run against the Python
+            // testing back end. In that case, there won't have been any result
+            // and this.result will be null. The above Object.assign line above
+            // will create an empty object if needed.
+        });
         
         const webViewKeyButton = builder.add_button("Store Web View Key");
         webViewKeyButton.addEventListener('click', event => {
@@ -415,8 +429,7 @@ class KeyStore {
         )
         .catch(error => this._transcribe({"error": String(error)}))
         .then(keyPair => new Promise((resolve, reject) => {
-            const name = "Keys";
-            const request = indexedDB.open(name, 1);
+            const request = indexedDB.open(databaseName, 1);
 
             request.onerror = event => reject({
                 store: "open error", event: String(event)
@@ -425,7 +438,7 @@ class KeyStore {
             // Create the schema, if needed.
             request.onupgradeneeded = event =>
                 event.target.result.createObjectStore(
-                    name, {keyPath: "identifier"});
+                    databaseName, {keyPath: "identifier"});
         
             // The resolve and reject functions are passed as parameters so
             // that the _store_key method can finalise the Promise.
@@ -453,9 +466,9 @@ class KeyStore {
 
     _store_key(resolve, reject, eventOpen, keyPair) {
         const keyDescription = JSONable(keyPair, 1);
-        const dataBase = eventOpen.target.result;
-        const transaction = dataBase.transaction(dataBase.name, "readwrite");
-        const store = transaction.objectStore(dataBase.name);
+        const database = eventOpen.target.result;
+        const transaction = database.transaction(database.name, "readwrite");
+        const store = transaction.objectStore(database.name);
 
         try {
             // If you comment out the identifier key and value, in order to
@@ -463,19 +476,28 @@ class KeyStore {
             // invoking its onerror handler.
             const putRequest = store.put({"identifier":1, "key":keyPair});
 
-            putRequest.onerror = domException => reject({
-                store: "put error",
-                key: keyDescription,
-                code: domException.code,
-                message: domException.message,
-                name: domException.name,
-                domException: String(domException)
-            });
-            putRequest.onsuccess = event => resolve({
-                store: "OK", result: event.target.result, key: keyDescription
-            });
+            putRequest.onerror = domException => {
+                database.close();
+                reject({
+                    store: "put error",
+                    key: keyDescription,
+                    code: domException.code,
+                    message: domException.message,
+                    name: domException.name,
+                    domException: String(domException)
+                });
+            };
+            putRequest.onsuccess = event => {
+                database.close();
+                resolve({
+                    store: "OK",
+                    result: event.target.result,
+                    key: keyDescription
+                });
+            };
         }
         catch(exception) {
+            database.close();
             reject({
                 store: "caught error",
                 key: keyDescription,
@@ -486,6 +508,22 @@ class KeyStore {
             });
         }
     }
+
+    _delete_web_view_key() {return new Promise((resolve, reject) => {
+        const request = indexedDB.deleteDatabase(databaseName);
+        request.onerror = domException => reject({
+            database: "delete error",
+            code: domException.code,
+            message: domException.message,
+            name: domException.name,
+            domException: String(domException)
+        });
+        request.onsuccess = event => resolve({
+            // The oldVersion will be 0 if there was no database, or the version
+            // number otherwise.
+            database: "delete OK", version: event.oldVersion
+        });
+    });}
 }
 
 export default function(bridge) {
