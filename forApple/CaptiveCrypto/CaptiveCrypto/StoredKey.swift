@@ -415,7 +415,7 @@ class StoredKey {
         }
     }
         
-    private enum GenerationSentinelResult:String, Encodable {
+    private enum GenerationSentinelResult:String {
         case passed, failed, multipleKeys
     }
     
