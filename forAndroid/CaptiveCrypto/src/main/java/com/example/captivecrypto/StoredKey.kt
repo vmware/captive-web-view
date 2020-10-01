@@ -6,7 +6,6 @@ package com.example.captivecrypto
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
-import com.example.captivecrypto.StoredKey.description
 import kotlinx.serialization.*
 import java.security.*
 import javax.crypto.Cipher
@@ -30,8 +29,8 @@ object StoredKey {
         // wrap(KeyProperties.PURPOSE_WRAP_KEY)
 
         companion object {
-            // Utility function to take the `purposes` property bit map and turn it
-            // into a list of strings.
+            // Utility function to take the `purposes` property bit map and turn
+            // it into a list of strings.
             fun purposeStrings(keyInfo: KeyInfo):List<String> {
                 var mask:Int = 0
                 val returning = mutableListOf<String>()
@@ -42,9 +41,9 @@ object StoredKey {
                     }
                 }
 
-                // Check if there's anything in the purposes map that isn't in the
-                // purposesList. If there is, add an explanatory message to the
-                // purposes strings.
+                // Check if there's anything in the purposes map that isn't in
+                // the purposesList. If there is, add an explanatory message to
+                // the purposes strings.
                 if (keyInfo.purposes != mask) {
                     returning.add(listOf(
                         "Unmatched info:",
@@ -61,9 +60,9 @@ object StoredKey {
     }
 
     val KeyInfo.purposeStrings:List<String>
-            get() = KeyPurpose.purposeStrings(this)
+        get() = KeyPurpose.purposeStrings(this)
 
-    fun loadKeyStore(name: String = MainActivity.KEY.AndroidKeyStore.name): KeyStore {
+    fun loadKeyStore(name: String = KEY.AndroidKeyStore.name): KeyStore {
         return KeyStore.getInstance(name).apply { load(null) }
     }
 
@@ -249,8 +248,38 @@ object StoredKey {
         // the Key. The Key isn't accessible from the KeyEntry.
     }
 
+    private enum class GenerationSentinelResult {
+        passed, failed;
+
+        companion object {
+            fun <TYPE:Comparable<TYPE>>comparing(first:TYPE, second:TYPE)
+                    :GenerationSentinelResult
+            {
+                return if (first.compareTo(second) == 0) passed else failed
+            }
+        }
+    }
+
     @Serializable
-    data class KeyGeneration(val provider: String, val key: KeyDescription)
+    data class KeyGeneration(
+        val provider: String,
+        val sentinelCheck: String,
+        val key: KeyDescription
+    )
+
+    private fun generationSentinel(encryptingKey:Key, alias: String)
+            : GenerationSentinelResult
+    {
+        val sentinel = "InMemorySentinel"
+        val encrypted = encrypt(sentinel, encryptingKey)
+        val decrypted = decryptWithStoredKey(encrypted, alias)
+        return GenerationSentinelResult.comparing(sentinel, decrypted)
+    }
+    private fun generationSentinel(keyPair: KeyPair, alias: String)
+            : GenerationSentinelResult
+    {
+        return generationSentinel(keyPair.public, alias)
+    }
 
     fun generateKeyWithName(alias: String): KeyGeneration
     {
@@ -269,7 +298,11 @@ object StoredKey {
         ) }
 
         val key = keyGenerator.generateKey()
-        return KeyGeneration(keyGenerator.provider.name, key.description)
+        return KeyGeneration(
+            keyGenerator.provider.name,
+            generationSentinel(key, alias).name,
+            key.description
+        )
     }
 
     fun generateKeyPairWithName(alias: String): KeyGeneration {
@@ -289,7 +322,9 @@ object StoredKey {
         ) }
         val keyPair = keyPairGenerator.generateKeyPair()
         return KeyGeneration(
-            keyPairGenerator.provider.name, keyPair.private.description
+            keyPairGenerator.provider.name,
+            generationSentinel(keyPair, alias).name,
+            keyPair.private.description
         )
         // keyPair.public isn't included here.
     }
@@ -319,7 +354,7 @@ object StoredKey {
     fun encryptWithStoredKey(
         plaintext: String,
         alias: String,
-        providerName: String = MainActivity.KEY.AndroidKeyStore.name
+        providerName: String = KEY.AndroidKeyStore.name
     ): EncryptedMessage
     {
         val keyStore = loadKeyStore(providerName)
@@ -339,6 +374,10 @@ object StoredKey {
             ).joinToString(""))
         }
 
+        return encrypt(plaintext, key)
+    }
+
+    private fun encrypt(plaintext: String, key: Key): EncryptedMessage {
         val parameterSpec = when(key.algorithm) {
 
             // For RSA: Create a parameter specification based on the
@@ -351,12 +390,11 @@ object StoredKey {
                 OAEPParameterSpec.DEFAULT.pSource
             )
 
-            // For AES: Don't specify an IV so a random one will be
-            // generated.
+            // For AES: Don't specify an IV so a random one will be generated.
             KeyProperties.KEY_ALGORITHM_AES -> null
 
             else -> throw Exception(listOf(
-                "Cannot encrypt with stored item \"${alias}\".",
+                "Cannot encrypt with key \"${key.description}\".",
                 " Unsupported algorithm: \"${key.algorithm}\"."
             ).joinToString(""))
         }
@@ -365,8 +403,7 @@ object StoredKey {
 
         cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec)
         val encryptedBytes = cipher.doFinal(
-            plaintext.toByteArray(Charsets.UTF_8)
-        )
+            plaintext.toByteArray(Charsets.UTF_8))
 
         return EncryptedMessage(
             encryptedBytes,
@@ -380,7 +417,7 @@ object StoredKey {
     fun decryptWithStoredKey(
         encryptedMessage: EncryptedMessage,
         alias: String,
-        providerName: String = MainActivity.KEY.AndroidKeyStore.name
+        providerName: String = KEY.AndroidKeyStore.name
     ): String
     {
         val keyStore = loadKeyStore(providerName)
@@ -396,7 +433,10 @@ object StoredKey {
                 " Summary of entry:${entry}."
             ).joinToString(""))
         }
+        return decrypt(encryptedMessage, key)
+    }
 
+    private fun decrypt(encryptedMessage: EncryptedMessage, key: Key):String {
         // Next statement creates a parameter specification object. In this
         // version, assumptions are made, about block mode, RSA digest and
         // padding for example. In an ideal version, those parameters would
@@ -441,7 +481,7 @@ object StoredKey {
                 GCMParameterSpec(128, encryptedMessage.iv)
 
             else -> throw Exception(listOf(
-                "Cannot decrypt with stored item \"${alias}\".",
+                "Cannot decrypt with key \"${key.description}\".",
                 " Unsupported algorithm: \"${key.algorithm}\"."
             ).joinToString(""))
         }

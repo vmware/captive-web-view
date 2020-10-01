@@ -56,9 +56,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
 
         sentinel, ciphertext, decryptedSentinel, passed, storage,
 
-        results,
-
-        AndroidKeyStore;
+        results;
 
         override fun toString(): String {
             return this.name
