@@ -645,9 +645,9 @@ class StoredKey {
     }
 
     // List of algorithms for public key encryption.
-    private let algorithms = [
-        SecKeyAlgorithm.eciesEncryptionStandardX963SHA1AESGCM,
-        SecKeyAlgorithm.rsaEncryptionOAEPSHA512
+    private let algorithms:[SecKeyAlgorithm] = [
+        .eciesEncryptionStandardX963SHA1AESGCM,
+        .rsaEncryptionOAEPSHA512
     ]
 
     private func encryptBasedOnPrivateKey(_ message:String) throws -> Encrypted
