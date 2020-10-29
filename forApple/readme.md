@@ -11,84 +11,29 @@ Xcode    | 10.2.1                   | 11.4.1
 
 How to get the framework
 ==========================
-1.  Download the code in the repository that contains this file.
 
-    This project has some **case-sensitive file names**. This means that it may
-    be a good idea to switch off case sensitivity in the Git configuration. See:
-    [https://stackoverflow.com/a/37844763/7657675](https://stackoverflow.com/a/37844763/7657675)
+The framework is available as a Swift Package. Use the Swift Package Manager built into Xcode to add the framework to an Xcode project as a package dependency.
 
-2.  In Xcode, select to open the following path.
+1. In Xcode go to 'File > Swift Packages > Add Package Dependency...'.
 
-    /wherever/you/cloned/captive-web-view/forApple/CaptiveWebView.xcworkspace
+2. If prompted, when working with an Xcode workspace, select the Xcode project requiring the framework.
 
-    This is an Xcode workspace with the following projects:
+3. Enter the package repository URL: 'https://github.com/vmware/captive-web-view.git'
 
-    -   Captivity, an excessive demonstration application.
-    -   Headless, a demonstration in which the Web View isn't shown but is used
-        to run JavaScript Fetch commands.
-    -   Skeleton, a minimal application.
-    -   MacSkeleton, a minimal macOS application.
-    -   CaptiveWebView, the framework.
+4. Enter 'issue4' as the branch
 
-3.  Build the CaptiveWebView framework, and then the Captivity application.
-
-You might need to remove the framework from the application and add it back to
-make it build. You can do this either by dragging and dropping, or by clicking
-the plus and minus buttons in the target build phases.
-
-In the Xcode workspace view, there should now be a CaptiveWebView.framework item
-in the CaptiveWebView Products folder.
-
-How to make a new application that uses the framework
+How to use the framework
 =====================================================
-These instructions assume you have already have the framework, see under How to
-get the framework, above.
 
-1.  Open Xcode and create a new application project.
-
-    -   Select Single View App as the template.
-    -   Select Language: Swift.
-
-    Build the project before going further just to check it works.
-
-2.  Add the framework project.
-
-    There are a couple of ways to do this that have worked in the past and might
-    work for you:
-
-    -   Add the CaptiveWebView project as a sub-project to your new application
-        project.
-    -   Create a new Xcode workspace in which your new application project and
-        the CaptiveWebView project are peers.
-    
-    You can add projects as sub-projects, or to a workspace, by dragging and
-    dropping. This web page has more instructions that might help:
-
-    [https://developer.apple.com/library/archive/technotes/tn2435/_index.html](https://developer.apple.com/library/archive/technotes/tn2435/_index.html)
-
-3.  Add the framework library to the application.
-
-    1.  Open your application's target Build Phases.
-    2.  Expand the Link Binary With Libraries section.
-    3.  Either drag and drop the CaptiveWebView.framework item from the
-        CaptiveWebView Products into the section, or click the plus button and
-        add it from the Workspace in the dialog.
-    4.  Expand the Embed Frameworks section and add the same item to this list
-        also.
-    
-    Build the application to check that this still works. If it doesn't, you
-    might be able to fix it by removing and re-adding the framework, either in
-    the target Build Phases, as above, or in the target General tab.
-
-4.  Change the application ViewController to be based on a Captive Web View.
+1. Change the application ViewController to be based on a Captive Web View.
 
     Open the ViewController.swift file in Xcode and make the following changes.
 
-    1.  Import the module, for example by adding a line like:
+    1. Import the module, for example by adding a line like:
 
             import CaptiveWebView
 
-    2.  Change the ViewController to a subclass of the default view controller
+    2. Change the ViewController to a subclass of the default view controller
         class in the module, for example by changing the declaration to:
 
             class ViewController: CaptiveWebView.DefaultViewController {
@@ -100,7 +45,7 @@ get the framework, above.
 
     You can delete the viewDidLoad method from your ViewController class.
 
-5.  Set the name of the HTML file to load in your view controller.
+2. Set the name of the HTML file to load in your view controller.
 
     Choose a name, like `Main.html` and then do **either** of the following, but
     not both.
@@ -130,7 +75,7 @@ get the framework, above.
     can either rename your ViewController class or override the default
     behaviour.
 
-6.  Create the HTML file.
+3. Create the HTML file.
 
     If you have already created a corresponding Android application that will
     have the same user interface, then skip this step.
@@ -171,20 +116,20 @@ get the framework, above.
     this example. The HTML is written in a whitespace elimination style, i.e.
     with no space in between an end tag and the start of the next tag.
 
-7.  Add the web resources to the application.
+4. Add the web resources to the application.
 
     If you created a UserInterface/ sub-directory in the previous step, or if
     you skipped the previous step because you already have one in an Android
     project, then add the sub-directory now. You can do this in Xcode, as
     follows.
 
-    1.  Right-click the application folder, which may be the first level under
+    1. Right-click the application folder, which may be the first level under
         the application project. Then select the option to Add Files to "..."
         ... in the context menu that drops down.
-    2.  In the dialog that appears, highlight the user interface directory and
+    2. In the dialog that appears, highlight the user interface directory and
         select the option to Create folder references. Don't select to copy
         items.
-    3.  Click Add.
+    3. Click Add.
 
     The sub-directory should now appear under the application's folder. It
     should have a blue folder icon. If it doesn't, remove it and try again.
@@ -193,7 +138,7 @@ get the framework, above.
     including the Main.html file if you called it that.
 
     Note for sharing files with an Android project:  
-    Android applications are build with Gradle, which seems to work best when
+    Android applications are built with Gradle, which seems to work best when
     all files are under one umbrella directory. For this reason, you might find
     it easier to have the real files in the Android project directory, and a
     reference to that directory from the Xcode project.  
@@ -203,7 +148,7 @@ get the framework, above.
     directory; a reference to that directory appears in the Xcode project at
     Captivity/UserInterface.
 
-8.  Create the JavaScript file.
+5. Create the JavaScript file.
 
     If you have already created a corresponding Android application that will
     have the same user interface, then skip this step.
@@ -248,7 +193,7 @@ get the framework, above.
             return null;
         }
 
-9.  Run the application.
+6. Run the application.
 
     At this point you should be able to build and run the application.
 
@@ -286,17 +231,17 @@ get the framework, above.
         TOTH:  
         [https://developer.apple.com/forums/thread/96217?answerId=303426022#303426022](https://developer.apple.com/forums/thread/96217?answerId=303426022#303426022)
 
-10. Add the Swift end of the command handler.
+7. Add the Swift end of the command handler.
 
     When you ran your application in the previous step, there was a failure
     message. This is because the JavaScript end sent a command, "ready", that
     the native Swift end didn't recognise. Now add a handler that recognises
     that command.
 
-    1.  Open your view controller .swift file in Xcode.
-    2.  In your view controller class, declare an override for the
+    1. Open your view controller .swift file in Xcode.
+    2. In your view controller class, declare an override for the
         response:to:in: method.
-    3.  Add a method body that returns an empty dictionary in response to the
+    3. Add a method body that returns an empty dictionary in response to the
         "ready" command, or delegates to its base class for other commands.
     
     The new method looks like this:
@@ -317,7 +262,7 @@ get the framework, above.
     The above code is also in the MainViewController.swift file in the Skeleton
     application in the Demonstration workspace in the repository.
 
-11. Run the application again.
+8. Run the application again.
 
     The user interface will look like this:
 
