@@ -1,12 +1,9 @@
 // !$*UTF8*$!
-/* Copyright 2020 VMware, Inc.
- * SPDX-License-Identifier: BSD-2-Clause
- */
 {
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -14,24 +11,9 @@
 		046B7C2B2347C7980034D246 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 046B7C2A2347C7980034D246 /* AppDelegate.swift */; };
 		046B7C322347C7990034D246 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 046B7C312347C7990034D246 /* Assets.xcassets */; };
 		046B7C352347C7990034D246 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 046B7C332347C7990034D246 /* LaunchScreen.storyboard */; };
-		049D5D642348AE6A006981C0 /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 049D5D622348AE24006981C0 /* CaptiveWebView.framework */; };
-		049D5D652348AEB3006981C0 /* CaptiveWebView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 049D5D622348AE24006981C0 /* CaptiveWebView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		049F4E5E2461731500F213DD /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 049F4E5D2461731500F213DD /* UserInterface */; };
+		CF6E9EB7253761E300CF3ACF /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = CF6E9EB6253761E300CF3ACF /* CaptiveWebView */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		04231BDE2348866D00B10175 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				049D5D652348AEB3006981C0 /* CaptiveWebView.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0438B8112348E00A00F5B415 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
@@ -41,7 +23,6 @@
 		046B7C312347C7990034D246 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		046B7C342347C7990034D246 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		046B7C362347C7990034D246 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		049D5D622348AE24006981C0 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		049F4E5D2461731500F213DD /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Skeleton/UserInterface; sourceTree = "<group>"; };
 		679377CC23E821200002AE2D /* Skeleton.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Skeleton.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -51,7 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				049D5D642348AE6A006981C0 /* CaptiveWebView.framework in Frameworks */,
+				CF6E9EB7253761E300CF3ACF /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -93,7 +74,6 @@
 		046B7C3C2347CA090034D246 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				049D5D622348AE24006981C0 /* CaptiveWebView.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -108,13 +88,15 @@
 				046B7C232347C7980034D246 /* Sources */,
 				046B7C242347C7980034D246 /* Frameworks */,
 				046B7C252347C7980034D246 /* Resources */,
-				04231BDE2348866D00B10175 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = Skeleton;
+			packageProductDependencies = (
+				CF6E9EB6253761E300CF3ACF /* CaptiveWebView */,
+			);
 			productName = Skeleton;
 			productReference = 046B7C272347C7980034D246 /* Skeleton.app */;
 			productType = "com.apple.product-type.application";
@@ -126,7 +108,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1020;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Jim Hawkins";
 				TargetAttributes = {
 					046B7C262347C7980034D246 = {
@@ -143,6 +125,9 @@
 				Base,
 			);
 			mainGroup = 046B7C1E2347C7980034D246;
+			packageReferences = (
+				CF6E9EB5253761E300CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */,
+			);
 			productRefGroup = 046B7C282347C7980034D246 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -215,6 +200,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -276,6 +262,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -316,6 +303,7 @@
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				HEADER_SEARCH_PATHS = "/Users/hawkinsji/Library/Developer/Xcode/DerivedData/Demonstration-emflntfrxvvnbmdvjjiyjgdynbvo/Build/Products/Debug-iphoneos/CaptiveWebView.framework/Headers";
 				INFOPLIST_FILE = Skeleton/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -339,6 +327,7 @@
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				HEADER_SEARCH_PATHS = "/Users/hawkinsji/Library/Developer/Xcode/DerivedData/Demonstration-emflntfrxvvnbmdvjjiyjgdynbvo/Build/Products/Debug-iphoneos/CaptiveWebView.framework/Headers";
 				INFOPLIST_FILE = Skeleton/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -373,6 +362,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CF6E9EB5253761E300CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vmware/captive-web-view.git";
+			requirement = {
+				branch = issue4;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CF6E9EB6253761E300CF3ACF /* CaptiveWebView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CF6E9EB5253761E300CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */;
+			productName = CaptiveWebView;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 046B7C1F2347C7980034D246 /* Project object */;
 }

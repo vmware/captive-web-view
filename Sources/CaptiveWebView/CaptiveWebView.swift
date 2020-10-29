@@ -177,6 +177,7 @@ public struct CaptiveWebView {
     }
 #endif
 
+    @available(OSX 10.13, *)
     public static func makeWebView(frame:CGRect,
                             commandHandler:CaptiveWebViewCommandHandler?
         ) -> WKWebView
@@ -200,6 +201,7 @@ public struct CaptiveWebView {
         )
     }
     
+    @available(OSX 10.13, *)
     public static func makeWebViewConfiguration(
         commandHandler:CaptiveWebViewCommandHandler?
     ) -> WKWebViewConfiguration

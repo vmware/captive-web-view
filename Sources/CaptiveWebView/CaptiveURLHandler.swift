@@ -6,10 +6,12 @@ import WebKit
 
 import os.log
 
+@available(OSX 10.12, *)
 class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
     
     public var bridge: CaptiveWebViewCommandHandler?
     
+    @available(OSX 10.13, *)
     func webView(_ webView: WKWebView, start urlSchemeTask: WKURLSchemeTask) {
         guard let taskURL: URL = urlSchemeTask.request.url else {
             os_log("Null URL in task request \"%@\".",
@@ -162,6 +164,7 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
             URL(fileURLWithPath: "body.json"))
     }
     
+    @available(OSX 10.13, *)
     func webView(_ webView: WKWebView, stop urlSchemeTask: WKURLSchemeTask) {
         // Invoked to tell you to stop. Requests to local: don't take long
         // enough to have to be cancelled.
