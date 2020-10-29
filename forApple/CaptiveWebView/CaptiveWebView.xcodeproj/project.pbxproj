@@ -1,7 +1,4 @@
 // !$*UTF8*$!
-/* Copyright 2020 VMware, Inc.
- * SPDX-License-Identifier: BSD-2-Clause
- */
 {
 	archiveVersion = 1;
 	classes = {
@@ -10,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04044502254AC66B00DB1195 /* library in Resources */ = {isa = PBXBuildFile; fileRef = 04044501254AC66B00DB1195 /* library */; };
 		04575CF1234752C200A2A462 /* CaptiveURLHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04575CF0234752C200A2A462 /* CaptiveURLHandler.swift */; };
 		045D3F4523469C4400D12F79 /* CaptiveWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045D3F4323469C4400D12F79 /* CaptiveWebView.swift */; };
 		045D3F4623469FE700D12F79 /* CaptiveWebView.h in Headers */ = {isa = PBXBuildFile; fileRef = 045D3F4223469C4400D12F79 /* CaptiveWebView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -18,10 +16,10 @@
 		0489F5D02345303100A11737 /* URL+Changing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489F5C92345303100A11737 /* URL+Changing.swift */; };
 		0489F5D22345303100A11737 /* WebResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489F5CB2345303100A11737 /* WebResource.swift */; };
 		0489F5D42345303100A11737 /* ApplicationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0489F5CD2345303100A11737 /* ApplicationDelegate.swift */; };
-		0489F5D62345306600A11737 /* library in Resources */ = {isa = PBXBuildFile; fileRef = 0489F5D52345306600A11737 /* library */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		04044501254AC66B00DB1195 /* library */ = {isa = PBXFileReference; lastKnownFileType = folder; name = library; path = ../../../Sources/CaptiveWebView/Resources/library; sourceTree = "<group>"; };
 		041664092461679500239175 /* MacCaptiveWebView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MacCaptiveWebView.h; sourceTree = "<group>"; };
 		0416640A2461679500239175 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		04575CF0234752C200A2A462 /* CaptiveURLHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptiveURLHandler.swift; sourceTree = "<group>"; };
@@ -33,7 +31,6 @@
 		0489F5CB2345303100A11737 /* WebResource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WebResource.swift; sourceTree = "<group>"; };
 		0489F5CC2345303100A11737 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		0489F5CD2345303100A11737 /* ApplicationDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ApplicationDelegate.swift; sourceTree = "<group>"; };
-		0489F5D52345306600A11737 /* library */ = {isa = PBXFileReference; lastKnownFileType = folder; name = library; path = ../../../forAndroid/captivewebview/src/main/assets/library; sourceTree = "<group>"; };
 		04F937DB2271A368005DC262 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -60,6 +57,7 @@
 		0489F5C52345303100A11737 /* CaptiveWebView */ = {
 			isa = PBXGroup;
 			children = (
+				04044501254AC66B00DB1195 /* library */,
 				0489F5CD2345303100A11737 /* ApplicationDelegate.swift */,
 				04575CF0234752C200A2A462 /* CaptiveURLHandler.swift */,
 				045D3F4223469C4400D12F79 /* CaptiveWebView.h */,
@@ -69,7 +67,6 @@
 				0489F5C82345303100A11737 /* ViewController.swift */,
 				0489F5CB2345303100A11737 /* WebResource.swift */,
 				0489F5CC2345303100A11737 /* Info.plist */,
-				0489F5D52345306600A11737 /* library */,
 			);
 			path = CaptiveWebView;
 			sourceTree = "<group>";
@@ -161,7 +158,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0489F5D62345306600A11737 /* library in Resources */,
+				04044502254AC66B00DB1195 /* library in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
