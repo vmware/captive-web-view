@@ -1,4 +1,7 @@
 // !$*UTF8*$!
+/* Copyright 2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
 {
 	archiveVersion = 1;
 	classes = {
@@ -10,10 +13,15 @@
 		0463D0DD25066E3000827E0F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0463D0DC25066E3000827E0F /* AppDelegate.swift */; };
 		0463D0E625066E3000827E0F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0463D0E525066E3000827E0F /* Assets.xcassets */; };
 		0463D0E925066E3000827E0F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0463D0E725066E3000827E0F /* LaunchScreen.storyboard */; };
+		048420D7255D391400DAB9B6 /* SubtleCrypto.html in Resources */ = {isa = PBXBuildFile; fileRef = 048420D1255D391400DAB9B6 /* SubtleCrypto.html */; };
+		048420D8255D391400DAB9B6 /* captivecrypto.js in Resources */ = {isa = PBXBuildFile; fileRef = 048420D2255D391400DAB9B6 /* captivecrypto.js */; };
+		048420D9255D391400DAB9B6 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 048420D3255D391400DAB9B6 /* Main.html */; };
+		048420DA255D391400DAB9B6 /* keystore.js in Resources */ = {isa = PBXBuildFile; fileRef = 048420D4255D391400DAB9B6 /* keystore.js */; };
+		048420DB255D391400DAB9B6 /* KeyStore.html in Resources */ = {isa = PBXBuildFile; fileRef = 048420D5255D391400DAB9B6 /* KeyStore.html */; };
+		048420DC255D391400DAB9B6 /* keystore.css in Resources */ = {isa = PBXBuildFile; fileRef = 048420D6255D391400DAB9B6 /* keystore.css */; };
+		048420E4255D395200DAB9B6 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 048420E3255D395200DAB9B6 /* CaptiveWebView */; };
 		04AB73A7251CC7F100DEFB84 /* StoredKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AB73A6251CC7F100DEFB84 /* StoredKey.swift */; };
 		04DB3A92250671210035C035 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DB3A91250671210035C035 /* MainViewController.swift */; };
-		04DB3A94250671700035C035 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04DB3A93250671700035C035 /* UserInterface */; };
-		CF6E9EB22537619700CF3ACF /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = CF6E9EB12537619700CF3ACF /* CaptiveWebView */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,9 +30,14 @@
 		0463D0E525066E3000827E0F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0463D0E825066E3000827E0F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0463D0EA25066E3000827E0F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		048420D1255D391400DAB9B6 /* SubtleCrypto.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = SubtleCrypto.html; sourceTree = "<group>"; };
+		048420D2255D391400DAB9B6 /* captivecrypto.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = captivecrypto.js; sourceTree = "<group>"; };
+		048420D3255D391400DAB9B6 /* Main.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Main.html; sourceTree = "<group>"; };
+		048420D4255D391400DAB9B6 /* keystore.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = keystore.js; sourceTree = "<group>"; };
+		048420D5255D391400DAB9B6 /* KeyStore.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = KeyStore.html; sourceTree = "<group>"; };
+		048420D6255D391400DAB9B6 /* keystore.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = keystore.css; sourceTree = "<group>"; };
 		04AB73A6251CC7F100DEFB84 /* StoredKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredKey.swift; sourceTree = "<group>"; };
 		04DB3A91250671210035C035 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
-		04DB3A93250671700035C035 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/CaptiveCrypto/UserInterface; sourceTree = "<group>"; };
 		04DB3A95250672DF0035C035 /* CaptiveCrypto.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = CaptiveCrypto.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -33,7 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CF6E9EB22537619700CF3ACF /* CaptiveWebView in Frameworks */,
+				048420E4255D395200DAB9B6 /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,8 +80,8 @@
 		0463D0DB25066E3000827E0F /* CaptiveCrypto */ = {
 			isa = PBXGroup;
 			children = (
+				048420D0255D391400DAB9B6 /* UserInterface */,
 				04DB3A95250672DF0035C035 /* CaptiveCrypto.entitlements */,
-				04DB3A93250671700035C035 /* UserInterface */,
 				04DB3A91250671210035C035 /* MainViewController.swift */,
 				0463D0DC25066E3000827E0F /* AppDelegate.swift */,
 				0463D0E525066E3000827E0F /* Assets.xcassets */,
@@ -77,6 +90,20 @@
 				04AB73A6251CC7F100DEFB84 /* StoredKey.swift */,
 			);
 			path = CaptiveCrypto;
+			sourceTree = "<group>";
+		};
+		048420D0255D391400DAB9B6 /* UserInterface */ = {
+			isa = PBXGroup;
+			children = (
+				048420D1255D391400DAB9B6 /* SubtleCrypto.html */,
+				048420D2255D391400DAB9B6 /* captivecrypto.js */,
+				048420D3255D391400DAB9B6 /* Main.html */,
+				048420D4255D391400DAB9B6 /* keystore.js */,
+				048420D5255D391400DAB9B6 /* KeyStore.html */,
+				048420D6255D391400DAB9B6 /* keystore.css */,
+			);
+			name = UserInterface;
+			path = ../../../WebResources/CaptiveCrypto/UserInterface;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -96,7 +123,7 @@
 			);
 			name = CaptiveCrypto;
 			packageProductDependencies = (
-				CF6E9EB12537619700CF3ACF /* CaptiveWebView */,
+				048420E3255D395200DAB9B6 /* CaptiveWebView */,
 			);
 			productName = CaptiveCrypto;
 			productReference = 0463D0D925066E3000827E0F /* CaptiveCrypto.app */;
@@ -143,9 +170,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				048420D8255D391400DAB9B6 /* captivecrypto.js in Resources */,
+				048420DC255D391400DAB9B6 /* keystore.css in Resources */,
 				0463D0E925066E3000827E0F /* LaunchScreen.storyboard in Resources */,
+				048420DA255D391400DAB9B6 /* keystore.js in Resources */,
 				0463D0E625066E3000827E0F /* Assets.xcassets in Resources */,
-				04DB3A94250671700035C035 /* UserInterface in Resources */,
+				048420D9255D391400DAB9B6 /* Main.html in Resources */,
+				048420DB255D391400DAB9B6 /* KeyStore.html in Resources */,
+				048420D7255D391400DAB9B6 /* SubtleCrypto.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -363,9 +395,8 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CF6E9EB12537619700CF3ACF /* CaptiveWebView */ = {
+		048420E3255D395200DAB9B6 /* CaptiveWebView */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CF6E9EB02537619700CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */;
 			productName = CaptiveWebView;
 		};
 /* End XCSwiftPackageProductDependency section */

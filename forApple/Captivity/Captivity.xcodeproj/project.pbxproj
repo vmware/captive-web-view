@@ -1,4 +1,7 @@
 // !$*UTF8*$!
+/* Copyright 2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
 {
 	archiveVersion = 1;
 	classes = {
@@ -7,14 +10,27 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		041FCB58255C3DCE00BD92D0 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 041FCB57255C3DCE00BD92D0 /* CaptiveWebView */; };
 		044BDBB923A12383009F2C76 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044BDBB823A12383009F2C76 /* AppDelegate.swift */; };
 		044BDBBB23A12383009F2C76 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044BDBBA23A12383009F2C76 /* MainViewController.swift */; };
 		044BDBC023A12385009F2C76 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 044BDBBF23A12385009F2C76 /* Assets.xcassets */; };
 		044BDBC323A12385009F2C76 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 044BDBC123A12385009F2C76 /* LaunchScreen.storyboard */; };
 		045CC08023A5047600912780 /* SecondaryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045CC07F23A5047600912780 /* SecondaryViewController.swift */; };
-		04899D4C23FED6210088FAA3 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04899D4B23FED6210088FAA3 /* UserInterface */; };
 		049E16E7246DA23600C71C68 /* SpinnerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049E16E6246DA23600C71C68 /* SpinnerViewController.swift */; };
-		CF3CC67625374A36000EAB74 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = CF3CC67525374A36000EAB74 /* CaptiveWebView */; };
+		04AE7D72255C57170064BD2F /* secondary.js in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D63255C57170064BD2F /* secondary.js */; };
+		04AE7D73255C57170064BD2F /* three.js in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D65255C57170064BD2F /* three.js */; };
+		04AE7D74255C57170064BD2F /* captivity.js in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D66255C57170064BD2F /* captivity.js */; };
+		04AE7D75255C57170064BD2F /* grid.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D67255C57170064BD2F /* grid.html */; };
+		04AE7D76255C57170064BD2F /* Secondary.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D68255C57170064BD2F /* Secondary.html */; };
+		04AE7D77255C57170064BD2F /* embeddedSVG.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D69255C57170064BD2F /* embeddedSVG.html */; };
+		04AE7D78255C57170064BD2F /* speech.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D6A255C57170064BD2F /* speech.html */; };
+		04AE7D79255C57170064BD2F /* spinner.js in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D6B255C57170064BD2F /* spinner.js */; };
+		04AE7D7A255C57170064BD2F /* speech.js in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D6C255C57170064BD2F /* speech.js */; };
+		04AE7D7B255C57170064BD2F /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D6D255C57170064BD2F /* Main.html */; };
+		04AE7D7C255C57170064BD2F /* Spinner.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D6E255C57170064BD2F /* Spinner.html */; };
+		04AE7D7D255C57170064BD2F /* speechcontrols.js in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D6F255C57170064BD2F /* speechcontrols.js */; };
+		04AE7D7E255C57170064BD2F /* three.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D70255C57170064BD2F /* three.html */; };
+		04AE7D7F255C57170064BD2F /* camera.html in Resources */ = {isa = PBXBuildFile; fileRef = 04AE7D71255C57170064BD2F /* camera.html */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,8 +42,21 @@
 		044BDBC223A12385009F2C76 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		044BDBC423A12385009F2C76 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		045CC07F23A5047600912780 /* SecondaryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryViewController.swift; sourceTree = "<group>"; };
-		04899D4B23FED6210088FAA3 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Captivity/UserInterface; sourceTree = "<group>"; };
 		049E16E6246DA23600C71C68 /* SpinnerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerViewController.swift; sourceTree = "<group>"; };
+		04AE7D63255C57170064BD2F /* secondary.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = secondary.js; sourceTree = "<group>"; };
+		04AE7D65255C57170064BD2F /* three.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = three.js; sourceTree = "<group>"; };
+		04AE7D66255C57170064BD2F /* captivity.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = captivity.js; sourceTree = "<group>"; };
+		04AE7D67255C57170064BD2F /* grid.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = grid.html; sourceTree = "<group>"; };
+		04AE7D68255C57170064BD2F /* Secondary.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Secondary.html; sourceTree = "<group>"; };
+		04AE7D69255C57170064BD2F /* embeddedSVG.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = embeddedSVG.html; sourceTree = "<group>"; };
+		04AE7D6A255C57170064BD2F /* speech.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = speech.html; sourceTree = "<group>"; };
+		04AE7D6B255C57170064BD2F /* spinner.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = spinner.js; sourceTree = "<group>"; };
+		04AE7D6C255C57170064BD2F /* speech.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = speech.js; sourceTree = "<group>"; };
+		04AE7D6D255C57170064BD2F /* Main.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Main.html; sourceTree = "<group>"; };
+		04AE7D6E255C57170064BD2F /* Spinner.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Spinner.html; sourceTree = "<group>"; };
+		04AE7D6F255C57170064BD2F /* speechcontrols.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = speechcontrols.js; sourceTree = "<group>"; };
+		04AE7D70255C57170064BD2F /* three.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = three.html; sourceTree = "<group>"; };
+		04AE7D71255C57170064BD2F /* camera.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = camera.html; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,7 +64,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CF3CC67625374A36000EAB74 /* CaptiveWebView in Frameworks */,
+				041FCB58255C3DCE00BD92D0 /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -69,8 +98,8 @@
 		044BDBB723A12383009F2C76 /* Captivity */ = {
 			isa = PBXGroup;
 			children = (
+				04AE7D62255C57170064BD2F /* UserInterface */,
 				043F54B42420F5C5000B6D40 /* Captivity.entitlements */,
-				04899D4B23FED6210088FAA3 /* UserInterface */,
 				044BDBB823A12383009F2C76 /* AppDelegate.swift */,
 				044BDBBA23A12383009F2C76 /* MainViewController.swift */,
 				044BDBBF23A12385009F2C76 /* Assets.xcassets */,
@@ -80,6 +109,36 @@
 				049E16E6246DA23600C71C68 /* SpinnerViewController.swift */,
 			);
 			path = Captivity;
+			sourceTree = SOURCE_ROOT;
+		};
+		04AE7D62255C57170064BD2F /* UserInterface */ = {
+			isa = PBXGroup;
+			children = (
+				04AE7D63255C57170064BD2F /* secondary.js */,
+				04AE7D64255C57170064BD2F /* js */,
+				04AE7D66255C57170064BD2F /* captivity.js */,
+				04AE7D67255C57170064BD2F /* grid.html */,
+				04AE7D68255C57170064BD2F /* Secondary.html */,
+				04AE7D69255C57170064BD2F /* embeddedSVG.html */,
+				04AE7D6A255C57170064BD2F /* speech.html */,
+				04AE7D6B255C57170064BD2F /* spinner.js */,
+				04AE7D6C255C57170064BD2F /* speech.js */,
+				04AE7D6D255C57170064BD2F /* Main.html */,
+				04AE7D6E255C57170064BD2F /* Spinner.html */,
+				04AE7D6F255C57170064BD2F /* speechcontrols.js */,
+				04AE7D70255C57170064BD2F /* three.html */,
+				04AE7D71255C57170064BD2F /* camera.html */,
+			);
+			name = UserInterface;
+			path = ../../../WebResources/Captivity/UserInterface;
+			sourceTree = "<group>";
+		};
+		04AE7D64255C57170064BD2F /* js */ = {
+			isa = PBXGroup;
+			children = (
+				04AE7D65255C57170064BD2F /* three.js */,
+			);
+			path = js;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -99,7 +158,7 @@
 			);
 			name = Captivity;
 			packageProductDependencies = (
-				CF3CC67525374A36000EAB74 /* CaptiveWebView */,
+				041FCB57255C3DCE00BD92D0 /* CaptiveWebView */,
 			);
 			productName = Captivity;
 			productReference = 044BDBB523A12383009F2C76 /* Captivity.app */;
@@ -129,9 +188,6 @@
 				Base,
 			);
 			mainGroup = 044BDBAC23A12383009F2C76;
-			packageReferences = (
-				CF3CC67425374A36000EAB74 /* XCRemoteSwiftPackageReference "captive-web-view" */,
-			);
 			productRefGroup = 044BDBB623A12383009F2C76 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -146,9 +202,22 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				04AE7D75255C57170064BD2F /* grid.html in Resources */,
+				04AE7D7B255C57170064BD2F /* Main.html in Resources */,
+				04AE7D78255C57170064BD2F /* speech.html in Resources */,
 				044BDBC323A12385009F2C76 /* LaunchScreen.storyboard in Resources */,
 				044BDBC023A12385009F2C76 /* Assets.xcassets in Resources */,
-				04899D4C23FED6210088FAA3 /* UserInterface in Resources */,
+				04AE7D7C255C57170064BD2F /* Spinner.html in Resources */,
+				04AE7D79255C57170064BD2F /* spinner.js in Resources */,
+				04AE7D7F255C57170064BD2F /* camera.html in Resources */,
+				04AE7D72255C57170064BD2F /* secondary.js in Resources */,
+				04AE7D7D255C57170064BD2F /* speechcontrols.js in Resources */,
+				04AE7D76255C57170064BD2F /* Secondary.html in Resources */,
+				04AE7D77255C57170064BD2F /* embeddedSVG.html in Resources */,
+				04AE7D7A255C57170064BD2F /* speech.js in Resources */,
+				04AE7D74255C57170064BD2F /* captivity.js in Resources */,
+				04AE7D73255C57170064BD2F /* three.js in Resources */,
+				04AE7D7E255C57170064BD2F /* three.html in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -365,21 +434,9 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		CF3CC67425374A36000EAB74 /* XCRemoteSwiftPackageReference "captive-web-view" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/vmware/captive-web-view.git";
-			requirement = {
-				branch = issue4;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
 /* Begin XCSwiftPackageProductDependency section */
-		CF3CC67525374A36000EAB74 /* CaptiveWebView */ = {
+		041FCB57255C3DCE00BD92D0 /* CaptiveWebView */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CF3CC67425374A36000EAB74 /* XCRemoteSwiftPackageReference "captive-web-view" */;
 			productName = CaptiveWebView;
 		};
 /* End XCSwiftPackageProductDependency section */

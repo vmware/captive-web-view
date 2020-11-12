@@ -1,4 +1,7 @@
 // !$*UTF8*$!
+/* Copyright 2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
 {
 	archiveVersion = 1;
 	classes = {
@@ -12,8 +15,10 @@
 		0440AC78235B410300C44216 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0440AC76235B410300C44216 /* Main.storyboard */; };
 		0440AC7A235B410400C44216 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0440AC79235B410400C44216 /* Assets.xcassets */; };
 		0440AC7D235B410400C44216 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0440AC7B235B410400C44216 /* LaunchScreen.storyboard */; };
-		049B221524ED3F2400F53576 /* WebResources in Resources */ = {isa = PBXBuildFile; fileRef = 049B221424ED3F2400F53576 /* WebResources */; };
-		CF4E877B254B30F600891587 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = CF4E877A254B30F600891587 /* CaptiveWebView */; };
+		048420E0255D393A00DAB9B6 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 048420DF255D393A00DAB9B6 /* CaptiveWebView */; };
+		049C446A255C5E3000427D81 /* Headless.html in Resources */ = {isa = PBXBuildFile; fileRef = 049C4467255C5E3000427D81 /* Headless.html */; };
+		049C446B255C5E3000427D81 /* headless.js in Resources */ = {isa = PBXBuildFile; fileRef = 049C4468255C5E3000427D81 /* headless.js */; };
+		049C446C255C5E3000427D81 /* secrets.js in Resources */ = {isa = PBXBuildFile; fileRef = 049C4469255C5E3000427D81 /* secrets.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,7 +29,9 @@
 		0440AC79235B410400C44216 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0440AC7C235B410400C44216 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0440AC7E235B410400C44216 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		049B221424ED3F2400F53576 /* WebResources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = WebResources; path = ../../../WebResources/Headless/WebResources; sourceTree = "<group>"; };
+		049C4467255C5E3000427D81 /* Headless.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = Headless.html; sourceTree = "<group>"; };
+		049C4468255C5E3000427D81 /* headless.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = headless.js; sourceTree = "<group>"; };
+		049C4469255C5E3000427D81 /* secrets.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = secrets.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CF4E877B254B30F600891587 /* CaptiveWebView in Frameworks */,
+				048420E0255D393A00DAB9B6 /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,7 +66,7 @@
 		0440AC71235B410300C44216 /* Headless */ = {
 			isa = PBXGroup;
 			children = (
-				049B221424ED3F2400F53576 /* WebResources */,
+				049C4466255C5E3000427D81 /* WebResources */,
 				0440AC72235B410300C44216 /* AppDelegate.swift */,
 				0440AC74235B410300C44216 /* ViewController.swift */,
 				0440AC76235B410300C44216 /* Main.storyboard */,
@@ -75,6 +82,17 @@
 			children = (
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		049C4466255C5E3000427D81 /* WebResources */ = {
+			isa = PBXGroup;
+			children = (
+				049C4467255C5E3000427D81 /* Headless.html */,
+				049C4468255C5E3000427D81 /* headless.js */,
+				049C4469255C5E3000427D81 /* secrets.js */,
+			);
+			name = WebResources;
+			path = ../../../WebResources/Headless/WebResources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -94,7 +112,7 @@
 			);
 			name = Headless;
 			packageProductDependencies = (
-				CF4E877A254B30F600891587 /* CaptiveWebView */,
+				048420DF255D393A00DAB9B6 /* CaptiveWebView */,
 			);
 			productName = Headless;
 			productReference = 0440AC6F235B410300C44216 /* Headless.app */;
@@ -142,8 +160,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				0440AC7D235B410400C44216 /* LaunchScreen.storyboard in Resources */,
-				049B221524ED3F2400F53576 /* WebResources in Resources */,
+				049C446B255C5E3000427D81 /* headless.js in Resources */,
+				049C446A255C5E3000427D81 /* Headless.html in Resources */,
 				0440AC7A235B410400C44216 /* Assets.xcassets in Resources */,
+				049C446C255C5E3000427D81 /* secrets.js in Resources */,
 				0440AC78235B410300C44216 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -373,9 +393,8 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CF4E877A254B30F600891587 /* CaptiveWebView */ = {
+		048420DF255D393A00DAB9B6 /* CaptiveWebView */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = CF4E8779254B30F600891587 /* XCRemoteSwiftPackageReference "captive-web-view" */;
 			productName = CaptiveWebView;
 		};
 /* End XCSwiftPackageProductDependency section */
