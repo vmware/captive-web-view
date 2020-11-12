@@ -121,6 +121,21 @@ Typical structure is as follows.
 
     TOTH: https://stackoverflow.com/a/48863451/7657675
 
+-   There seems to be a bug in versions 12.1 and 11 of Xcode. It crashes when
+    you add files to an app project, if all the following conditions are met:
+
+    -   The files are added by folder reference, not as a group.
+    -   The files aren't under the project directory hierarchy.
+    -   The project is open in a workspace.
+    -   There is a dependency on a local Swift package.
+
+    See for example:  
+    [https://developer.apple.com/forums/thread/661706](https://developer.apple.com/forums/thread/661706)
+
+    The bug appears to be fixed in Xcode 12.2 beta 3, at time of writing. There
+    is a workaround to add the files as a group instead of as a folder
+    reference.
+
 # Headless Web View
 See the separate [headless.md](headless.md) file for details.
 
