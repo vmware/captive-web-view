@@ -17,7 +17,6 @@
 
 /* Begin PBXFileReference section */
 		0438B8112348E00A00F5B415 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
-		045DC7F523A000C600A553B0 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../forAndroid/Skeleton/src/main/assets/UserInterface; sourceTree = "<group>"; };
 		046B7C272347C7980034D246 /* Skeleton.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Skeleton.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		046B7C2A2347C7980034D246 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		046B7C312347C7990034D246 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -61,7 +60,6 @@
 			children = (
 				049F4E5D2461731500F213DD /* UserInterface */,
 				679377CC23E821200002AE2D /* Skeleton.entitlements */,
-				045DC7F523A000C600A553B0 /* UserInterface */,
 				0438B8112348E00A00F5B415 /* MainViewController.swift */,
 				046B7C2A2347C7980034D246 /* AppDelegate.swift */,
 				046B7C312347C7990034D246 /* Assets.xcassets */,
