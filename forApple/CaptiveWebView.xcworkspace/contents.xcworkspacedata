@@ -15,6 +15,6 @@
       location = "group:CaptiveCrypto/CaptiveCrypto.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../">
+      location = "group:captive-web-view">
    </FileRef>
 </Workspace>
