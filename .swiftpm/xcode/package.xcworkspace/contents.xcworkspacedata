@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-    Copyright 2020 VMware, Inc.
-    SPDX-License-Identifier: BSD-2-Clause
--->
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:forApple/captive-web-view">
+      location = "self:">
    </FileRef>
 </Workspace>
