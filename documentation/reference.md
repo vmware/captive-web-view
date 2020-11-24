@@ -132,9 +132,25 @@ Typical structure is as follows.
     See for example:  
     [https://developer.apple.com/forums/thread/661706](https://developer.apple.com/forums/thread/661706)
 
-    The bug appears to be fixed in Xcode 12.2 beta 3, at time of writing. There
-    is a workaround to add the files as a group instead of as a folder
-    reference.
+    There was a workaround to add the files as a group instead of as a folder
+    reference. However, the bug is fixed in 12.2 Xcode.
+
+-   The Package.swift file must be in the root of the repository.
+
+    It's possible to edit this file:
+    
+        swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+        
+    A sub-directory can be specified, like forApple/captive-web-view , but it
+    only works in this repository.
+
+    If the package file isn't at the root, then a project that attempts to
+    include the package as a remote will fail with this error:
+
+        https://github.com/vmware/captive-web-view has no Package.swift manifest
+
+    This means that all the other package pieces, like the Source/ and Tests/
+    directories, also have be in the root of the repository.
 
 # Headless Web View
 See the separate [headless.md](headless.md) file for details.
