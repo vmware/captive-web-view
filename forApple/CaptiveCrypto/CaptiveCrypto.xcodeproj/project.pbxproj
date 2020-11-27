@@ -129,9 +129,6 @@
 				Base,
 			);
 			mainGroup = 0463D0D025066E3000827E0F;
-			packageReferences = (
-				CF6E9EB02537619700CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */,
-			);
 			productRefGroup = 0463D0DA25066E3000827E0F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -353,17 +350,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		CF6E9EB02537619700CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/vmware/captive-web-view.git";
-			requirement = {
-				branch = issue4;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		048420E3255D395200DAB9B6 /* CaptiveWebView */ = {
