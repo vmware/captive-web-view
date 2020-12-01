@@ -1,94 +1,79 @@
+# Captive Web View for Apple
+Captive Web View is compatible with iOS, iPadOS, Catalyst, and native macOS. For
+an introduction to Captive Web View, see the [parent directory](..) readme file.
 
-**Notes only for now, sorry**
-
-Compatibility
-=============
-This code is compatible with the following software versions.
+# Usage
+First check that you have a compatible development environment, see the
+following table.
 
 Software | Instructions last tested | Built
 ---------|--------------------------|-------
-Xcode    | 10.2.1                   | 11.4.1
+Xcode    | 12.2                     | 12.2
 
-How to get the framework
-==========================
-1.  Download the code in the repository that contains this file.
+The instructions below describe how to use Captive Web View in your app. For
+more detailed information on how it works, see the
+[reference documentation](../documentation/reference.md) file.
 
-    This project has some **case-sensitive file names**. This means that it may
-    be a good idea to switch off case sensitivity in the Git configuration. See:
-    [https://stackoverflow.com/a/37844763/7657675](https://stackoverflow.com/a/37844763/7657675)
+# Sample Applications
+The following sample applications can be used as a starting point for your own
+application based on Captive Web View.
 
-2.  In Xcode, select to open the following path.
+-   [Skeleton](Skeleton) is an empty application for iOS, iPadOS, or Catalyst.
+-   [MacSkeleton](MacSkeleton) is an empty application for native macOS.
 
-    /wherever/you/cloned/captive-web-view/forApple/CaptiveWebView.xcworkspace
+Those applications include the Captive Web View as a remote package dependency.
 
-    This is an Xcode workspace with the following projects:
+The other sample applications in this repository include Captive Web View as a
+local package dependency. They demonstrate its use but aren't so suitable as a
+starting point.
 
-    -   Captivity, an excessive demonstration application.
-    -   Headless, a demonstration in which the Web View isn't shown but is used
-        to run JavaScript Fetch commands.
-    -   Skeleton, a minimal application.
-    -   MacSkeleton, a minimal macOS application.
-    -   CaptiveWebView, the framework.
+You can copy either Skeleton app, or start with a new app, or change an existing
+app.
 
-3.  Build the CaptiveWebView framework, and then the Captivity application.
+# Add the framework
+The Captive Web View framework is available as a Swift Package. Use the Swift
+Package Manager built into Xcode to add the framework to an Xcode project as a
+package dependency.
 
-You might need to remove the framework from the application and add it back to
-make it build. You can do this either by dragging and dropping, or by clicking
-the plus and minus buttons in the target build phases.
+See the Skeleton application Xcode projects as examples, or proceed as follows.
 
-In the Xcode workspace view, there should now be a CaptiveWebView.framework item
-in the CaptiveWebView Products folder.
+1.  In Xcode, navigate to File, Swift Packages, Add Package Dependency...
 
-How to make a new application that uses the framework
-=====================================================
-These instructions assume you have already have the framework, see under How to
-get the framework, above.
+2.  If prompted, when working with an Xcode workspace, select the Xcode project
+    requiring the framework.
 
-1.  Open Xcode and create a new application project.
+3.  Enter the package repository URL:
+    `https://github.com/vmware/captive-web-view.git`
 
-    -   Select Single View App as the template.
-    -   Select Language: Swift.
+4.  Enter `main` as the branch.
 
-    Build the project before going further just to check it works.
+This completes adding the Captive Web View framework.
 
-2.  Add the framework project.
+# Integrate into a View Controller
+After adding the Captive Web View framework, see above, you can integrate it
+into an iOS view controller. The view controller will then have a web view as
+its user interface. The web view will be instead of a native user interface
+built with a storyboard and UIKit for example.
 
-    There are a couple of ways to do this that have worked in the past and might
-    work for you:
+If the view controller that you integrate is the only view controller in the
+application, then the whole application user interface will be in a web view.
+This isn't the only integration option. You can instead apply Captive Web View
+to a WKWebView instance that is one element in a native user interface, or to a
+WKWebView instance that is hidden. See the [Headless](Headless) application for
+sample code, and see the [headless documentation](../documentation/headless.md)
+file for notes.
 
-    -   Add the CaptiveWebView project as a sub-project to your new application
-        project.
-    -   Create a new Xcode workspace in which your new application project and
-        the CaptiveWebView project are peers.
-    
-    You can add projects as sub-projects, or to a workspace, by dragging and
-    dropping. This web page has more instructions that might help:
+To integrate into a view controller, follow these instructions.
 
-    [https://developer.apple.com/library/archive/technotes/tn2435/_index.html](https://developer.apple.com/library/archive/technotes/tn2435/_index.html)
-
-3.  Add the framework library to the application.
-
-    1.  Open your application's target Build Phases.
-    2.  Expand the Link Binary With Libraries section.
-    3.  Either drag and drop the CaptiveWebView.framework item from the
-        CaptiveWebView Products into the section, or click the plus button and
-        add it from the Workspace in the dialog.
-    4.  Expand the Embed Frameworks section and add the same item to this list
-        also.
-    
-    Build the application to check that this still works. If it doesn't, you
-    might be able to fix it by removing and re-adding the framework, either in
-    the target Build Phases, as above, or in the target General tab.
-
-4.  Change the application ViewController to be based on a Captive Web View.
+1.  Change the ViewController class to be based on a Captive Web View class.
 
     Open the ViewController.swift file in Xcode and make the following changes.
 
-    1.  Import the module, for example by adding a line like:
+    1. Import the module, for example by adding a line like:
 
             import CaptiveWebView
 
-    2.  Change the ViewController to a subclass of the default view controller
+    2. Change the ViewController to a subclass of the default view controller
         class in the module, for example by changing the declaration to:
 
             class ViewController: CaptiveWebView.DefaultViewController {
@@ -100,7 +85,7 @@ get the framework, above.
 
     You can delete the viewDidLoad method from your ViewController class.
 
-5.  Set the name of the HTML file to load in your view controller.
+2.  Set the name of the HTML file to load in your view controller.
 
     Choose a name, like `Main.html` and then do **either** of the following, but
     not both.
@@ -130,7 +115,7 @@ get the framework, above.
     can either rename your ViewController class or override the default
     behaviour.
 
-6.  Create the HTML file.
+3.  Create the HTML file.
 
     If you have already created a corresponding Android application that will
     have the same user interface, then skip this step.
@@ -146,8 +131,8 @@ get the framework, above.
     capital.
 
     Copy and paste the following HTML code into the file, or copy the
-    UserInterface/Main.html file from the Skeleton application in the
-    Demonstration workspace in the repository.
+    [UserInterface/Main.html](../WebResources/Skeleton/UserInterface/Main.html)
+    file from the Skeleton application.
 
         <!DOCTYPE html>
         <html>
@@ -171,20 +156,20 @@ get the framework, above.
     this example. The HTML is written in a whitespace elimination style, i.e.
     with no space in between an end tag and the start of the next tag.
 
-7.  Add the web resources to the application.
+4.  Add the web resources to the application.
 
     If you created a UserInterface/ sub-directory in the previous step, or if
     you skipped the previous step because you already have one in an Android
     project, then add the sub-directory now. You can do this in Xcode, as
     follows.
 
-    1.  Right-click the application folder, which may be the first level under
+    1. Right-click the application folder, which may be the first level under
         the application project. Then select the option to Add Files to "..."
         ... in the context menu that drops down.
-    2.  In the dialog that appears, highlight the user interface directory and
+    2. In the dialog that appears, highlight the user interface directory and
         select the option to Create folder references. Don't select to copy
         items.
-    3.  Click Add.
+    3. Click Add.
 
     The sub-directory should now appear under the application's folder. It
     should have a blue folder icon. If it doesn't, remove it and try again.
@@ -193,17 +178,20 @@ get the framework, above.
     including the Main.html file if you called it that.
 
     Note for sharing files with an Android project:  
-    Android applications are build with Gradle, which seems to work best when
-    all files are under one umbrella directory. For this reason, you might find
-    it easier to have the real files in the Android project directory, and a
+    Android applications are built with Gradle, in which it is easiest to have
+    all files are under one umbrella directory. For this reason, you could put
+    the web resource files in the Android project directory, and a have a
     reference to that directory from the Xcode project.  
-    This is how the Captive Web View repository is structured. For example, real
-    web resource files are in the
-    captive-web-view/forAndroid/Captivity/src/main/assets/UserInterface/
-    directory; a reference to that directory appears in the Xcode project at
-    Captivity/UserInterface.
+    An alternative is to use a sourceSets block in the Gradle build files for
+    the Android application. You can add an assets directory in the sourceSets
+    block, and specify a path outside the Android app project directory. This
+    approach is used by the Captive Web View sample applications. For example,
+    real web resource files for the Skeleton app are in the directory:  
+    `captive-web-view/WebResources/Skeleton/UserInterface/`  
+    A reference to that directory appears in the Xcode project at
+    Skeleton/UserInterface, and in the Skeleton for Android build.gradle file.
 
-8.  Create the JavaScript file.
+5.  Create the JavaScript file.
 
     If you have already created a corresponding Android application that will
     have the same user interface, then skip this step.
@@ -213,8 +201,8 @@ get the framework, above.
     the name.
 
     Copy and paste the following JavaScript code into the file, or copy the
-    UserInterface/main.js file from the Skeleton application in the
-    Demonstration workspace in the repository.
+    [UserInterface/main.js](../WebResources/Skeleton/UserInterface/main.js)
+    file from the Skeleton application.
 
         class Main {
             constructor(bridge) {
@@ -248,7 +236,7 @@ get the framework, above.
             return null;
         }
 
-9.  Run the application.
+6.  Run the application.
 
     At this point you should be able to build and run the application.
 
@@ -286,7 +274,7 @@ get the framework, above.
         TOTH:  
         [https://developer.apple.com/forums/thread/96217?answerId=303426022#303426022](https://developer.apple.com/forums/thread/96217?answerId=303426022#303426022)
 
-10. Add the Swift end of the command handler.
+7.  Add the Swift end of the command handler.
 
     When you ran your application in the previous step, there was a failure
     message. This is because the JavaScript end sent a command, "ready", that
@@ -314,10 +302,11 @@ get the framework, above.
             }
         }
 
-    The above code is also in the MainViewController.swift file in the Skeleton
-    application in the Demonstration workspace in the repository.
+    The above code is also in the
+    [MainViewController.swift](Skeleton/Skeleton/MainViewController.swift) file
+    in the Skeleton application.
 
-11. Run the application again.
+8. Run the application again.
 
     The user interface will look like this:
 
@@ -333,54 +322,128 @@ get the framework, above.
      response dictionary in the Swift layer that becomes an object in the
      JavaScript layer.
 
-This concludes the initial application build. The next step could be to:
+This concludes the initial integration. The next step could be to:
 
 -   Add more JavaScript code that builds an HTML5 user interface, inside the web
-    view.
+    view. Captive Web View comes with a JavaScript module, pagebuilder, that
+    facilitates building a user interface.
+
 -   Add a native-to-JavaScript bridge, see below.
+
 -   Remove the application storyboard, see below.
 
-How to add a native-to-JavaScript bridge
-========================================
-The initial application build, see the previous section, has a
-JavaScript-to-native bridge. The following instructions add a bridge in the
-opposite direction.
+# Bridge from native to JavaScript
+The view controller integration instructions, see the previous section, add a
+bridge from JavaScript to the native layer. The following instructions add a
+bridge in the opposite direction.
 
 You only need the opposite bridge if you have events or interactions that start
 in the native layer. You don't need this bridge just to respond to commands from
-the JS layer.
+the JavaScript layer.
 
-TBD properly but in note form:
+Proceed as follows.
 
-1.  In the Demonstration workspace, in the Captivity application, Open the
-    MainViewController.swift file.
-2.  Look for the self.sendObject call.
-3.  Copy it somewhere in your native code.
+1.  In the Swift code, add a call to the `sendObject()` method.
 
-    The IndexViewController sends an object every time it receives a command,
-    which is pointless but demonstrates the feature.
+    The method can be called
 
-4.  The boilerplate JavaScript in the previous section already includes a
-    handler for its end of the bridge. The handler:
+    -   as `self.sendObject()` in a CaptiveWebView.DefaultViewController subclass.
+    -   as `self.sendObject()` in a CaptiveWebView.ViewController subclass.
+    -   as `CaptiveWebView.sendObject(to:)` anywhere there is access to the
+        WKWebView instance.
 
-    -   Prints the object that was sent, as a dictionary, from the native code.
-    -   Adds a confirm attribute to the object and sends it back as a response.
+2.  Pass the required parameters to the sendObject call:
 
-    The IndexViewController doesn't do anything with the response object.
+    -   The `command` to run in the JavaScript layer, as a `Dictionary<String,
+        Any>` instance.
+    -   The `completionHandler` to receive the response from the JavaScript
+        layer, as a `((Any?, Error?) -> Void)` closure. The hander is optional.
 
-How to remove the application storyboard
-========================================
-TBD properly but in note form:
+    If called as sendObject(to:) then also pass the WKWebView instance, as the
+    first parameter.
+
+    See the following examples.
+
+    From the
+    [MainViewController.swift](Skeleton/Skeleton/MainViewController.swift) file
+    in the Skeleton application:
+
+        self.sendObject(["fireDate":"fireDateValueGoesHere"]) {
+            (result:Any?, error:Error?) in
+            os_log("sendObject result: %@, error: %@",
+                    String(describing: result), String(describing: error)
+        )
+    
+    In the above example, the command is fireDate and the completion handler
+    logs the response, using the native os_log function.
+
+    From the [ViewController.swift](Headless/Headless/ViewController.swift) file
+    in the Headless application:
+
+        CaptiveWebView.sendObject(
+            to: self.wkWebView!, [
+                "api":"star-wars",
+                "path":["planets", String(describing: numericParameter)]
+            ], self.sendObjectCallback)
+
+    In the above example, the command has two parameters, api and path, and the
+    completion handler is the sendObjectCallback method (not shown).
+
+3.  In the JavaScript code, in the `bridge.receiveObjectCallback` handle the
+    command sent from new Swift code added in the preceding instructions.
+
+    For example, the
+    [UserInterface/main.js](../WebResources/Skeleton/UserInterface/main.js) file
+    in the Skeleton application handles all commands with the following code.
+
+        bridge.receiveObjectCallback = command => {
+            this._transcribe(command);
+            return Object.assign(command, {"confirm": "Main"});
+        };
+
+    This logs the command to the web view user interface, in the `_transcribe`
+    method (not shown), and then returns a copy of the command with an added
+    `confirm` property.
+
+    For a more complex example, see the
+    [headless.js](../WebResources/Headless/WebResources/headless.js) file from
+    the Headless application. Look for the `_command` method, which uses the
+    standard Fetch API to run various commands on a couple of web services.
+
+This concludes adding a native-to-JavaScript bridge.
+
+# Remove the application storyboard
+The CaptiveWebView.ViewController class instantiates a WKWebView
+programmatically, and constrains it to fill the application's user interface
+window. This means that it doesn't need a storyboard.
+
+A storyboard might have been created by default in a new application. It can be removed by proceeding as follows.
 
 1.  Change your AppDelegate to be a subclass of the
-    CaptiveWebView.ApplicationDelegate class, and then call self.launch like in
-    the AppDelegate.swift code in the Captivity application in the workspace in
-    the repository. Code is like this:
+    CaptiveWebView.ApplicationDelegate class.
+
+    Code could be like this:
+
+        @UIApplicationMain
+        class AppDelegate: CaptiveWebView.ApplicationDelegate {
+            // ...
+        }
+
+2.  In the didFinishLaunchingWithOptions, call the `self.launch` method and pass
+    your main ViewController class as a parameter.
+
+    Code could be like this:
 
         self.launch(MainViewController.self)
 
-2.  Remove the scene session life cycle methods from your AppDelegate. Xcode
-    might have added them by default, as follows.
+    For an example, see the
+    [AppDelegate.swift](Skeleton/Skeleton/AppDelegate.swift) file in the
+    Skeleton application.
+
+3.  Remove the scene session life cycle methods from your AppDelegate class, if
+    necessary.
+
+    Xcode might have added them by default, as follows.
 
         // MARK: UISceneSession Lifecycle
 
@@ -395,7 +458,10 @@ TBD properly but in note form:
     Delete the MARK and the methods.
 
 3.  Remove the UIMainStoryboard setting from the Info.plist file.
+
 4.  Remove the Main.storyboard file from the project.
+
+This concludes removing the application storyboard.
 
 Legal
 =====

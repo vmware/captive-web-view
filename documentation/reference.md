@@ -121,6 +121,37 @@ Typical structure is as follows.
 
     TOTH: https://stackoverflow.com/a/48863451/7657675
 
+-   There seems to be a bug in versions 12.1 and 11 of Xcode. It crashes when
+    you add files to an app project, if all the following conditions are met:
+
+    -   The files are added by folder reference, not as a group.
+    -   The files aren't under the project directory hierarchy.
+    -   The project is open in a workspace.
+    -   There is a dependency on a local Swift package.
+
+    See for example:  
+    [https://developer.apple.com/forums/thread/661706](https://developer.apple.com/forums/thread/661706)
+
+    There was a workaround to add the files as a group instead of as a folder
+    reference. However, the bug is fixed in 12.2 Xcode.
+
+-   The Package.swift file must be in the root of the repository.
+
+    It's possible to edit this file:
+    
+        swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+        
+    A sub-directory can be specified, like forApple/captive-web-view , but it
+    only works in this repository.
+
+    If the package file isn't at the root, then a project that attempts to
+    include the package as a remote will fail with this error:
+
+        https://github.com/vmware/captive-web-view has no Package.swift manifest
+
+    This means that all the other package pieces, like the Source/ and Tests/
+    directories, also have be in the root of the repository.
+
 # Headless Web View
 See the separate [headless.md](headless.md) file for details.
 

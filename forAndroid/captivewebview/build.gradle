@@ -16,6 +16,12 @@ plugins {
 android {
     compileSdkVersion 28
 
+    sourceSets {
+        main.assets.srcDirs += new RelativePath(
+                false, "Sources", "CaptiveWebView", "Resources"
+        ).getFile(new File(rootDir.getParent()))
+    }
+
     defaultConfig {
         minSdkVersion 21
         targetSdkVersion 28

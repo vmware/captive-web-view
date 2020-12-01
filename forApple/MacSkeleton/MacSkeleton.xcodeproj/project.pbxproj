@@ -6,7 +6,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -15,7 +15,7 @@
 		044F09DC24616D75005A11DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 044F09DB24616D75005A11DD /* Assets.xcassets */; };
 		044F09DF24616D75005A11DD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 044F09DD24616D75005A11DD /* Main.storyboard */; };
 		049F4E63246178A200F213DD /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 049F4E62246178A200F213DD /* UserInterface */; };
-		04D26C57246BEF5200A89859 /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04D26C56246BEF5200A89859 /* CaptiveWebView.framework */; };
+		CF6E9EBC2537623D00CF3ACF /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = CF6E9EBB2537623D00CF3ACF /* CaptiveWebView */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,6 @@
 		044F09E024616D75005A11DD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		044F09E124616D75005A11DD /* MacSkeleton.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MacSkeleton.entitlements; sourceTree = "<group>"; };
 		049F4E62246178A200F213DD /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Skeleton/UserInterface; sourceTree = "<group>"; };
-		04D26C56246BEF5200A89859 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -35,7 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04D26C57246BEF5200A89859 /* CaptiveWebView.framework in Frameworks */,
+				CF6E9EBC2537623D00CF3ACF /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -76,7 +75,6 @@
 		049F4E5F2461754B00F213DD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				04D26C56246BEF5200A89859 /* CaptiveWebView.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -97,6 +95,9 @@
 			dependencies = (
 			);
 			name = MacSkeleton;
+			packageProductDependencies = (
+				CF6E9EBB2537623D00CF3ACF /* CaptiveWebView */,
+			);
 			productName = MacSkeleton;
 			productReference = 044F09D424616D75005A11DD /* MacSkeleton.app */;
 			productType = "com.apple.product-type.application";
@@ -108,7 +109,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1140;
-				LastUpgradeCheck = 1140;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Jim Hawkins";
 				TargetAttributes = {
 					044F09D324616D75005A11DD = {
@@ -125,6 +126,9 @@
 				Base,
 			);
 			mainGroup = 044F09CB24616D75005A11DD;
+			packageReferences = (
+				CF6E9EBA2537623D00CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */,
+			);
 			productRefGroup = 044F09D524616D75005A11DD /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -197,6 +201,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -257,6 +262,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -289,6 +295,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MacSkeleton/MacSkeleton.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
@@ -309,6 +316,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MacSkeleton/MacSkeleton.entitlements;
+				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
@@ -346,6 +354,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		CF6E9EBA2537623D00CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vmware/captive-web-view.git";
+			requirement = {
+				branch = issue4;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		CF6E9EBB2537623D00CF3ACF /* CaptiveWebView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CF6E9EBA2537623D00CF3ACF /* XCRemoteSwiftPackageReference "captive-web-view" */;
+			productName = CaptiveWebView;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 044F09CC24616D75005A11DD /* Project object */;
 }

@@ -1,38 +1,26 @@
 // !$*UTF8*$!
+/* Copyright 2020 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
 {
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		044053A125066FE200EF577A /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0440539F25066FA500EF577A /* CaptiveWebView.framework */; };
-		044053A225066FE200EF577A /* CaptiveWebView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 0440539F25066FA500EF577A /* CaptiveWebView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		0404B58F256AAD750040A373 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 0404B58E256AAD750040A373 /* UserInterface */; };
 		0463D0DD25066E3000827E0F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0463D0DC25066E3000827E0F /* AppDelegate.swift */; };
 		0463D0E625066E3000827E0F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0463D0E525066E3000827E0F /* Assets.xcassets */; };
 		0463D0E925066E3000827E0F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0463D0E725066E3000827E0F /* LaunchScreen.storyboard */; };
+		048420E4255D395200DAB9B6 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 048420E3255D395200DAB9B6 /* CaptiveWebView */; };
 		04AB73A7251CC7F100DEFB84 /* StoredKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AB73A6251CC7F100DEFB84 /* StoredKey.swift */; };
 		04DB3A92250671210035C035 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DB3A91250671210035C035 /* MainViewController.swift */; };
-		04DB3A94250671700035C035 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04DB3A93250671700035C035 /* UserInterface */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		044053A325066FE200EF577A /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				044053A225066FE200EF577A /* CaptiveWebView.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		0440539F25066FA500EF577A /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		0404B58E256AAD750040A373 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/CaptiveCrypto/UserInterface; sourceTree = "<group>"; };
 		0463D0D925066E3000827E0F /* CaptiveCrypto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CaptiveCrypto.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0463D0DC25066E3000827E0F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0463D0E525066E3000827E0F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -40,7 +28,6 @@
 		0463D0EA25066E3000827E0F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		04AB73A6251CC7F100DEFB84 /* StoredKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredKey.swift; sourceTree = "<group>"; };
 		04DB3A91250671210035C035 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
-		04DB3A93250671700035C035 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/CaptiveCrypto/UserInterface; sourceTree = "<group>"; };
 		04DB3A95250672DF0035C035 /* CaptiveCrypto.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = CaptiveCrypto.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -49,7 +36,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				044053A125066FE200EF577A /* CaptiveWebView.framework in Frameworks */,
+				048420E4255D395200DAB9B6 /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -59,7 +46,6 @@
 		0440539E25066FA500EF577A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				0440539F25066FA500EF577A /* CaptiveWebView.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -84,8 +70,8 @@
 		0463D0DB25066E3000827E0F /* CaptiveCrypto */ = {
 			isa = PBXGroup;
 			children = (
+				0404B58E256AAD750040A373 /* UserInterface */,
 				04DB3A95250672DF0035C035 /* CaptiveCrypto.entitlements */,
-				04DB3A93250671700035C035 /* UserInterface */,
 				04DB3A91250671210035C035 /* MainViewController.swift */,
 				0463D0DC25066E3000827E0F /* AppDelegate.swift */,
 				0463D0E525066E3000827E0F /* Assets.xcassets */,
@@ -106,13 +92,15 @@
 				0463D0D525066E3000827E0F /* Sources */,
 				0463D0D625066E3000827E0F /* Frameworks */,
 				0463D0D725066E3000827E0F /* Resources */,
-				044053A325066FE200EF577A /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = CaptiveCrypto;
+			packageProductDependencies = (
+				048420E3255D395200DAB9B6 /* CaptiveWebView */,
+			);
 			productName = CaptiveCrypto;
 			productReference = 0463D0D925066E3000827E0F /* CaptiveCrypto.app */;
 			productType = "com.apple.product-type.application";
@@ -124,7 +112,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1160;
-				LastUpgradeCheck = 1160;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Jim Hawkins";
 				TargetAttributes = {
 					0463D0D825066E3000827E0F = {
@@ -157,7 +145,7 @@
 			files = (
 				0463D0E925066E3000827E0F /* LaunchScreen.storyboard in Resources */,
 				0463D0E625066E3000827E0F /* Assets.xcassets in Resources */,
-				04DB3A94250671700035C035 /* UserInterface in Resources */,
+				0404B58F256AAD750040A373 /* UserInterface in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +202,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -274,6 +263,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -360,6 +350,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		048420E3255D395200DAB9B6 /* CaptiveWebView */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CaptiveWebView;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0463D0D125066E3000827E0F /* Project object */;
 }

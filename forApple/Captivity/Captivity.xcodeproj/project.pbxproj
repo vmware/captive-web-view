@@ -6,37 +6,21 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04031C3623A126AC00DA01E6 /* CaptiveWebView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */; };
-		04031C3823A126B600DA01E6 /* CaptiveWebView.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		041FCB58255C3DCE00BD92D0 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 041FCB57255C3DCE00BD92D0 /* CaptiveWebView */; };
 		044BDBB923A12383009F2C76 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044BDBB823A12383009F2C76 /* AppDelegate.swift */; };
 		044BDBBB23A12383009F2C76 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044BDBBA23A12383009F2C76 /* MainViewController.swift */; };
 		044BDBC023A12385009F2C76 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 044BDBBF23A12385009F2C76 /* Assets.xcassets */; };
 		044BDBC323A12385009F2C76 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 044BDBC123A12385009F2C76 /* LaunchScreen.storyboard */; };
 		045CC08023A5047600912780 /* SecondaryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045CC07F23A5047600912780 /* SecondaryViewController.swift */; };
-		04899D4C23FED6210088FAA3 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04899D4B23FED6210088FAA3 /* UserInterface */; };
 		049E16E7246DA23600C71C68 /* SpinnerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049E16E6246DA23600C71C68 /* SpinnerViewController.swift */; };
+		04C89C4D256AAB24000BA8C4 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 04C89C4C256AAB24000BA8C4 /* UserInterface */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXCopyFilesBuildPhase section */
-		04031C3923A126B600DA01E6 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				04031C3823A126B600DA01E6 /* CaptiveWebView.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
-
 /* Begin PBXFileReference section */
-		04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; path = CaptiveWebView.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		043F54B42420F5C5000B6D40 /* Captivity.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Captivity.entitlements; sourceTree = "<group>"; };
 		044BDBB523A12383009F2C76 /* Captivity.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Captivity.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		044BDBB823A12383009F2C76 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -45,8 +29,8 @@
 		044BDBC223A12385009F2C76 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		044BDBC423A12385009F2C76 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		045CC07F23A5047600912780 /* SecondaryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondaryViewController.swift; sourceTree = "<group>"; };
-		04899D4B23FED6210088FAA3 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/Captivity/UserInterface; sourceTree = "<group>"; };
 		049E16E6246DA23600C71C68 /* SpinnerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerViewController.swift; sourceTree = "<group>"; };
+		04C89C4C256AAB24000BA8C4 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../WebResources/Captivity/UserInterface; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,7 +38,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				04031C3623A126AC00DA01E6 /* CaptiveWebView.framework in Frameworks */,
+				041FCB58255C3DCE00BD92D0 /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,7 +48,6 @@
 		04031C3423A126AC00DA01E6 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				04031C3523A126AC00DA01E6 /* CaptiveWebView.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -89,8 +72,8 @@
 		044BDBB723A12383009F2C76 /* Captivity */ = {
 			isa = PBXGroup;
 			children = (
+				04C89C4C256AAB24000BA8C4 /* UserInterface */,
 				043F54B42420F5C5000B6D40 /* Captivity.entitlements */,
-				04899D4B23FED6210088FAA3 /* UserInterface */,
 				044BDBB823A12383009F2C76 /* AppDelegate.swift */,
 				044BDBBA23A12383009F2C76 /* MainViewController.swift */,
 				044BDBBF23A12385009F2C76 /* Assets.xcassets */,
@@ -100,7 +83,7 @@
 				049E16E6246DA23600C71C68 /* SpinnerViewController.swift */,
 			);
 			path = Captivity;
-			sourceTree = "<group>";
+			sourceTree = SOURCE_ROOT;
 		};
 /* End PBXGroup section */
 
@@ -112,13 +95,15 @@
 				044BDBB123A12383009F2C76 /* Sources */,
 				044BDBB223A12383009F2C76 /* Frameworks */,
 				044BDBB323A12383009F2C76 /* Resources */,
-				04031C3923A126B600DA01E6 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
 			);
 			name = Captivity;
+			packageProductDependencies = (
+				041FCB57255C3DCE00BD92D0 /* CaptiveWebView */,
+			);
 			productName = Captivity;
 			productReference = 044BDBB523A12383009F2C76 /* Captivity.app */;
 			productType = "com.apple.product-type.application";
@@ -130,7 +115,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 1020;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Jim Hawkins";
 				TargetAttributes = {
 					044BDBB423A12383009F2C76 = {
@@ -163,7 +148,7 @@
 			files = (
 				044BDBC323A12385009F2C76 /* LaunchScreen.storyboard in Resources */,
 				044BDBC023A12385009F2C76 /* Assets.xcassets in Resources */,
-				04899D4C23FED6210088FAA3 /* UserInterface in Resources */,
+				04C89C4D256AAB24000BA8C4 /* UserInterface in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -221,6 +206,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -282,6 +268,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -320,6 +307,7 @@
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				INFOPLIST_FILE = Captivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -341,6 +329,7 @@
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
 				DEVELOPMENT_TEAM = S2ZMFGQM93;
 				INFOPLIST_FILE = Captivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -375,6 +364,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		041FCB57255C3DCE00BD92D0 /* CaptiveWebView */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = CaptiveWebView;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 044BDBAD23A12383009F2C76 /* Project object */;
 }

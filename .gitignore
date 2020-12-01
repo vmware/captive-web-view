@@ -21,3 +21,9 @@ __pycache__/
 
 # Directory with the three.js framework shouldn't be added to our repository.
 WebResources/Captivity/UserInterface/js/
+
+# Swift Package Manager
+/.build
+/Packages
+/*.xcodeproj
+xcuserdata/
