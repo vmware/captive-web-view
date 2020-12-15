@@ -260,9 +260,7 @@ class Main:
             *(
                 Path(directory).resolve()
                 for directory in self.arguments.directories
-            ), project_path(
-                'forAndroid', 'captivewebview', 'src', 'main', 'assets',
-                'library')
+            ), project_path('Sources', 'CaptiveWebView', 'Resources', 'library')
         )
         for directory in self.server.directories:
             if not directory.is_dir():
