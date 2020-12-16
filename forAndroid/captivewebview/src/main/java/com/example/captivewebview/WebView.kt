@@ -18,25 +18,25 @@ class WebView : android.webkit.WebView {
     companion object {
         val TAG = WebView::class.java.simpleName
     }
-    constructor(context: Context?) : super(context) {
+    constructor(context: Context) : super(context) {
         this.defaultSettings(context)
     }
     constructor(
-        context: Context?, attrs: AttributeSet?
+        context: Context, attrs: AttributeSet?
     ) : super(context, attrs)
     {
         this.defaultSettings(context)
     }
 
     constructor(
-        context: Context?, attrs: AttributeSet?, defStyleAttr: Int
+        context: Context, attrs: AttributeSet?, defStyleAttr: Int
     ) : super(context, attrs, defStyleAttr)
     {
         this.defaultSettings(context)
     }
 
     constructor(
-        context: Context?,
+        context: Context,
         attrs: AttributeSet?,
         defStyleAttr: Int,
         defStyleRes: Int
@@ -114,7 +114,7 @@ class WebView : android.webkit.WebView {
                     this.packageManager.checkPermission(
                         Manifest.permission.INTERNET, this.packageName
                     ) == PackageManager.PERMISSION_GRANTED
-                } ?: true
+                }
 
                 if (!canInternet) {
                     Log.w(TAG,
