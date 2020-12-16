@@ -188,6 +188,9 @@ class Captivity {
     }
 
     _panel_diagnostic(panel) {
+        panel.add_node('div', "Dark mode.").classList.add('dark-mode-only');
+        panel.add_node('div', "Light mode.").classList.add('light-mode-only');
+
         const innerHeightDiv = new PageBuilder(panel.add_node('div'));
         innerHeightDiv.add_node('span', "Window innerHeight:");
         const innerHeightSpan = innerHeightDiv.add_node('span');

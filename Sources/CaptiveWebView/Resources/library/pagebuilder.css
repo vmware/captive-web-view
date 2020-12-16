@@ -6,6 +6,33 @@
  * https://en.bem.info/methodology/naming-convention/
  */
 
+ :root {
+    --field-colour: rgb(224, 224, 224);
+    --accent-colour: rgb(98, 0, 234);
+    --line-colour: black;
+    --background-colour: white;
+
+    --border: var(--line-colour) 1px solid;
+
+    --light-mode-border: var(--border);
+    --dark-mode-border: none;
+    --light-mode-field: var(--field-colour);
+    --dark-mode-field: none;
+
+    --border-radius: 6px;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --line-colour: white;
+        --background-colour: black;
+
+        --light-mode-border: none;
+        --dark-mode-border: var(--border);
+        --light-mode-field: none;
+        --dark-mode-field: var(--field-colour);
+    }
+}
+
 body {
      /* Prevent horizontal scroll bar.
       */
@@ -21,6 +48,9 @@ body {
 
     font-size: large;
     font-family: sans-serif;
+
+    background-color: var(--background-colour);
+    color: var(--line-colour);
 }
 
 /* Push everything in from the sides of the screen a bit.
@@ -32,23 +62,14 @@ body > div, body > h2, body > form {
     margin-right: 3px !important;
 }
 
-:root {
-    --field-colour: rgb(224, 224, 224);
-    --accent-colour: rgb(98, 0, 234);
-    --line-colour: black;
-    --background-colour: white;
-
-    --border-radius: 6px;
-}
-
 div.cwv-transcript {
-    border-top: 2px solid black;
+    border-top: 2px solid var(--line-colour);
     margin-top: 6px;
     padding-top: 6px;
 }
 div .cwv-transcript__title { display: inline; }
 fieldset.cwv-transcript {
-    border: var(--field-colour) 1px solid;
+    border: var(--border)
 }
 .cwv-transcript__clear { float: right; }
 pre.cwv-transcript__log_line {
@@ -71,12 +92,13 @@ pre.cwv-transcript__log_line {
 }
 
 .cwv-button {
-    background-color: var(--field-colour);
     font-size: large;
     padding: 0.5em 1em 0.5em 1em;
-    border: none;
+    background-color: var(--light-mode-field);
+    border: var(--dark-mode-border);
     border-radius: var(--border-radius);
     outline: none;
+    color: var(--line-colour);
 }
 .cwv-input + .cwv-button,
 .cwv-button + .cwv-button {
@@ -96,10 +118,11 @@ pre.cwv-transcript__log_line {
 }
 .cwv-input__input {
     font-size: x-large;
-    border: 1px solid black;
     border-radius: var(--border-radius);
     padding-left: 0.5em;
-    background-color: var(--field-colour);
+    background-color: var(--light-mode-field);
+    border: var(--border);
+    color: var(--line-colour);
 }
 .cwv-input__input:focus {
     outline: none;
@@ -115,12 +138,12 @@ pre.cwv-transcript__log_line {
     text-decoration: none;
     padding: 0.5em 1em 0.5em 1em;
     display: block;
-    border-bottom: 1px solid black;
+    border-bottom: var(--border);
     color: var(--line-colour);
     margin-top: 2px;
 }
 .cwv-anchor:first-of-type {
-    border-top: 1px solid black;
+    border-top: var(--border);
 }
 .cwv-anchor::after {
     content: ">";
@@ -168,7 +191,7 @@ h1 .cwv-anchor:first-of-type {
  */
 .cwv-progress__step {
     margin: 1px;
-    border: solid 1px var(--line-colour);
+    border: var(--border);
 }
 
 .cwv-progress__step > span {
