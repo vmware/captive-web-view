@@ -6,12 +6,16 @@ package com.example.captivewebview
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
+import android.util.Log.WARN
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import androidx.webkit.WebSettingsCompat
+import androidx.webkit.WebViewFeature
 import org.json.JSONObject
 
 class WebView : android.webkit.WebView {
@@ -98,6 +102,39 @@ class WebView : android.webkit.WebView {
         this.settings.mediaPlaybackRequiresUserGesture = false
         this.webChromeClient = WebChromeClient(this)
         this._defaultMixedContentMode = this.settings.mixedContentMode
+
+        activateDarkModeMediaQuery()
+    }
+
+    private fun activateDarkModeMediaQuery() {
+        // Android WebView doesn't implement the standard media query for dark
+        // mode detection by default. TOTH for how to implement:
+        // https://stackoverflow.com/a/61643614/7657675
+        if(
+            WebViewFeature.isFeatureSupported(
+                WebViewFeature.FORCE_DARK_STRATEGY)
+        ) {
+            WebSettingsCompat.setForceDarkStrategy(settings,
+                WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY);
+        }
+        else {
+            Log.w(TAG,
+                "WebViewFeature.isFeatureSupported(FORCE_DARK_STRATEGY)) false."
+            )
+        }
+
+        if (WebViewFeature.isFeatureSupported(WebViewFeature.FORCE_DARK)) {
+            val inDarkMode = (resources.configuration.uiMode
+                    and Configuration.UI_MODE_NIGHT_MASK
+                    ) == Configuration.UI_MODE_NIGHT_YES
+            if (inDarkMode) {
+                WebSettingsCompat.setForceDark(settings,
+                    WebSettingsCompat.FORCE_DARK_ON)
+            }
+        }
+        else {
+            Log.w(TAG, "WebViewFeature.isFeatureSupported(FORCE_DARK) false.")
+        }
     }
 
     var captive:Boolean
