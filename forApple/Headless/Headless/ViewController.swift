@@ -47,7 +47,7 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
         self.wkWebView = madeWebView
 
         _ = CaptiveWebView.load(in: wkWebView!,
-                                scheme: "local",
+                                scheme: CaptiveWebView.scheme,
                                 file: "Headless.html")
         
         // Next line makes the web view the same size and position as the
