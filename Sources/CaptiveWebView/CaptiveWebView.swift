@@ -14,7 +14,11 @@ import WebKit
 // -   Open methods.
 // -   Protocol declarations.
 
+private enum Key:String { case local, messageBridge }
+
 public struct CaptiveWebView {
+
+    public static let scheme = Key.local.rawValue
 
     public class WebResource {}
 
@@ -123,19 +127,22 @@ public struct CaptiveWebView {
     
     open class ViewController: UIViewController {
 
-        var webView: WKWebView!
-//        let coverView = UIView()
+        let webView: WKWebView = CaptiveWebView.makeWebView(
+            frame: .zero, commandHandler: nil)
         
         open var mainHTML:String {return ViewController.mainHTML(from: self)}
 
         public var bridge:CaptiveWebViewCommandHandler? {
             get {
-                (webView.configuration.urlSchemeHandler(forURLScheme: "local")
-                    as! CaptiveURLHandler).bridge
+                (webView.configuration.urlSchemeHandler(forURLScheme: scheme)
+                    as? CaptiveURLHandler)?.bridge
             }
             set {
-                (webView.configuration.urlSchemeHandler(forURLScheme: "local")
-                    as! CaptiveURLHandler).bridge = newValue
+                if let handler = webView.configuration.urlSchemeHandler(
+                    forURLScheme: scheme
+                ) as? CaptiveURLHandler {
+                    handler.bridge = newValue
+                }
             }
         }
         
@@ -203,17 +210,11 @@ public struct CaptiveWebView {
          the WKWebViewConfiguration made after the WKWebView has been
          instantiated are ignored.
          */
-        let webView = WKWebView(
+        return WKWebView(
             frame: frame,
             configuration: CaptiveWebView.makeWebViewConfiguration(
                 commandHandler: commandHandler)
         )
-  //      if var mutableHandler = commandHandler {
-    //        mutableHandler.navigationDelegate = NavigationDelegate()
-//            webView.navigationDelegate = commandHandler
-//        }
-        
-        return webView
     }
     
     @available(OSX 10.13, *)
@@ -224,18 +225,19 @@ public struct CaptiveWebView {
         let handler = CaptiveURLHandler()
         
         let configuration = WKWebViewConfiguration()
-        configuration.setURLSchemeHandler(handler, forURLScheme: "local")
-        configuration.userContentController.add(handler, name: "messageBridge")
+        configuration.setURLSchemeHandler(handler, forURLScheme: scheme)
+        configuration.userContentController.add(
+            handler, name: Key.messageBridge.rawValue)
         handler.bridge = commandHandler
         return configuration
     }
     
     public static func load(in webView:WKWebView,
-                       scheme:String = "local",
-                       file:String = "index.html") -> URL
+                            scheme loadScheme:String = scheme,
+                            file:String = "index.html") -> URL
     {
         var builder = URLComponents()
-        builder.scheme = scheme
+        builder.scheme = loadScheme
 
         // We have to get a slash from somewhere. Could just put in a "/" but
         // that seems unsafe. Instead, rely on the first component of the path

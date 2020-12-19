@@ -44,25 +44,9 @@ extension Dictionary where Key == KEY {
 
 extension CaptiveWebView.DefaultViewController {
 
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-        self.bridge = self
-        // Don't load here; load in the viewDidAppear instead.
-    }
-    
-    override open func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-//        if webView.url == nil {
-//            _ = self.loadMainHTML()
-//        }
-//        else {
-            // This code runs if another ViewController was show()'n from this
-            // one and it then dismiss()'d. The PasscodeStream needs this,
-            // because it has to reload the configuration and passcode in the
-            // diagnostic Index screen.
-            // Commented out in the general case for now.
-            // webView.reload()
-//        }
+    override open func loadView() {
+        bridge = self
+        super.loadView()
     }
 
     static func handleCommand(
@@ -70,13 +54,6 @@ extension CaptiveWebView.DefaultViewController {
         _ command: Dictionary<String, Any>
         ) -> Dictionary<String, Any>
     {
-        //viewController.webView.layer.opacity = 1
-//        if viewController.coverView.isDescendant(of: viewController.view) {
-//            viewController.coverView.removeFromSuperview()
-//            viewController.webView.layer.opacity = 1
-//        }
-        //viewController.view.exchangeSubview(at: 0, withSubviewAt: 1)
-
         var returning = command
         do {
             let commandAny:Any = command[COMMAND_KEY] ?? ""
@@ -149,9 +126,10 @@ extension CaptiveWebView.DefaultViewController {
 
             loadedController.modalTransitionStyle = .coverVertical
             // During the vertical cover animation, the web view hasn't been
-            // loaded and so is a blank white rectangle. The sense of the
-            // current view being covered is therefore lost. The following code
-            // addresses this by adding a thin black border, and removing the
+            // loaded and so is a blank rectangle of the system background
+            // colour. The contents of the current view disappear but there's no
+            // sense of them being covered from bottom to top. The following
+            // code addresses this by adding a thin border, and removing the
             // border after presentation.  
             // The flipHorizontal transition doesn't seem to have this problme,
             // but it's old-fashioned looking.

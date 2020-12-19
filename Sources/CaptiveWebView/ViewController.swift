@@ -13,67 +13,20 @@ extension CaptiveWebView.ViewController {
     internal static let nameSuffix = "ViewController"
 
     override open func loadView() {
-//        super.loadView()
+        // Root view is a generic UIView. The OS will resize it to the size of
+        // the screen.
+        // Note that the web view isn't used as the root view. The web view can
+        // then easily be constrained to the safe area. The root view fills the
+        // whole screen; the web view will fill the safe area.
         view = UIView()
-
         view.layer.backgroundColor = UIColor.systemBackground.cgColor
 
-//        self.coverView.layer.backgroundColor = UIColor.systemBackground.cgColor
-//        self.coverView.layer.opacity = 0.7
-//        self.view.addSubview(self.coverView)
-//        CaptiveWebView.constrain(view: self.coverView, to: self.view)
-
-        webView = CaptiveWebView.makeWebView(
-            frame: self.view.frame, commandHandler: nil)
-        //webView.navigationDelegate = self
- 
+        // The web view will have been instantiated by the property initialiser.
+        // It doesn't get inserted into the view hierarchy until now though.
         webView.layer.backgroundColor = UIColor.systemBackground.cgColor
+        // Hide it before inserting it.
         webView.isHidden = true
         view.addSubview(webView)
-
-
-        //if webView.url == nil {
-            _ = self.loadMainHTML()
-        //}
-
-//        public func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-//            if webView.isHidden {
-        Timer.scheduledTimer(
-            withTimeInterval: firstLoadVisibilityTimeOutSeconds,
-            repeats: false
-        ) {
-            (timer:Timer) in self.webView.isHidden = false
-        }
-        
-        CaptiveWebView.constrain(view: webView, to: view.safeAreaLayoutGuide)
-    }
-    
-//    override open func viewWillAppear(_ animated: Bool) {
-//        super.viewWillAppear(animated)
-//    }
-    
-    override open func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-//        self.webView.isHidden = false
-//        self.webView.layer.opacity = 1
-    }
-    
-    override open func viewDidLoad() {
-        super.viewDidLoad()
-//        self.webView = CaptiveWebView.makeWebView(
-//            frame: self.view.frame, commandHandler: nil)
-//        self.webView.layer.backgroundColor = UIColor.systemBackground.cgColor
-//        var red = CGFloat(1), green = CGFloat(1), blue = CGFloat(1), alpha = CGFloat(1)
-//        let got = UIColor.systemBackground.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-//        let cssColour = "rgba(\(red * 100)%, \(green * 100)%, \(blue * 100)%, \(alpha * 100)%)"
-        
-//        self.webView.loadHTMLString("<body style=\"background-color:\(cssColour);\">Hi</body>", baseURL: nil)
-//        self.webView.isHidden = true
-//        self.webView.layer.opacity = 0
-        //self.view.addSubview(self.webView)
-//        self.view.insertSubview(webView, belowSubview: coverView)
-//        webView.layer.opacity = 0.1
-//        CaptiveWebView.constrain(view: webView, to: view.safeAreaLayoutGuide)
 
         // Uncomment the following to add a diagnostic border around the web
         // view.
@@ -81,9 +34,28 @@ extension CaptiveWebView.ViewController {
         // self.webView.layer.borderWidth = 4.0
         // self.webView.layer.backgroundColor = UIColor.yellow.cgColor
         // self.view.layer.backgroundColor = UIColor.cyan.cgColor
-    }
 
-    public func loadCustom(scheme:String = "local",
+        // Load the web resources, and schedule revealing the web view. This is
+        // to avoid the white flash when launching in dark mode. There's a note
+        // about the white flash by the declaration of the property:
+        // firstLoadVisibilityTimeOutSeconds in the CaptiveWebView.swift file.
+        _ = self.loadMainHTML()
+        Timer.scheduledTimer(
+            withTimeInterval: firstLoadVisibilityTimeOutSeconds,
+            repeats: false
+        ) {
+            (timer:Timer) in self.webView.isHidden = false
+        }
+
+        // The web view will have been instantiated with a zero frame. Now that
+        // it's in the view hierarchy, it can be constrained to the safe area.
+        // Note that the constraint can't be applied before the web view is
+        // inside the view hierarchy, and only constraints to other views in the
+        // same hierarchy are allowed.
+        CaptiveWebView.constrain(view: webView, to: view.safeAreaLayoutGuide)
+    }
+    
+    public func loadCustom(scheme:String = CaptiveWebView.scheme,
                            file:String = "index.html") -> URL
     {
         return CaptiveWebView.load(in: webView, scheme:scheme, file:file)
