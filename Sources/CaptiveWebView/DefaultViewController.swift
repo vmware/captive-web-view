@@ -52,17 +52,17 @@ extension CaptiveWebView.DefaultViewController {
     
     override open func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if webView.url == nil {
-            _ = self.loadMainHTML()
-        }
-        else {
+//        if webView.url == nil {
+//            _ = self.loadMainHTML()
+//        }
+//        else {
             // This code runs if another ViewController was show()'n from this
             // one and it then dismiss()'d. The PasscodeStream needs this,
             // because it has to reload the configuration and passcode in the
             // diagnostic Index screen.
             // Commented out in the general case for now.
             // webView.reload()
-        }
+//        }
     }
 
     static func handleCommand(
@@ -70,6 +70,13 @@ extension CaptiveWebView.DefaultViewController {
         _ command: Dictionary<String, Any>
         ) -> Dictionary<String, Any>
     {
+        //viewController.webView.layer.opacity = 1
+//        if viewController.coverView.isDescendant(of: viewController.view) {
+//            viewController.coverView.removeFromSuperview()
+//            viewController.webView.layer.opacity = 1
+//        }
+        //viewController.view.exchangeSubview(at: 0, withSubviewAt: 1)
+
         var returning = command
         do {
             let commandAny:Any = command[COMMAND_KEY] ?? ""
@@ -149,7 +156,7 @@ extension CaptiveWebView.DefaultViewController {
             // The flipHorizontal transition doesn't seem to have this problme,
             // but it's old-fashioned looking.
             loadedController.view.layer.borderWidth = 1.0
-            loadedController.view.layer.borderColor = UIColor.black.cgColor
+            loadedController.view.layer.borderColor = UIColor.label.cgColor
             viewController.present(loadedController, animated: true) {
                 loadedController.view.layer.borderWidth = 0
             }

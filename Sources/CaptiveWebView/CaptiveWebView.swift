@@ -124,6 +124,7 @@ public struct CaptiveWebView {
     open class ViewController: UIViewController {
 
         var webView: WKWebView!
+//        let coverView = UIView()
         
         open var mainHTML:String {return ViewController.mainHTML(from: self)}
 
@@ -138,10 +139,18 @@ public struct CaptiveWebView {
             }
         }
         
+        // It appears that the first time a WKWebView is loaded, it will appear
+        // as a white rectangle. The appearance can be very brief, like a white
+        // flash. That's a problem in dark mode because the appearance before
+        // and after will be of a black screen. The fix is to hide the web view
+        // for half a second. The hiding takes place in the loadView, and the
+        // revealing is scheduled from there too.
+        public var firstLoadVisibilityTimeOutSeconds:TimeInterval = 0.5
     }
     
     open class DefaultViewController:
-    CaptiveWebView.ViewController, CaptiveWebViewCommandHandler {
+        CaptiveWebView.ViewController, CaptiveWebViewCommandHandler
+    {
         public static var viewControllerMap =
             Dictionary<String, UIViewController.Type>()
         
@@ -194,11 +203,17 @@ public struct CaptiveWebView {
          the WKWebViewConfiguration made after the WKWebView has been
          instantiated are ignored.
          */
-        return WKWebView(
+        let webView = WKWebView(
             frame: frame,
             configuration: CaptiveWebView.makeWebViewConfiguration(
                 commandHandler: commandHandler)
         )
+  //      if var mutableHandler = commandHandler {
+    //        mutableHandler.navigationDelegate = NavigationDelegate()
+//            webView.navigationDelegate = commandHandler
+//        }
+        
+        return webView
     }
     
     @available(OSX 10.13, *)

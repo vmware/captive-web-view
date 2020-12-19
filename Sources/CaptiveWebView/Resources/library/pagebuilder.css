@@ -49,6 +49,9 @@ body {
     font-size: large;
     font-family: sans-serif;
 
+    /* Setting the body background to transparent results in it being white, in
+     * WKWebView at least.
+     */
     background-color: var(--background-colour);
     color: var(--line-colour);
 }
