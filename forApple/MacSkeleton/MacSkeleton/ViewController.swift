@@ -31,7 +31,7 @@ class ViewController: NSViewController, CaptiveWebViewCommandHandler {
         // self.webView.layer?.backgroundColor = NSColor.yellow.cgColor
 
         _ = CaptiveWebView.load(
-            in: self.webView, scheme: "local", file: "Main.html")
+            in: self.webView, scheme: CaptiveWebView.scheme, file: "Main.html")
     }
 
     override var representedObject: Any? {
