@@ -58,8 +58,8 @@ interface ActivityMixIn {
                 missing.add("keyboardHidden")
             }
             if (missing.count() > 0) {
-                // Following statement uses `this` in the TAG parameter so that the
-                // subclass name appears there.
+                // Following statement uses `activity` in the TAG parameter so
+                // that the subclass name appears there.
                 Log.w(
                     activity.javaClass.canonicalName,
                     "Missing declaration in manifest <activity>" +
