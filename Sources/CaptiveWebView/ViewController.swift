@@ -19,11 +19,11 @@ extension CaptiveWebView.ViewController {
         // then easily be constrained to the safe area. The root view fills the
         // whole screen; the web view will fill the safe area.
         view = UIView()
-        view.layer.backgroundColor = UIColor.systemBackground.cgColor
+
+        setColours()
 
         // The web view will have been instantiated by the property initialiser.
         // It doesn't get inserted into the view hierarchy until now though.
-        webView.layer.backgroundColor = UIColor.systemBackground.cgColor
         // Hide it before inserting it.
         webView.isHidden = true
         view.addSubview(webView)
@@ -55,6 +55,21 @@ extension CaptiveWebView.ViewController {
         CaptiveWebView.constrain(view: webView, to: view.safeAreaLayoutGuide)
     }
     
+    private func setColours() {
+        view.layer.backgroundColor = UIColor.systemBackground.cgColor
+        webView.layer.backgroundColor = UIColor.systemBackground.cgColor
+    }
+
+    open override func traitCollectionDidChange(
+        _ previousTraitCollection: UITraitCollection?
+    ) {
+        if previousTraitCollection?.userInterfaceStyle
+            != traitCollection.userInterfaceStyle
+        {
+            setColours()
+        }
+    }
+
     public func loadCustom(scheme:String = CaptiveWebView.scheme,
                            file:String = "index.html") -> URL
     {
