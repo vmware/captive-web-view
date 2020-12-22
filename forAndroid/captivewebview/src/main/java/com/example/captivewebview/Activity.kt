@@ -12,11 +12,6 @@ open class Activity : Activity(), ActivityMixIn {
         onCreateMixIn()
     }
 
-    override fun onResume() {
-        super.onResume()
-        onResumeMixIn()
-    }
-
     // Following code would implement saving and restoring of the WebView but
     // that seems to be an inferior solution to configuration change handling
     // declaration. See the warnMissingDeclaration() method for details.

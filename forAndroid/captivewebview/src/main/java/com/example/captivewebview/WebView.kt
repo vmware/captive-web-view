@@ -4,13 +4,14 @@
 package com.example.captivewebview
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
 import android.util.AttributeSet
 import android.util.Log
-import android.util.Log.WARN
+import android.view.View
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -96,6 +97,7 @@ class WebView : android.webkit.WebView {
 
     private fun defaultSettings(context: Context?) {
         this.settings.javaScriptEnabled = true
+        this.settings.offscreenPreRaster = true
         android.webkit.WebView.setWebContentsDebuggingEnabled(true)
         this.webViewClient = this._webViewClient
 
@@ -207,6 +209,24 @@ class WebViewClient : android.webkit.WebViewClient() {
 
     var captive = true
 
+    override fun shouldOverrideUrlLoading(
+        view: android.webkit.WebView?,
+        request: WebResourceRequest?
+    ): Boolean {
+        (view?.context as? ActivityMixIn)?.run {
+            val activity = view.context as? Activity
+            if (activity == null) {
+                view.visibility = View.INVISIBLE
+            }
+            else {
+                activity.runOnUiThread { view.visibility = View.INVISIBLE }
+            }
+            makeVisible(view)
+        }
+
+        return super.shouldOverrideUrlLoading(view, request)
+    }
+
     override fun shouldInterceptRequest(
         view: android.webkit.WebView?,
         request: WebResourceRequest?
@@ -219,22 +239,20 @@ class WebViewClient : android.webkit.WebViewClient() {
         val scheme = url?.scheme ?: ""
         val authority = url?.authority ?: ""
 
-        return if (
-            scheme.equals(ASSET_SCHEME, true) and
-            authority.equals(ASSET_AUTHORITY, true)
-        ) {
-            com.example.captivewebview.WebResource.assetResponse(
-                request!!, view!!.context)
-        }
-        else if (captive) {
-            com.example.captivewebview.WebResource.htmlErrorResponse(403, """
+        return when {
+            scheme.equals(ASSET_SCHEME, true)
+                    && authority.equals(ASSET_AUTHORITY, true)
+            -> com.example.captivewebview.WebResource.assetResponse(
+                    request!!, view!!.context)
+
+            captive
+            -> com.example.captivewebview.WebResource.htmlErrorResponse(403, """
                 Resource "$url" with scheme "$scheme" and authority "$authority"
                 cannot be loaded. Only "$ASSET_SCHEME" and "$ASSET_AUTHORITY"
                 can be loaded.
-            """.trimIndent())
-        }
-        else {
-            null
+                """.trimIndent())
+
+            else -> null
         }
     }
 }
