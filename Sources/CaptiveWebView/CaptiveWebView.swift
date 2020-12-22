@@ -125,10 +125,22 @@ public struct CaptiveWebView {
     // facilitate programmatic creation of the user interface, which would be a
     // much bigger job on macOS.
     
-    open class ViewController: UIViewController {
+    open class ViewController: UIViewController, WKNavigationDelegate {
 
-        let webView: WKWebView = CaptiveWebView.makeWebView(
-            frame: .zero, commandHandler: nil)
+        public var loadVisibilityTimeOutSeconds:TimeInterval? = 0.4
+        // See notes in the ViewController.swift file, near the
+        // WKNavigationDelegate didCommit callback for an explanation of this
+        // property's uses.
+        
+        // Use a crafty lambda to instantiate the WKWebView and set its
+        // navigation delegate. This has to be lazy so that `self` is available
+        // in the property initialiser.
+        lazy var webView: WKWebView = {
+            var wkWebView = CaptiveWebView.makeWebView(
+                frame: .zero, commandHandler: nil)
+            wkWebView.navigationDelegate = self
+            return wkWebView
+        }()
         
         open var mainHTML:String {return ViewController.mainHTML(from: self)}
 
@@ -145,14 +157,6 @@ public struct CaptiveWebView {
                 }
             }
         }
-        
-        // It appears that the first time a WKWebView is loaded, it will appear
-        // as a white rectangle. The appearance can be very brief, like a white
-        // flash. That's a problem in dark mode because the appearance before
-        // and after will be of a black screen. The fix is to hide the web view
-        // for half a second. The hiding takes place in the loadView, and the
-        // revealing is scheduled from there too.
-        public var firstLoadVisibilityTimeOutSeconds:TimeInterval = 0.5
     }
     
     open class DefaultViewController:

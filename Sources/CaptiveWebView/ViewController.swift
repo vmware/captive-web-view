@@ -35,17 +35,10 @@ extension CaptiveWebView.ViewController {
         // self.webView.layer.backgroundColor = UIColor.yellow.cgColor
         // self.view.layer.backgroundColor = UIColor.cyan.cgColor
 
-        // Load the web resources, and schedule revealing the web view. This is
-        // to avoid the white flash when launching in dark mode. There's a note
-        // about the white flash by the declaration of the property:
-        // firstLoadVisibilityTimeOutSeconds in the CaptiveWebView.swift file.
+        // Load the web resources. This also causes invocation of the
+        // WKNavigationDelegate didCommit callback, which is in the
+        // CaptiveWebView.swift file.
         _ = self.loadMainHTML()
-        Timer.scheduledTimer(
-            withTimeInterval: firstLoadVisibilityTimeOutSeconds,
-            repeats: false
-        ) {
-            (timer:Timer) in self.webView.isHidden = false
-        }
 
         // The web view will have been instantiated with a zero frame. Now that
         // it's in the view hierarchy, it can be constrained to the safe area.
@@ -53,6 +46,29 @@ extension CaptiveWebView.ViewController {
         // inside the view hierarchy, and only constraints to other views in the
         // same hierarchy are allowed.
         CaptiveWebView.constrain(view: webView, to: view.safeAreaLayoutGuide)
+    }
+    
+    // It seems that the first time a WKWebView is loaded, it will appear
+    // as a white rectangle. The appearance can be very brief, like a white
+    // flash. That's a problem in dark mode because the appearance before
+    // and after will be of a black screen. The fix is to hide the web view
+    // for half a second.
+    // The hiding takes place in the loadView, above, for example. The showing
+    // is scheduled from here, in the navigation didCommit callback. That's
+    // actually the only reason this ViewController subclass is also a
+    // WKNavigationDelegate.
+    public func webView(
+        _ webView: WKWebView, didCommit navigation: WKNavigation!
+    ) {
+        webView.isHidden = true
+        if let interval = loadVisibilityTimeOutSeconds {
+            Timer.scheduledTimer(withTimeInterval: interval, repeats: false) {
+                (timer:Timer) in webView.isHidden = false
+            }
+        }
+        else {
+            webView.isHidden = false
+        }
     }
     
     private func setColours() {
@@ -63,6 +79,9 @@ extension CaptiveWebView.ViewController {
     open override func traitCollectionDidChange(
         _ previousTraitCollection: UITraitCollection?
     ) {
+        // This callback is invoked when the device is changed between dark mode
+        // and light mode. Resetting the colours to systemBackground will apply
+        // the new mode.
         if previousTraitCollection?.userInterfaceStyle
             != traitCollection.userInterfaceStyle
         {
