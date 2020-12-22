@@ -3,31 +3,6 @@ Backlog
 This is the product backlog for the Captive Web View library. For an
 introduction, see the [parent directory](/../) readme file.
 
--   Dark mode support.
-
-    -   For pagebuilder and app CSS in general, see:  
-        https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
-
-        If it works, set different values for the palette near here:  
-        https://github.com/vmware/captive-web-view/blob/456faf670552ffbe35b6e892f8b6874a728c392b/forAndroid/captivewebview/src/main/assets/library/pagebuilder.css#L35
-    
-    -   For iOS, also see:
-
-        -   User interface colour specification that will change for dark mode
-            selection:  
-            https://developer.apple.com/documentation/uikit/uicolor/3173140-systembackground
-
-        -   One place that the colour should be applied:  
-            https://github.com/vmware/captive-web-view/blob/master/forApple/CaptiveWebView/CaptiveWebView/ViewController.swift#L21
-
-    -   For Android, TBD but definitely the pagebuilder and CSS change, above,
-        and maybe in the Android Manifest files for the sample applications, in
-        the `application` tag, set the `android:theme` attributes to a theme
-        with built-in support.
-
-        In another project, see:  
-        https://github.com/vmware-samples/workspace-ONE-SDK-integration-samples/blob/main/IntegrationGuideForAndroid/Apps/baseKotlin/src/main/res/values/styles.xml
-
 -   Error displays for iOS web View like the Android htmlErrorResponse().
 
     Calling iOS urlSchemeTask.didFailWithError aborts retrieval without showing
@@ -49,6 +24,37 @@ introduction, see the [parent directory](/../) readme file.
 -   Check if anything from the following code could be used:
 
     https://github.com/googlearchive/chromium-webview-samples/tree/master/webrtc-example/app/src/main/java/com/google/chrome/android/webrtcsample
+
+-   Apply a colour scheme from the native layer in the web view.
+
+    This could be done in a number of ways.
+
+    -   Use a standard CSS import with a well-known name like
+        `appColourScheme.css` in the UI web resources. The contents of the file
+        would be generated at run time by native code.
+
+    -   Static insertion of CSS into any HTML file loaded from the app resources
+        or assets. The CSS code would be the same as in the import mechanism.
+
+    -   Send a colour scheme in a JSON object during bridge initialisation. The
+        bridge code could then insert a CSS node on-the-fly and populate it with
+        CSS rules, also generated on-the-fly. The rules would be the same as in
+        the import mechanism. For reference, see:  
+        [https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet)
+
+    Of these mechanisms, static insertion would result in the CSS being present
+    earliest in the HTML loading cycle. In an Android web view, the CSS would be
+    there before the visual state callback invocation. See:  
+    [https://developer.android.com/reference/android/webkit/WebView#postVisualStateCallback(long,%20android.webkit.WebView.VisualStateCallback)](https://developer.android.com/reference/android/webkit/WebView#postVisualStateCallback(long,%20android.webkit.WebView.VisualStateCallback))
+    
+    It's desirable for the CSS to be in place before the first render of the web
+    view so that, for example, styling for dark or light mode will already be
+    applied when the web view is drawn for the first time. (The Android visual
+    state callback is invoked before any imported CSS has been requested by the
+    web view.)
+
+    However, a solution based on static insertion could involve parsing and
+    modifying HTML content in the native layer.
 
 Legal
 =====
