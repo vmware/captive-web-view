@@ -18,6 +18,12 @@
             outline: 1px var(--accent-colour) solid;
             outline-offset: 1px;
         }
+        @media (prefers-color-scheme: dark) {
+            button.selected {
+                background-color: var(--field-colour);
+                color: var(--line-colour-light-mode);
+            }
+        }
         .selectors {
             display: flex;
             flex-direction: row;
@@ -38,8 +44,6 @@
             .dark-mode-only {display: none;}
             .light-mode-only {display: inherit;}
         }
-
-
     </style>
 </head>
 <body

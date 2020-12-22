@@ -7,13 +7,35 @@
  */
 
  :root {
-    --field-colour: rgb(224, 224, 224);
+     /* Colours that don't change between light and dark modes. */
     --accent-colour: rgb(98, 0, 234);
-    --line-colour: black;
-    --background-colour: white;
 
+    /* Colours that do change between light and dark modes. */
+    --line-colour-light-mode: black;
+    --background-colour-light-mode: white;
+    --line-colour-dark-mode: white;
+    --background-colour-dark-mode: black;
+    --field-colour-light-mode: rgb(224, 224, 224);
+    --field-colour-dark-mode: rgb(112, 112, 112);
+
+    /* Variables whose values change between light and dark modes. */
+    --line-colour: var(--line-colour-light-mode);
+    --background-colour: var(--background-colour-light-mode);
+    --field-colour: var(--field-colour-light-mode);
+
+    /* Shorthand for a border of current line colour. */
     --border: var(--line-colour) 1px solid;
 
+    /* Next shorthands facilitate styling controls to:
+     *
+     * -   have a border in light mode, but be filled in dark mode.
+     * -   be filled in light mode, but have a border in dark mode.
+     *
+     * For example, PageBuilder buttons in dark mode have a white border and no
+     * fill, but in light mode have no border and a grey fill.
+     *
+     * The values are redefined in dark mode, below.
+     */
     --light-mode-border: var(--border);
     --dark-mode-border: none;
     --light-mode-field: var(--field-colour);
@@ -23,9 +45,13 @@
 }
 @media (prefers-color-scheme: dark) {
     :root {
-        --line-colour: white;
-        --background-colour: black;
+        /* Dark mode colour overrides. */
+        --line-colour: var(--line-colour-dark-mode);
+        --background-colour: var(--background-colour-dark-mode);
+        --field-colour: var(--field-colour-dark-mode);
 
+        /* Overrides for switching between border and fill depending on mode.
+         */
         --light-mode-border: none;
         --dark-mode-border: var(--border);
         --light-mode-field: none;
