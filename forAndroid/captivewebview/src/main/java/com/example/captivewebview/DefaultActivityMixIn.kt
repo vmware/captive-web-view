@@ -82,12 +82,11 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         fun addToActivityMap(vararg pairs: Pair<String, Any>) {
             pairs.forEach { addToActivityMap(it.first, it.second) }
         }
-        // The following seems like it should be the safe way to declare this
-        // method.
-        // fun <T> onCreateMixIn(activity: T) where T: Activity, T: WebViewBridge
-        // See the comments by
-        fun onCreateMixIn(activity: android.app.Activity) {
-            ActivityMixIn.onCreateMixIn(activity)
+
+        fun onCreateMixIn(
+            activity: android.app.Activity, loadVisibilityTimeOutSeconds:Float?
+        ) {
+            ActivityMixIn.onCreateMixIn(activity, loadVisibilityTimeOutSeconds)
             val webView = activity
                 .findViewById<com.example.captivewebview.WebView>(WEB_VIEW_ID)
             webView.webViewBridge = activity as WebViewBridge
@@ -107,13 +106,12 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
     // this interface is a subclass.
 
     override fun android.app.Activity.onCreateMixIn() {
-        onCreateMixIn(this)
-        // Don't load the local asset here. That happens in the onResume() in
-        // the base Activity class.
+        // Call the onCreateMixIn in the Companion to this class.
+        onCreateMixIn(this, loadVisibilityTimeOutSeconds)
     }
 
-    // Note for later: The demonstrationapplication JS loads a new HTML page in
-    // the same Activity by sending an object like this:
+    // Note for later: The JS layer loads a new HTML page in the same Activity
+    // by sending an object like this:
     //
     //     {"load": "page_to_load.html"}
     //

@@ -30,16 +30,16 @@ introduction, see the [parent directory](/../) readme file.
     This could be done in a number of ways.
 
     -   Use a standard CSS import with a well-known name like
-        `appColourScheme.css` in the UI web resources. The contents of the file
-        would be generated at run time by native code.
+        `appColourScheme.css` in the UI web resources. The native code would
+        generate the CSS at run time and serve it as a response.
 
     -   Static insertion of CSS into any HTML file loaded from the app resources
         or assets. The CSS code would be the same as in the import mechanism.
 
     -   Send a colour scheme in a JSON object during bridge initialisation. The
-        bridge code could then insert a CSS node on-the-fly and populate it with
-        CSS rules, also generated on-the-fly. The rules would be the same as in
-        the import mechanism. For reference, see:  
+        bridge code could then insert an on-the-fly CSS node and populate it
+        with CSS rules, also generated on-the-fly. The rules would be the same
+        as in the import mechanism. For reference, see:  
         [https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet](https://developer.mozilla.org/en-US/docs/Web/API/CSSStyleSheet)
 
     Of these mechanisms, static insertion would result in the CSS being present
@@ -51,7 +51,28 @@ introduction, see the [parent directory](/../) readme file.
     view so that, for example, styling for dark or light mode will already be
     applied when the web view is drawn for the first time. (The Android visual
     state callback is invoked before any imported CSS has been requested by the
-    web view.)
+    web view, and way before bridge initialisation.)
+
+    At time of writing, styling isn't guaranteed to be in place before the
+    visual state callback and first render. This means that there can be a white
+    flash during initial load of an Activity or ViewController, and during
+    navigation within a Activity or ViewController. The solution has been to
+    make the web view invisible when loading or navigation starts, and then make
+    it visible after a short delay, like 400 milliseconds. A better solution,
+    for Android, would be to use the visual state callback, if the styling was
+    guaranteed to be in place. Following code snippet illustrates use of the
+    visual state callback to make a web view visible.
+    
+        val loadRequest = 1L
+        webView.postVisualStateCallback(loadRequest,
+            object :android.webkit.WebView.VisualStateCallback() {
+                override fun onComplete(requestID: Long) {
+                    if (requestID == loadRequest) {
+                        webView.visibility = View.VISIBLE
+                    }
+                }
+            }
+        )
 
     However, a solution based on static insertion could involve parsing and
     modifying HTML content in the native layer.

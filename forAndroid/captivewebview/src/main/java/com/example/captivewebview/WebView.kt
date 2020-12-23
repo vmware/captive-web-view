@@ -4,7 +4,6 @@
 package com.example.captivewebview
 
 import android.Manifest
-import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -212,24 +211,27 @@ class WebViewClient : android.webkit.WebViewClient() {
     override fun shouldOverrideUrlLoading(
         view: android.webkit.WebView?,
         request: WebResourceRequest?
-    ): Boolean {
-        (view?.context as? ActivityMixIn)?.run {
-            val activity = view.context as? Activity
-            if (activity == null) {
-                view.visibility = View.INVISIBLE
-            }
-            else {
-                activity.runOnUiThread { view.visibility = View.INVISIBLE }
-            }
-            makeVisible(view)
+    ): Boolean
+    {
+        val shouldOverride = super.shouldOverrideUrlLoading(view, request)
+        if (shouldOverride) {
+            return shouldOverride
         }
 
-        return super.shouldOverrideUrlLoading(view, request)
+        // This safe cast somehow makes the extensions applied to Activity by
+        // ActivityMixIn accessible here.
+        (view?.context as? ActivityMixIn)?.run {
+            (view.context as? android.app.Activity)?.let {
+                it.runOnUiThread { view.visibility = View.INVISIBLE }
+                it.makeVisibleWhenLoaded()
+            }
+        }
+
+        return shouldOverride
     }
 
     override fun shouldInterceptRequest(
-        view: android.webkit.WebView?,
-        request: WebResourceRequest?
+        view: android.webkit.WebView?, request: WebResourceRequest?
     ): WebResourceResponse?
     {
         val url = request?.url
@@ -240,11 +242,14 @@ class WebViewClient : android.webkit.WebViewClient() {
         val authority = url?.authority ?: ""
 
         return when {
+            // Request for an app asset, service it.
             scheme.equals(ASSET_SCHEME, true)
                     && authority.equals(ASSET_AUTHORITY, true)
             -> com.example.captivewebview.WebResource.assetResponse(
                     request!!, view!!.context)
 
+            // Request for something else. If this is supposed to be a captive
+            // web view, block the request.
             captive
             -> com.example.captivewebview.WebResource.htmlErrorResponse(403, """
                 Resource "$url" with scheme "$scheme" and authority "$authority"
@@ -252,6 +257,8 @@ class WebViewClient : android.webkit.WebViewClient() {
                 can be loaded.
                 """.trimIndent())
 
+            // Request for something else and this web view is allowed to load
+            // it, return null to hand back to the default request handler.
             else -> null
         }
     }

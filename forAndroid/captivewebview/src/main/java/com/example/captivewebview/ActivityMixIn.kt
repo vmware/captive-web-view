@@ -17,7 +17,9 @@ interface ActivityMixIn {
         val WEB_VIEW_ID = View.generateViewId()
         val nameSuffix = "Activity"
 
-        fun onCreateMixIn(activity: android.app.Activity) {
+        fun onCreateMixIn(
+            activity: android.app.Activity, loadVisibilityTimeOutSeconds:Float?
+        ) {
             warnMissingDeclaration(activity)
             val activityMixIn = activity as? ActivityMixIn
 
@@ -41,10 +43,9 @@ interface ActivityMixIn {
                 }
                 // Schedule making the web view visible, and load the main HTML.
                 activityMixIn?.also {
-                    it.makeVisible(this)
                     loadCustomAsset(activity, it.mainHTML)
+                    makeVisibleWhenLoaded(activity, loadVisibilityTimeOutSeconds)
                 }
-
             }
         }
 
@@ -99,49 +100,37 @@ interface ActivityMixIn {
             }
         }
 
-    }
-
-    // It appears that the first time a web view is loaded, it will appear
-    // as a white rectangle. The appearance can be very brief, like a white
-    // flash. That's a problem in dark mode because the appearance before
-    // and after will be of a black screen. The fix is to hide the web view
-    // for a short time. The hiding takes place in the onCreateMixIn, and the
-    // revealing is scheduled from there by calling makeVisible(), below.
-    val loadVisibilityTimeOutSeconds:Float?
-        get() = 0.4F
-
-    fun makeVisible(webView: android.webkit.WebView) {
-        val milliseconds = loadVisibilityTimeOutSeconds?.times(1000F)?.toLong()
-        val activity = webView.context as? Activity
-        if (milliseconds == null || activity == null) {
-            webView.visibility = View.VISIBLE
+        fun makeVisibleWhenLoaded(
+            activity: android.app.Activity, timeOutSeconds:Float?
+        ) {
+            val view = activity.findViewById<View>(WEB_VIEW_ID)
+            val milliseconds = timeOutSeconds?.times(1000F)?.toLong()
+            if (milliseconds == null) {
+                view.visibility = View.VISIBLE
+            }
+            else {
+                Handler(activity.mainLooper).postDelayed(Runnable {
+                    activity.runOnUiThread { view.visibility = View.VISIBLE }
+                }, milliseconds)
+            }
         }
-        else {
-            Handler(webView.context.mainLooper).postDelayed(Runnable {
-                activity.runOnUiThread { webView.visibility = View.VISIBLE }
-            }, milliseconds)
-        }
-        // Following code would use a different mechanism, the visual state
-        // callback. The callback doesn't, for example, wait for any CSS imports
-        // to complete. This means that, in dark mode, the HTML has to include
-        // statically any code needed to set the UI colours. For now, the 0.4s
-        // delay seems the safer option.
-//                    val loadRequest = 1L
-//                    postVisualStateCallback(loadRequest,
-//                        object :android.webkit.WebView.VisualStateCallback() {
-//                            override fun onComplete(requestID: Long) {
-//                                if (requestID == loadRequest) {
-//                                    visibility = View.VISIBLE
-//                                }
-//                                return
-//                            }
-//
-//                        }
-//                    )
     }
 
     fun android.app.Activity.onCreateMixIn() {
-        onCreateMixIn(this)
+        onCreateMixIn(this, loadVisibilityTimeOutSeconds)
+    }
+
+    // It seems that the first time a web view is loaded, it will appear as a
+    // white rectangle. The appearance can be very brief, like a white flash.
+    // That's a problem in dark mode because the appearance before and after
+    // will be of a black screen. The fix is to hide the web view for a short
+    // time. The hiding takes place in the onCreateMixIn, and the
+    // revealing is scheduled from there by calling makeVisibleWhenLoaded().
+    val android.app.Activity.loadVisibilityTimeOutSeconds:Float?
+        get() = 0.4F
+
+    fun android.app.Activity.makeVisibleWhenLoaded() {
+        Companion.makeVisibleWhenLoaded(this, loadVisibilityTimeOutSeconds)
     }
 
     val mainHTML: String
