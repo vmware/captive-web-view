@@ -1,4 +1,4 @@
-// Copyguide 2020 VMware, Inc.  
+// Copyright 2021 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
@@ -296,11 +296,11 @@ public struct CaptiveWebView {
 public protocol CaptiveWebViewCommandHandler {
     func handleCommand(_ command:Dictionary<String, Any>)
         -> Dictionary<String, Any>
-    func log(_ message:String)
+    func logCaptiveWebViewCommandHandler(_ message:String)
 }
 
 extension CaptiveWebViewCommandHandler {
-    public func log(_ message:String) {
+    public func logCaptiveWebViewCommandHandler(_ message:String) {
         os_log("%@", message)
     }
 }

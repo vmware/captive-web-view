@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2021 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
@@ -26,7 +26,7 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
         return command
     }
     
-    func log(_ message:String) {
+    func logCaptiveWebViewCommandHandler(_ message:String) {
         // Demonstrate the override.
         os_log("%@ %@", "Headless", message)
     }

@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2021 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
@@ -80,7 +80,7 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         
         do {
             let responseData = try Data(contentsOf: responseURL)
-            bridge?.log("do_GET(\(request)) from app \"\(responseURL)\"")
+            bridge?.logCaptiveWebViewCommandHandler("do_GET(\(request)) from app \"\(responseURL)\"")
             return (responseData, responseURL)
         }
         catch {
@@ -138,7 +138,7 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
 
         do {
             let responseData = try Data(contentsOf: libraryURL)
-            bridge?.log("do_GET(\(request)) from library \"\(libraryURL)\"")
+            bridge?.logCaptiveWebViewCommandHandler("do_GET(\(request)) from library \"\(libraryURL)\"")
             return (responseData, libraryURL)
         }
         catch {
