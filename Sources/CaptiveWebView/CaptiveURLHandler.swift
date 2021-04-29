@@ -80,7 +80,8 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         
         do {
             let responseData = try Data(contentsOf: responseURL)
-            bridge?.logCaptiveWebViewCommandHandler("do_GET(\(request)) from app \"\(responseURL)\"")
+            bridge?.logCaptiveWebViewCommandHandler(
+                "From app do_GET(\(request)) \"\(responseURL)\"")
             return (responseData, responseURL)
         }
         catch {
@@ -138,7 +139,8 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
 
         do {
             let responseData = try Data(contentsOf: libraryURL)
-            bridge?.logCaptiveWebViewCommandHandler("do_GET(\(request)) from library \"\(libraryURL)\"")
+            bridge?.logCaptiveWebViewCommandHandler(
+                "From library do_GET(\(request)) \"\(libraryURL)\"")
             return (responseData, libraryURL)
         }
         catch {
