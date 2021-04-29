@@ -79,7 +79,9 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         // the end of this method.
         
         do {
-            return try (Data(contentsOf: responseURL), responseURL)
+            let responseData = try Data(contentsOf: responseURL)
+            bridge?.log("do_GET(\(request)) from app \"\(responseURL)\"")
+            return (responseData, responseURL)
         }
         catch {
             // Keep the main bundle error, in case the framework bundle fails
@@ -135,7 +137,9 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         }
 
         do {
-            return try (Data(contentsOf: libraryURL), libraryURL)
+            let responseData = try Data(contentsOf: libraryURL)
+            bridge?.log("do_GET(\(request)) from library \"\(libraryURL)\"")
+            return (responseData, libraryURL)
         }
         catch {
             throw resourceError!

@@ -3,6 +3,7 @@
 
 import Foundation
 import WebKit
+import os.log
 
 // This struct is really a namespace. TOTH:
 // https://stackoverflow.com/questions/24002821/how-to-use-namespaces-in-swift#24293236
@@ -295,6 +296,13 @@ public struct CaptiveWebView {
 public protocol CaptiveWebViewCommandHandler {
     func handleCommand(_ command:Dictionary<String, Any>)
         -> Dictionary<String, Any>
+    func log(_ message:String)
+}
+
+extension CaptiveWebViewCommandHandler {
+    public func log(_ message:String) {
+        os_log("%@", message)
+    }
 }
 
 class URLSchemeTaskError: Error {

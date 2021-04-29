@@ -26,6 +26,11 @@ class ViewController: UIViewController, CaptiveWebViewCommandHandler {
         return command
     }
     
+    func log(_ message:String) {
+        // Demonstrate the override.
+        os_log("%@ %@", "Headless", message)
+    }
+    
     var wkWebView: WKWebView?
     var numericParameter = 1
 
