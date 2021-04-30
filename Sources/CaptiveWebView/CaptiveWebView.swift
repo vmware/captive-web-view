@@ -301,7 +301,11 @@ public protocol CaptiveWebViewCommandHandler {
 
 extension CaptiveWebViewCommandHandler {
     public func logCaptiveWebViewCommandHandler(_ message:String) {
-        os_log("%@", message)
+        if #available(macOS 10.12, *) {
+            os_log("%@", message)
+        } else {
+            NSLog("%@", message)
+        }
     }
 }
 
