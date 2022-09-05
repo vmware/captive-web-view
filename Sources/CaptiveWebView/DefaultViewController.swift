@@ -12,7 +12,7 @@ private let LOAD_PAGE_KEY = "load"
 private let SECURE_KEY = "secure"
 
 private enum Command: String {
-    case close, focus, load, write, EMPTY = ""
+    case close, fetch, focus, load, write, EMPTY = ""
 }
 
 private enum KEY: String {
@@ -94,86 +94,18 @@ extension CaptiveWebView.DefaultViewController {
         case .close:
             viewController.dismiss(animated: true, completion: nil)
             return ["closed": true]
+        
+        case .fetch:
+            return try builtInFetch(parameters)
 
         case .focus:
             return ["focussed controller": viewController.becomeFirstResponder()]
             
         case .load:
-            guard let page = parameters["page"] as? String else {
-                throw CaptiveWebView.ErrorMessage("No page specified.")
-            }
-            
-            // The Captive Web View for Android has a map of page to Activity
-            // subclass. That's because Kotlin introspection would require an
-            // extra library in the application. The iOS runtime provides a form
-            // of introspection built-in, so there's no need for a map here ...
-            // except there is. The following looks promising but doesn't work.
-            //
-            // guard let controllerClass =
-            //     Bundle.main.classNamed(page + "ViewController")
-            //         as? UIViewController.Type
-            //     else {
-            //         throw ErrorMessage.message("No ViewController for \"\(page)\".")
-            // }
-            
-            guard let controllerClass = viewControllerMap[page] else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Page \"\(page)\" isn't in viewControllerMap")
-            }
-            let loadedController = controllerClass.init()
-            // TOTH: https://zonneveld.dev/ios-13-viewcontroller-presentation-style-modalpresentationstyle/
-            loadedController.modalPresentationStyle = .fullScreen
-
-            loadedController.modalTransitionStyle = .coverVertical
-            // During the vertical cover animation, the web view hasn't been
-            // loaded and so is a blank rectangle of the system background
-            // colour. The contents of the current view disappear but there's no
-            // sense of them being covered from bottom to top. The following
-            // code addresses this by adding a thin border, and removing the
-            // border after presentation.  
-            // The flipHorizontal transition doesn't seem to have this problme,
-            // but it's old-fashioned looking.
-            loadedController.view.layer.borderWidth = 1.0
-            loadedController.view.layer.borderColor = UIColor.label.cgColor
-            viewController.present(loadedController, animated: true) {
-                loadedController.view.layer.borderWidth = 0
-            }
-            return ["loaded": page]
+            return try builtInLoad(viewController, parameters)
             
         case .write:
-            // Get the parameters.
-            guard let text = parameters[KEY.text] as? String else {
-                throw CaptiveWebView.ErrorMessage(
-                    "No text in parameters for write command: \(parameters)")
-            }
-            guard let filename = parameters[KEY.filename] as? String else {
-                throw CaptiveWebView.ErrorMessage(
-                    "No filename in parameters for write command: \(parameters)")
-            }
-
-            // Get the Documents/ directory for the app, and append the
-            // specified file name.
-            // If the app declares UISupportsDocumentBrowser:YES in its
-            // Info.plist file then the files written here will be accessible
-            // to, for example, the Files app on the device.
-            let fileURL = try FileManager.default.url(
-                for: .documentDirectory, in: .userDomainMask,
-                appropriateFor: nil, create: true)
-                .appendingPathComponent(filename)
-
-            // Write the file.
-            try text.write(to:fileURL, atomically: true, encoding: .utf8)
-
-            // Generate a relative path that should be meaningful to the user.
-            let root = URL.init(fileURLWithPath: NSHomeDirectory())
-                .absoluteString
-            let absolutePath = fileURL.absoluteString
-            let relativePath = absolutePath.hasPrefix(root)
-                ? String(fileURL.absoluteString.suffix(
-                            absolutePath.count - root.count))
-                : absolutePath
-                
-            return [KEY.wrote: relativePath].withStringKeys()
+            return try builtInWrite(parameters)
             
         case .EMPTY:
             if let page = commandDictionary[LOAD_PAGE_KEY] as? String {
@@ -208,6 +140,122 @@ extension CaptiveWebView.DefaultViewController {
         default:
             throw CaptiveWebView.ErrorMessage("Unknown command \"\(command)\"")
         }
+    }
+
+    static func builtInFetch(
+        _ parameters: Dictionary<String, Any>
+    ) throws -> Dictionary<String, Any>
+    {
+        guard let resource = parameters["resource"] as? String else {
+            throw CaptiveWebView.ErrorMessage("No resource specified.")
+        }
+        guard let url = URL(string: resource) else {
+            throw CaptiveWebView.ErrorMessage("Resource isn't a URL.")
+        }
+        let fetchedData = try Data(contentsOf: url)
+//        let fetched = String(data: fetchedData, encoding: .utf8)
+
+        
+//        let bodyObject: Any
+//        do {
+            let fetched = try JSONSerialization.jsonObject(
+                with: fetchedData,
+                options: JSONSerialization.ReadingOptions.allowFragments)
+//        }
+//        catch {
+//            return nil
+//        }
+//        return bodyObject as? Dictionary<String, Any>
+
+        
+        
+        return ["fetched": fetched]
+    }
+    
+    static func builtInLoad(
+        _ viewController: CaptiveWebView.DefaultViewController,
+        _ parameters: Dictionary<String, Any>
+    ) throws -> Dictionary<String, Any>
+    {
+        guard let page = parameters["page"] as? String else {
+            throw CaptiveWebView.ErrorMessage("No page specified.")
+        }
+        
+        // The Captive Web View for Android has a map of page to Activity
+        // subclass. That's because Kotlin introspection would require an
+        // extra library in the application. The iOS runtime provides a form
+        // of introspection built-in, so there's no need for a map here ...
+        // except there is. The following looks promising but doesn't work.
+        //
+        // guard let controllerClass =
+        //     Bundle.main.classNamed(page + "ViewController")
+        //         as? UIViewController.Type
+        //     else {
+        //         throw ErrorMessage.message("No ViewController for \"\(page)\".")
+        // }
+        
+        guard let controllerClass = viewControllerMap[page] else {
+            throw CaptiveWebView.ErrorMessage(
+                "Page \"\(page)\" isn't in viewControllerMap")
+        }
+        let loadedController = controllerClass.init()
+        // TOTH: https://zonneveld.dev/ios-13-viewcontroller-presentation-style-modalpresentationstyle/
+        loadedController.modalPresentationStyle = .fullScreen
+
+        loadedController.modalTransitionStyle = .coverVertical
+        // During the vertical cover animation, the web view hasn't been
+        // loaded and so is a blank rectangle of the system background
+        // colour. The contents of the current view disappear but there's no
+        // sense of them being covered from bottom to top. The following
+        // code addresses this by adding a thin border, and removing the
+        // border after presentation.
+        // The flipHorizontal transition doesn't seem to have this problme,
+        // but it's old-fashioned looking.
+        loadedController.view.layer.borderWidth = 1.0
+        loadedController.view.layer.borderColor = UIColor.label.cgColor
+        viewController.present(loadedController, animated: true) {
+            loadedController.view.layer.borderWidth = 0
+        }
+        return ["loaded": page]
+    }
+    
+    static func builtInWrite(
+        _ parameters: Dictionary<String, Any>
+    ) throws -> Dictionary<String, Any>
+    {
+        // Get the parameters.
+        guard let text = parameters[KEY.text] as? String else {
+            throw CaptiveWebView.ErrorMessage(
+                "No text in parameters for write command: \(parameters)")
+        }
+        guard let filename = parameters[KEY.filename] as? String else {
+            throw CaptiveWebView.ErrorMessage(
+                "No filename in parameters for write command: \(parameters)")
+        }
+
+        // Get the Documents/ directory for the app, and append the
+        // specified file name.
+        // If the app declares UISupportsDocumentBrowser:YES in its
+        // Info.plist file then the files written here will be accessible
+        // to, for example, the Files app on the device.
+        let fileURL = try FileManager.default.url(
+            for: .documentDirectory, in: .userDomainMask,
+            appropriateFor: nil, create: true)
+            .appendingPathComponent(filename)
+
+        // Write the file.
+        try text.write(to:fileURL, atomically: true, encoding: .utf8)
+
+        // Generate a relative path that should be meaningful to the user.
+        let root = URL.init(fileURLWithPath: NSHomeDirectory())
+            .absoluteString
+        let absolutePath = fileURL.absoluteString
+        let relativePath = absolutePath.hasPrefix(root)
+            ? String(fileURL.absoluteString.suffix(
+                        absolutePath.count - root.count))
+            : absolutePath
+            
+        return [KEY.wrote: relativePath].withStringKeys()
     }
 }
 
