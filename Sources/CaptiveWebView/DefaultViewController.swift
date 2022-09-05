@@ -16,6 +16,10 @@ private enum Command: String {
 }
 
 private enum KEY: String {
+    // Keys used by `fetch` command.
+    case resource, options, method, body, bodyObject, headers,
+    fetched, fetchError
+    
     // Keys used by `write` command.
     case text, filename, wrote
     
@@ -146,30 +150,67 @@ extension CaptiveWebView.DefaultViewController {
         _ parameters: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>
     {
-        guard let resource = parameters["resource"] as? String else {
+        guard let resource = parameters[KEY.resource] as? String else {
             throw CaptiveWebView.ErrorMessage("No resource specified.")
         }
         guard let url = URL(string: resource) else {
             throw CaptiveWebView.ErrorMessage("Resource isn't a URL.")
         }
-        let fetchedData = try Data(contentsOf: url)
-//        let fetched = String(data: fetchedData, encoding: .utf8)
-
         
-//        let bodyObject: Any
-//        do {
-            let fetched = try JSONSerialization.jsonObject(
+        var request = URLRequest(url: url)
+        
+        if let options = parameters[KEY.options] as? Dictionary<String, Any> {
+            if let method = options[KEY.method] as? String {
+                request.httpMethod = method
+            }
+            if let body = options[KEY.body] as? String {
+                request.httpBody = body.data(using: .utf8)
+                request.addValue(
+                    "application/json", forHTTPHeaderField: "Content-Type")
+            }
+            if let bodyObject = options[KEY.bodyObject]
+                as? Dictionary<String, Any>
+            {
+                request.httpBody = try JSONSerialization.data(
+                    withJSONObject: bodyObject)
+                // let body = String(data: request.httpBody!, encoding: .utf8)
+                request.addValue(
+                    "application/json", forHTTPHeaderField: "Content-Type")
+            }
+            if let headers = options[KEY.headers] as? Dictionary<String, String>
+            {
+                for header in headers {
+                    request.addValue(
+                        header.value, forHTTPHeaderField: header.key)
+                }
+            }
+        }
+        
+        var fetchedData:Data? = nil
+        var fetchError:Error? = nil
+        // TOTH synchronous HTTP request.
+        // https://stackoverflow.com/a/64476948/7657675
+        let group = DispatchGroup()
+        group.enter()
+        let task = URLSession.shared.dataTask(with: request) {
+            (data, response, error) in
+            defer {group.leave()}
+            fetchError = error
+            fetchedData = data
+        }
+        task.resume()
+        group.wait()
+
+        var return_:Dictionary<KEY, Any> = [:]
+        if let fetchedData = fetchedData {
+            return_[KEY.fetched] = try JSONSerialization.jsonObject(
                 with: fetchedData,
                 options: JSONSerialization.ReadingOptions.allowFragments)
-//        }
-//        catch {
-//            return nil
-//        }
-//        return bodyObject as? Dictionary<String, Any>
-
-        
-        
-        return ["fetched": fetched]
+        }
+        if let fetchError = fetchError {
+            return_[KEY.fetchError] = fetchError.localizedDescription as Any
+        }
+        return return_.withStringKeys()
     }
     
     static func builtInLoad(
