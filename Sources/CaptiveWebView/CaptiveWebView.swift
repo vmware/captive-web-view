@@ -136,7 +136,7 @@ public struct CaptiveWebView {
         // Use a crafty lambda to instantiate the WKWebView and set its
         // navigation delegate. This has to be lazy so that `self` is available
         // in the property initialiser.
-        lazy var webView: WKWebView = {
+        public lazy var webView: WKWebView = {
             var wkWebView = CaptiveWebView.makeWebView(
                 frame: .zero, commandHandler: nil)
             wkWebView.navigationDelegate = self
