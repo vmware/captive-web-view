@@ -357,7 +357,7 @@ Proceed as follows.
     -   The `command` to run in the JavaScript layer, as a `Dictionary<String,
         Any>` instance.
     -   The `completionHandler` to receive the response from the JavaScript
-        layer, as a `((Any?, Error?) -> Void)` closure. The hander is optional.
+        layer, as a `((Any?, Error?) -> Void)` closure. The handler is optional.
 
     If called as sendObject(to:) then also pass the WKWebView instance, as the
     first parameter.
@@ -465,5 +465,5 @@ This concludes removing the application storyboard.
 
 Legal
 =====
-Copyright 2020 VMware, Inc.  
+Copyright 2022 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
