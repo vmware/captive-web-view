@@ -17,8 +17,8 @@ private enum KEY: String {
     case closed
     
     // Keys used by `fetch` command.
-    case resource, options, method, body, bodyObject, headers,
-    fetched, fetchError
+    case resource, options, method, body, bodyObject, headers, fetched,
+         fetchError
     
     // Keys used by `load` command.
     case page, loaded, dispatched
@@ -96,25 +96,22 @@ extension CaptiveWebView.DefaultViewController {
         in commandDictionary: Dictionary<String, Any>
         ) throws -> Dictionary<String, Any>
     {
-        let parameters = commandDictionary[.parameters]
-            as? Dictionary<String, Any> ?? [:]
-        
         switch Command(rawValue:command) {
         case .close:
             viewController.dismiss(animated: true, completion: nil)
             return [.closed: true].withStringKeys()
         
         case .fetch:
-            return try builtInFetch(parameters)
+            return try builtInFetch(commandDictionary)
 
         case .focus:
             return ["focussed controller": viewController.becomeFirstResponder()]
             
         case .load:
-            return try builtInLoad(viewController, parameters)
+            return try builtInLoad(viewController, commandDictionary)
             
         case .write:
-            return try builtInWrite(parameters)
+            return try builtInWrite(commandDictionary)
             
         case .EMPTY:
             if let page = commandDictionary[.load] as? String {
@@ -151,10 +148,13 @@ extension CaptiveWebView.DefaultViewController {
         }
     }
 
-    static func builtInFetch(
-        _ parameters: Dictionary<String, Any>
+    public static func builtInFetch(
+        _ commandDictionary: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>
     {
+        let parameters = commandDictionary[.parameters]
+            as? Dictionary<String, Any> ?? [:]
+        
         guard let resource = parameters[.resource] as? String else {
             throw CaptiveWebView.ErrorMessage("No resource specified.")
         }
@@ -224,9 +224,12 @@ extension CaptiveWebView.DefaultViewController {
     
     static func builtInLoad(
         _ viewController: CaptiveWebView.DefaultViewController,
-        _ parameters: Dictionary<String, Any>
+        _ commandDictionary: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>
     {
+        let parameters = commandDictionary[.parameters]
+            as? Dictionary<String, Any> ?? [:]
+        
         guard let page = parameters[.page] as? String else {
             throw CaptiveWebView.ErrorMessage("No page specified.")
         }
@@ -269,10 +272,13 @@ extension CaptiveWebView.DefaultViewController {
         return [.loaded: page].withStringKeys()
     }
     
-    static func builtInWrite(
-        _ parameters: Dictionary<String, Any>
+    public static func builtInWrite(
+        _ commandDictionary: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>
     {
+        let parameters = commandDictionary[.parameters]
+            as? Dictionary<String, Any> ?? [:]
+        
         // Get the parameters.
         guard let text = parameters[.text] as? String else {
             throw CaptiveWebView.ErrorMessage(
