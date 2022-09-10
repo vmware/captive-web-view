@@ -1,37 +1,42 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2022 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 #if os(iOS)
 import Foundation
 import WebKit
 
-private let CONFIRM_KEY = "confirm"
-private let COMMAND_KEY = "command"
-private let EXCEPTION_KEY = "failed"
-private let LOAD_PAGE_KEY = "load"
-private let SECURE_KEY = "secure"
-
 private enum Command: String {
     case close, fetch, focus, load, write, EMPTY = ""
 }
 
 private enum KEY: String {
+    // Common keys.
+    case command, confirm, failed, load, secure, parameters
+    
+    // Keys used by the `close` command.
+    case closed
+    
     // Keys used by `fetch` command.
     case resource, options, method, body, bodyObject, headers,
     fetched, fetchError
     
-    // Keys used by `write` command.
-    case text, filename, wrote
+    // Keys used by `load` command.
+    case page, loaded, dispatched
     
-    // ToDo replace all the _KEY constants, above, with enumerated values.
+    // Keys used by `write` command.
+    case base64decode, text, filename, wrote
 }
 
 // Convenience extension to facilitate use of the KEY enumeration as keys in a
-// dictionary.
+// dictionary. TOTH for the setter:
+// https://www.avanderlee.com/swift/custom-subscripts/#making-a-read-and-write-subscript
 extension Dictionary where Key == String {
     fileprivate subscript(_ key:KEY) -> Value? {
         get {
-            return self[key.rawValue]
+            self[key.rawValue]
+        }
+        set {
+            self[key.rawValue] = newValue
         }
     }
 }
@@ -60,7 +65,7 @@ extension CaptiveWebView.DefaultViewController {
     {
         var returning = command
         do {
-            let commandAny:Any = command[COMMAND_KEY] ?? ""
+            let commandAny:Any = command[.command] ?? ""
             guard let commandString = commandAny as? String else {
                 throw CaptiveWebView.ErrorMessage(
                     "Command isn't String: " + String(describing: commandAny))
@@ -71,15 +76,15 @@ extension CaptiveWebView.DefaultViewController {
             returning.merge(responded) {(_, new) in new}
             // Confirmation message starts with the class name of self.
             // TOTH: https://stackoverflow.com/a/34878224
-            returning[CONFIRM_KEY] =
+            returning[.confirm] =
                 String(describing: type(of: viewController)) + " bridge OK."
-            returning[SECURE_KEY] = viewController.webView.hasOnlySecureContent
+            returning[.secure] = viewController.webView.hasOnlySecureContent
         }
         catch let error as CaptiveWebView.ErrorMessage {
-            returning[EXCEPTION_KEY] = error.localizedDescription
+            returning[.failed] = error.localizedDescription
         }
         catch {
-            returning[EXCEPTION_KEY] = error.localizedDescription
+            returning[.failed] = error.localizedDescription
         }
         return returning
 
@@ -91,13 +96,13 @@ extension CaptiveWebView.DefaultViewController {
         in commandDictionary: Dictionary<String, Any>
         ) throws -> Dictionary<String, Any>
     {
-        let parameters = commandDictionary["parameters"]
+        let parameters = commandDictionary[.parameters]
             as? Dictionary<String, Any> ?? [:]
         
         switch Command(rawValue:command) {
         case .close:
             viewController.dismiss(animated: true, completion: nil)
-            return ["closed": true]
+            return [.closed: true].withStringKeys()
         
         case .fetch:
             return try builtInFetch(parameters)
@@ -112,7 +117,7 @@ extension CaptiveWebView.DefaultViewController {
             return try builtInWrite(parameters)
             
         case .EMPTY:
-            if let page = commandDictionary[LOAD_PAGE_KEY] as? String {
+            if let page = commandDictionary[.load] as? String {
                 // This branch handles a command like this:
                 //
                 //     {"load": "pagetoload.html"}
@@ -134,7 +139,7 @@ extension CaptiveWebView.DefaultViewController {
                 // The dispatched load will bin the web content, including the
                 // JS that receives the confirmation. If it logs it, that log
                 // will be cleared before it can be seen, if everything is OK.
-                return ["dispatched": page]
+                return [.dispatched: page].withStringKeys()
             }
             else {
                 // Empty dictionary.
@@ -150,7 +155,7 @@ extension CaptiveWebView.DefaultViewController {
         _ parameters: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>
     {
-        guard let resource = parameters[KEY.resource] as? String else {
+        guard let resource = parameters[.resource] as? String else {
             throw CaptiveWebView.ErrorMessage("No resource specified.")
         }
         guard let url = URL(string: resource) else {
@@ -159,25 +164,29 @@ extension CaptiveWebView.DefaultViewController {
         
         var request = URLRequest(url: url)
         
-        if let options = parameters[KEY.options] as? Dictionary<String, Any> {
-            if let method = options[KEY.method] as? String {
+        if let options = parameters[.options] as? Dictionary<String, Any> {
+            if let method = options[.method] as? String {
                 request.httpMethod = method
             }
-            if let body = options[KEY.body] as? String {
+            if let body = options[.body] as? String {
                 request.httpBody = body.data(using: .utf8)
                 request.addValue(
                     "application/json", forHTTPHeaderField: "Content-Type")
             }
-            if let bodyObject = options[KEY.bodyObject]
+            if let bodyObject = options[.bodyObject]
                 as? Dictionary<String, Any>
             {
-                request.httpBody = try JSONSerialization.data(
+                request.addValue(
+                    "application/json", forHTTPHeaderField: "Content-Type")
+                var httpBody = try JSONSerialization.data(
                     withJSONObject: bodyObject)
+                httpBody.append(contentsOf: "\r\n\r\n".utf8)
+                request.httpBody = httpBody
                 // let body = String(data: request.httpBody!, encoding: .utf8)
                 request.addValue(
                     "application/json", forHTTPHeaderField: "Content-Type")
             }
-            if let headers = options[KEY.headers] as? Dictionary<String, String>
+            if let headers = options[.headers] as? Dictionary<String, String>
             {
                 for header in headers {
                     request.addValue(
@@ -201,16 +210,16 @@ extension CaptiveWebView.DefaultViewController {
         task.resume()
         group.wait()
 
-        var return_:Dictionary<KEY, Any> = [:]
+        var return_:Dictionary<String, Any> = [:]
         if let fetchedData = fetchedData {
-            return_[KEY.fetched] = try JSONSerialization.jsonObject(
+            return_[.fetched] = try JSONSerialization.jsonObject(
                 with: fetchedData,
                 options: JSONSerialization.ReadingOptions.allowFragments)
         }
         if let fetchError = fetchError {
-            return_[KEY.fetchError] = fetchError.localizedDescription as Any
+            return_[.fetchError] = fetchError.localizedDescription as Any
         }
-        return return_.withStringKeys()
+        return return_
     }
     
     static func builtInLoad(
@@ -218,7 +227,7 @@ extension CaptiveWebView.DefaultViewController {
         _ parameters: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>
     {
-        guard let page = parameters["page"] as? String else {
+        guard let page = parameters[.page] as? String else {
             throw CaptiveWebView.ErrorMessage("No page specified.")
         }
         
@@ -257,7 +266,7 @@ extension CaptiveWebView.DefaultViewController {
         viewController.present(loadedController, animated: true) {
             loadedController.view.layer.borderWidth = 0
         }
-        return ["loaded": page]
+        return [.loaded: page].withStringKeys()
     }
     
     static func builtInWrite(
@@ -265,14 +274,15 @@ extension CaptiveWebView.DefaultViewController {
     ) throws -> Dictionary<String, Any>
     {
         // Get the parameters.
-        guard let text = parameters[KEY.text] as? String else {
+        guard let text = parameters[.text] as? String else {
             throw CaptiveWebView.ErrorMessage(
                 "No text in parameters for write command: \(parameters)")
         }
-        guard let filename = parameters[KEY.filename] as? String else {
+        guard let filename = parameters[.filename] as? String else {
             throw CaptiveWebView.ErrorMessage(
                 "No filename in parameters for write command: \(parameters)")
         }
+        let asciiToBinary = parameters[.base64decode] as? Bool ?? false
 
         // Get the Documents/ directory for the app, and append the
         // specified file name.
@@ -285,7 +295,13 @@ extension CaptiveWebView.DefaultViewController {
             .appendingPathComponent(filename)
 
         // Write the file.
-        try text.write(to:fileURL, atomically: true, encoding: .utf8)
+        if asciiToBinary {
+            let data = Data(base64Encoded: text)
+            try data?.write(to: fileURL)
+        }
+        else {
+            try text.write(to:fileURL, atomically: true, encoding: .utf8)
+        }
 
         // Generate a relative path that should be meaningful to the user.
         let root = URL.init(fileURLWithPath: NSHomeDirectory())
@@ -296,8 +312,9 @@ extension CaptiveWebView.DefaultViewController {
                         absolutePath.count - root.count))
             : absolutePath
             
-        return [KEY.wrote: relativePath].withStringKeys()
+        return [.wrote: relativePath].withStringKeys()
     }
 }
+
 
 #endif
