@@ -1,4 +1,4 @@
-/* Copyright 2020 VMware, Inc.
+/* Copyright 2022 VMware, Inc.  
  * SPDX-License-Identifier: BSD-2-Clause
  */
 
@@ -161,6 +161,9 @@ pre.cwv-transcript__log_line {
 .cwv-input__label {
     font-size: medium;
     display: block;
+}
+.cwv-input_checkbox .cwv-input__label {
+    display: inline-block;
 }
 
 .cwv-anchor {
