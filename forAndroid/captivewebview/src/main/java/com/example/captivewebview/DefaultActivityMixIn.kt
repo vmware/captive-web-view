@@ -3,11 +3,18 @@
 
 package com.example.captivewebview
 
+import android.content.Context
 import android.content.Intent
+import android.util.Log
 import com.example.captivewebview.ActivityMixIn.Companion.WEB_VIEW_ID
 import org.json.JSONArray
 import org.json.JSONObject
+import org.json.JSONTokener
+import java.io.BufferedInputStream
 import java.io.File
+import java.net.HttpURLConnection
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 class CauseIterator(private var throwable: Throwable?): Iterator<Throwable> {
     override fun hasNext(): Boolean {
@@ -60,10 +67,20 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         }
 
         private enum class KEY {
+            // Keys used by `fetch`
+            resource, options, method, bodyObject, headers
+            , fetched, fetchError,
+
             text, filename, wrote
         }
         private fun JSONObject.opt(key: KEY): Any? {
             return this.opt(key.name)
+        }
+        private fun JSONObject.put(key: KEY, value: JSONObject): JSONObject {
+            return this.put(key.name, value)
+        }
+        private fun JSONObject.put(key: KEY, value: String?): JSONObject {
+            return this.put(key.name, value)
         }
         // Enables members of the KEY enumeration to be used as keys in mappings
         // from String to any, for example as mapOf() parameters.
@@ -91,6 +108,89 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 .findViewById<com.example.captivewebview.WebView>(WEB_VIEW_ID)
             webView.webViewBridge = activity as WebViewBridge
         }
+
+        fun builtInFetch(jsonObject: JSONObject): JSONObject {
+            // ToDo check these items aren't null.
+            val parameters = jsonObject.get("parameters") as JSONObject
+            val resource:String = parameters.opt(KEY.resource) as String
+            val url = URL(resource)
+
+            val connection = url.openConnection() as HttpsURLConnection
+
+            var requestBody:String? = null
+            (parameters.opt(KEY.options) as? JSONObject)?.run {
+                (opt(KEY.method) as? String)?.let {
+                    connection.requestMethod = it
+                }
+                (opt(KEY.bodyObject) as? JSONObject)?.let {
+                    connection.setRequestProperty(
+                        "Content-Type", "application/json")
+                    requestBody = it.toString() + "\r\n\r\n"
+                }
+                (opt(KEY.headers) as? JSONObject)?.let {
+                    for (key in it.keys()) {
+                        connection.setRequestProperty(key, it.get(key) as String)
+                    }
+                }
+            }
+
+            var fetchedData: ByteArray? = null
+            var fetchError: Exception? = null
+            try {
+                requestBody?.let {
+                    connection.doOutput = true
+                    connection.outputStream.write(it.encodeToByteArray())
+                }
+
+                val inputStream = connection.inputStream
+                val bytes = mutableListOf<Byte>()
+                var byte = inputStream.read()
+                while (byte != -1) {
+                    bytes.add(byte.toByte())
+                    byte = inputStream.read()
+                }
+                fetchedData = ByteArray(bytes.size) {index -> bytes[index]}
+            }
+            catch (exception:Exception) {
+                fetchError = exception
+            }
+            finally {
+                connection.disconnect()
+            }
+
+            val return_ = JSONObject()
+            fetchedData?.let {
+                // TOTH https://stackoverflow.com/a/57326083/7657675
+
+
+//                val fetchedJSON = JSONObject(it.decodeToString())
+                return_.put(
+                    KEY.fetched.name,
+                    JSONTokener(it.decodeToString()).nextValue()
+                )
+            }
+            fetchError?.let {
+                return_.put(KEY.fetchError, fetchError.toString())
+            }
+
+            // https://developer.android.com/reference/javax/net/ssl/HttpsURLConnection#getServerCertificates()
+
+            return return_
+        }
+
+        fun builtInWrite(context: Context, jsonObject: JSONObject): JSONObject {
+            val parameters = jsonObject.get("parameters") as JSONObject
+            val file = File(
+                context.filesDir,
+                parameters.opt(KEY.filename) as? String
+                    ?: throw Exception("No file name specified")
+            ).absoluteFile
+            file.writeText(
+                parameters.opt(KEY.text) as? String
+                    ?: throw Exception("No text specified"))
+            return JSONObject(mapOf(KEY.wrote to file.toString()))
+        }
+
     }
 
     // The following seems like the right way to do this:
@@ -174,8 +274,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 jsonObject.put("loaded", this.loadActivity(it))
             }
 
-            Command.write ->
-                writeFile(jsonObject.get("parameters") as JSONObject)
+            Command.write -> builtInWrite(this as Context, jsonObject)
 
             null -> jsonObject
 
@@ -197,17 +296,9 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         return page
     }
 
-    private fun writeFile(parameters: JSONObject): JSONObject {
-        this as Activity
-        val file = File(
-            filesDir,
-            parameters.opt(KEY.filename) as? String
-                ?: throw Exception("No file name specified")
-        ).absoluteFile
-        file.writeText(
-            parameters.opt(KEY.text) as? String
-            ?: throw Exception("No text specified"))
-        return JSONObject(mapOf(KEY.wrote to file.toString()))
-    }
+//    private fun builtInWrite(parameters: JSONObject): JSONObject {
+//        this as Context
+//        return Companion.builtInWrite(this, parameters)
+//    }
 
 }
