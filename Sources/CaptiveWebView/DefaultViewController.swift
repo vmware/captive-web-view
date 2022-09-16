@@ -176,13 +176,10 @@ extension CaptiveWebView.DefaultViewController {
             if let bodyObject = options[.bodyObject]
                 as? Dictionary<String, Any>
             {
-                request.addValue(
-                    "application/json", forHTTPHeaderField: "Content-Type")
                 var httpBody = try JSONSerialization.data(
                     withJSONObject: bodyObject)
                 httpBody.append(contentsOf: "\r\n\r\n".utf8)
                 request.httpBody = httpBody
-                // let body = String(data: request.httpBody!, encoding: .utf8)
                 request.addValue(
                     "application/json", forHTTPHeaderField: "Content-Type")
             }
