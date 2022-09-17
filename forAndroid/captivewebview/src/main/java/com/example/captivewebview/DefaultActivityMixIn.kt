@@ -5,14 +5,12 @@ package com.example.captivewebview
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
+import android.util.Base64
 import com.example.captivewebview.ActivityMixIn.Companion.WEB_VIEW_ID
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
-import java.io.BufferedInputStream
 import java.io.File
-import java.net.HttpURLConnection
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 
@@ -46,11 +44,6 @@ class CauseIterator(private var throwable: Throwable?): Iterator<Throwable> {
  */
 interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
     companion object {
-        private const val CONFIRM_KEY = "confirm"
-        private const val COMMAND_KEY = "command"
-        const val EXCEPTION_KEY = "failed"
-        private const val LOAD_PAGE_KEY = "load"
-
         // Android Studio warns that these should start with capital letters but
         // they shouldn't because they have to match what gets sent from the JS
         // layer.
@@ -67,19 +60,20 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         }
 
         private enum class KEY {
-            // Keys used by `fetch`
+            // Common keys.
+            command, confirm, failed, load, parameters,
+
+            // Keys used by the `fetch` command.
             resource, options, method, bodyObject, headers
             , fetched, fetchError,
 
-            text, filename, wrote
+            // Keys used by the `write` command.
+            base64decode, text, filename, wrote
         }
         private fun JSONObject.opt(key: KEY): Any? {
             return this.opt(key.name)
         }
-        private fun JSONObject.put(key: KEY, value: JSONObject): JSONObject {
-            return this.put(key.name, value)
-        }
-        private fun JSONObject.put(key: KEY, value: String?): JSONObject {
+        private fun JSONObject.put(key: KEY, value: Any?): JSONObject {
             return this.put(key.name, value)
         }
         // Enables members of the KEY enumeration to be used as keys in mappings
@@ -91,7 +85,11 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         val activityMap = mutableMapOf<String, Class<android.app.Activity>>()
 
         fun addToActivityMap(key:String, activityClassJava: Any) {
-            activityMap.put(key, activityClassJava as Class<android.app.Activity>)
+            activityMap[key] = activityClassJava as? Class<android.app.Activity>
+                ?: throw Exception(
+                    "activityClassJava $activityClassJava cannot be cast to"
+                    + " Class<android.app.Activity>"
+                )
         }
         fun addToActivityMap(map: Map<String, Any>) {
             map.forEach { addToActivityMap(it.key, it.value) }
@@ -110,9 +108,11 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         }
 
         fun builtInFetch(jsonObject: JSONObject): JSONObject {
-            // ToDo check these items aren't null.
-            val parameters = jsonObject.get("parameters") as JSONObject
-            val resource:String = parameters.opt(KEY.resource) as String
+            val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
+                ?: throw Exception("No parameters in fetch command")
+            val resource:String = parameters.opt(KEY.resource) as? String
+                ?: throw Exception("Parameter for resource isn't String")
+            // ToDo check URL conversion.
             val url = URL(resource)
 
             val connection = url.openConnection() as HttpsURLConnection
@@ -142,7 +142,12 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                     connection.outputStream.write(it.encodeToByteArray())
                 }
 
+                // ToDo add a maximum size parameter to prevent buffer overrun.
                 val inputStream = connection.inputStream
+
+                // ToDo
+                // https://developer.android.com/reference/javax/net/ssl/HttpsURLConnection#getServerCertificates()
+
                 val bytes = mutableListOf<Byte>()
                 var byte = inputStream.read()
                 while (byte != -1) {
@@ -158,39 +163,38 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 connection.disconnect()
             }
 
-            val return_ = JSONObject()
-            fetchedData?.let {
-                // TOTH https://stackoverflow.com/a/57326083/7657675
+            return JSONObject().apply {
+                fetchedData?.let { put(
+                    // TOTH https://stackoverflow.com/a/57326083/7657675
 
-
-//                val fetchedJSON = JSONObject(it.decodeToString())
-                return_.put(
                     KEY.fetched.name,
                     JSONTokener(it.decodeToString()).nextValue()
-                )
+                ) }
+                fetchError?.let { put(KEY.fetchError, fetchError.toString()) }
             }
-            fetchError?.let {
-                return_.put(KEY.fetchError, fetchError.toString())
-            }
-
-            // https://developer.android.com/reference/javax/net/ssl/HttpsURLConnection#getServerCertificates()
-
-            return return_
         }
 
         fun builtInWrite(context: Context, jsonObject: JSONObject): JSONObject {
-            val parameters = jsonObject.get("parameters") as JSONObject
+            val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
+                ?: throw Exception("No parameters in write command")
+            val asciiToBinary = parameters.opt(KEY.base64decode) as? Boolean
+                ?: false
+            val text = parameters.opt(KEY.text) as? String
+                ?: throw Exception("No text parameter in write command")
             val file = File(
                 context.filesDir,
                 parameters.opt(KEY.filename) as? String
-                    ?: throw Exception("No file name specified")
+                    ?: throw Exception(
+                        "No file name parameter in write command")
             ).absoluteFile
-            file.writeText(
-                parameters.opt(KEY.text) as? String
-                    ?: throw Exception("No text specified"))
+            if (asciiToBinary) {
+                file.writeBytes(Base64.decode(text, Base64.DEFAULT))
+            }
+            else {
+                file.writeText(text)
+            }
             return JSONObject(mapOf(KEY.wrote to file.toString()))
         }
-
     }
 
     // The following seems like the right way to do this:
@@ -230,12 +234,12 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             // Next line uses opt() not optString(). That's because optString
             // returns "" if there's no mapping; opt() returns null which is
             // easier to detect.
-            val returning = (jsonObject.opt(COMMAND_KEY) as? String)?.let {
+            val returning = (jsonObject.opt(KEY.command) as? String)?.let {
                 commandResponse(it, jsonObject)
             } ?: jsonObject
 
-            returning.put(CONFIRM_KEY,
-                (jsonObject.opt(LOAD_PAGE_KEY) as? String)?.let {
+            returning.put(KEY.confirm,
+                (jsonObject.opt(KEY.load) as? String)?.let {
                     // Next line declares that `this` must be an Activity.
                     this as Activity
                     val webView =
@@ -251,7 +255,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         } catch(exception: Exception) {
             val exceptions = JSONArray(CauseIterator(exception)
                 .asSequence().map { it.toString() }.toList())
-            jsonObject.put(EXCEPTION_KEY,
+            jsonObject.put(KEY.failed,
                 if (exceptions.length() == 1) exceptions[0] else exceptions)
         }
     }
@@ -268,7 +272,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
 
             Command.focus -> jsonObject.put("focussed", focusWebView())
 
-            Command.load -> (jsonObject.get("parameters") as JSONObject).let {
+            Command.load -> (jsonObject.opt(KEY.parameters) as JSONObject).let {
                 // Scope function `let` returns the result of the lambda and
                 // makes the context object available as `it`.
                 jsonObject.put("loaded", this.loadActivity(it))
@@ -288,17 +292,12 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         // parameters.put("page", "duff_page") // Induce error: No page.
         val page = parameters.opt("page") as? String
             ?: throw Exception("No page specified.")
-        val activityClass = activityMap.get(page)
+        val activityClass = activityMap[page]
             ?: throw Exception("Page \"$page\" isn't in activityMap.")
         this as Activity
         val intent = Intent(this, activityClass)
         this.startActivity(intent)
         return page
     }
-
-//    private fun builtInWrite(parameters: JSONObject): JSONObject {
-//        this as Context
-//        return Companion.builtInWrite(this, parameters)
-//    }
 
 }
