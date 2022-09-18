@@ -1,9 +1,10 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2022 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.captivewebview
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -63,8 +64,10 @@ class WebView : android.webkit.WebView {
         resultCallback: ((JSONObject) -> Unit)?
     )
     {
-        evaluateJavascript("commandBridge.receiveObject($jsonObject);") {
-            resultCallback?.invoke(JSONObject(it))
+        (context as Activity).runOnUiThread {
+            evaluateJavascript("commandBridge.receiveObject($jsonObject);") {
+                resultCallback?.invoke(JSONObject(it))
+            }
         }
     }
     fun sendObject(
