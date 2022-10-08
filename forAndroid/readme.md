@@ -43,7 +43,7 @@ Project build.gradle file snippet:
     allprojects {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
 
             // Next declaration is added:
             maven {
