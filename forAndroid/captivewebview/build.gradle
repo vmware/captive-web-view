@@ -52,7 +52,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.example.captivewebview'
             artifactId = 'captivewebview'
-            version = '6.1'
+            version = '6.2'
             afterEvaluate {
                 from components.release
             }
