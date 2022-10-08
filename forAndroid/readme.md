@@ -368,7 +368,13 @@ JavaScript end, receiver:
 net::ERR_CACHE_MISS means you don't have the Android uses Internet permission.
 TOTH: https://stackoverflow.com/a/35294446/7657675
 
+How to resolve errors with the Java version, like this one.
 
+>   Caused by: com.android.builder.errors.EvalIssueException: Android Gradle
+>   plugin requires Java 11 to run. You are currently using Java 1.8.
+
+Select the JDK from Android Studio. TOTH
+[https://stackoverflow.com/a/66450524/7657675](https://stackoverflow.com/a/66450524/7657675)
 
 Legal
 =====
