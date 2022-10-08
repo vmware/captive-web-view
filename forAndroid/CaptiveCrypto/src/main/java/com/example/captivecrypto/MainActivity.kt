@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2022 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.captivecrypto
@@ -76,6 +76,10 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     private fun JSONObject.put(key: KEY, value: Any?): JSONObject {
         return this.put(key.name, value)
     }
+
+    // Kotlin doesn't allow enum subclasses. This means that the KEY enum class
+    // here cannot inherit the enumeration from DefaultActivityMixIn.
+    private val FAILED = DefaultActivityMixIn.Companion.KEY.failed.name
 
     // fun KeyStore.Companion.getInstance(key: KEY): KeyStore {
     //    return KeyStore.getInstance(key.name)
@@ -236,9 +240,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             val exceptions = JSONArray(CauseIterator(exception)
                 .asSequence().map { it.toString() }.toList())
             result.put(JSONObject(mapOf(
-                DefaultActivityMixIn.EXCEPTION_KEY to
-                        if (exceptions.length() == 1) exceptions[0]
-                        else exceptions)))
+                FAILED to if (exceptions.length() == 1) exceptions[0]
+                else exceptions)))
             return result
         }
 
@@ -254,9 +257,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             val exceptions = JSONArray(CauseIterator(exception)
                 .asSequence().map { it.toString() }.toList())
             result.put(JSONObject(mapOf(
-                DefaultActivityMixIn.EXCEPTION_KEY to
-                        if (exceptions.length() == 1) exceptions[0]
-                        else exceptions)))
+                FAILED to if (exceptions.length() == 1) exceptions[0]
+                else exceptions)))
             return result
         }
 
