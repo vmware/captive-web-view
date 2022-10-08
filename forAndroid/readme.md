@@ -20,7 +20,7 @@ How to get the framework
 
         /wherever/you/cloned/captive-web-view/forAndroid/
 
-3.  Execute the Gradle task: forAndroid/Tasks/upload/uploadArchives
+3.  Execute the Gradle task: forAndroid/Tasks/publishing/publish
 
 That should create a maven repository under the
 /wherever/you/cloned/captive-web-view/m2repository/ directory.
@@ -372,5 +372,5 @@ TOTH: https://stackoverflow.com/a/35294446/7657675
 
 Legal
 =====
-Copyright 2019 VMware, Inc.  
+Copyright 2022 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
