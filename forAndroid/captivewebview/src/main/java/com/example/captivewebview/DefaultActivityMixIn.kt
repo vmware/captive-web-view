@@ -48,7 +48,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         // they shouldn't because they have to match what gets sent from the JS
         // layer.
         private enum class Command {
-            close, focus, load, write, UNKNOWN;
+            close, fetch, focus, load, write, UNKNOWN;
 
             companion object {
                 fun matching(string: String?): Command? {
@@ -59,7 +59,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             }
         }
 
-        private enum class KEY {
+        enum class KEY {
             // Common keys.
             command, confirm, failed, load, parameters,
 
@@ -270,6 +270,8 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 this.finish()
             }
 
+            Command.fetch -> builtInFetch(jsonObject)
+
             Command.focus -> jsonObject.put("focussed", focusWebView())
 
             Command.load -> (jsonObject.opt(KEY.parameters) as JSONObject).let {
@@ -283,7 +285,6 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             null -> jsonObject
 
             Command.UNKNOWN -> throw Exception("Unknown command \"$command\".")
-
         }
     }
 
