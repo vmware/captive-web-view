@@ -4,11 +4,13 @@
 package com.example.captivewebview
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -97,6 +99,7 @@ class WebView : android.webkit.WebView {
     val defaultMixedContentMode:Int by lazy { this._defaultMixedContentMode!! }
     private var _defaultMixedContentMode:Int? = null
 
+    @SuppressLint("SetJavaScriptEnabled")
     private fun defaultSettings(context: Context?) {
         this.settings.javaScriptEnabled = true
         this.settings.offscreenPreRaster = true
@@ -114,12 +117,18 @@ class WebView : android.webkit.WebView {
         // Android WebView doesn't implement the standard media query for dark
         // mode detection by default. TOTH for how to implement:
         // https://stackoverflow.com/a/61643614/7657675
+        //
+        // The setForceDarkStrategy() and setForceDark() methods are deprecated
+        // but appear necessary to get dark mode support on early Android
+        // versions. According to the Android developer website, these methods
+        // will be a no-op if targetSdk >= 33. Seems harmless to leave them here
+        // in that case.
         if(
             WebViewFeature.isFeatureSupported(
                 WebViewFeature.FORCE_DARK_STRATEGY)
         ) {
             WebSettingsCompat.setForceDarkStrategy(settings,
-                WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY);
+                WebSettingsCompat.DARK_STRATEGY_WEB_THEME_DARKENING_ONLY)
         }
         else {
             Log.w(TAG,

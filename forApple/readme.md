@@ -8,7 +8,7 @@ following table.
 
 Software | Instructions last tested | Built
 ---------|--------------------------|-------
-Xcode    | 12.2                     | 12.2
+Xcode    | 14.0                     | 14.0
 
 The instructions below describe how to use Captive Web View in your app. For
 more detailed information on how it works, see the
@@ -37,7 +37,7 @@ package dependency.
 
 See the Skeleton application Xcode projects as examples, or proceed as follows.
 
-1.  In Xcode, navigate to File, Swift Packages, Add Package Dependency...
+1.  In Xcode, navigate to File, Add Packages...
 
 2.  If prompted, when working with an Xcode workspace, select the Xcode project
     requiring the framework.

@@ -13,7 +13,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdk 32
 
     sourceSets {
         main.assets.srcDirs += new RelativePath(
@@ -22,8 +22,8 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 26
-        targetSdkVersion 30
+        minSdk 26
+        targetSdk 32
         versionCode 1
         versionName "1.0"
     }
@@ -40,7 +40,7 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.webkit:webkit:1.3.0'
+    implementation 'androidx.webkit:webkit:1.5.0'
 }
 
 // Reference for Maven publication of Android library.
@@ -52,7 +52,7 @@ publishing {
         release(MavenPublication) {
             groupId = 'com.example.captivewebview'
             artifactId = 'captivewebview'
-            version = '6.2'
+            version = '7.0'
             afterEvaluate {
                 from components.release
             }

@@ -5,8 +5,8 @@ Compatibility
 These instructions work for the following software versions.
 
 Software       | Version
----------------|--------
-Android Studio | 3.5
+---------------|--------------------------
+Android Studio | Chipmunk 2021.2.1 Patch 2
 
 How to get the framework
 ==========================

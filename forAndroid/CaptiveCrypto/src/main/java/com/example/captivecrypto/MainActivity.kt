@@ -8,6 +8,7 @@ import org.json.JSONObject
 
 import com.example.captivewebview.CauseIterator
 import com.example.captivewebview.DefaultActivityMixIn
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
@@ -25,7 +26,7 @@ object FancyDate {
             .filter { withZone || it.trim() != "z"}
             .map { SimpleDateFormat(it, Locale.getDefault()) }
             .map { it.format(date).run {
-                if (it.toPattern() == "MMM") toLowerCase(Locale.getDefault())
+                if (it.toPattern() == "MMM") lowercase(Locale.getDefault())
                 else this
             } }
             .joinToString("")
@@ -130,6 +131,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         // kotlinx.serialization library, as a class discriminator. This code
         // doesn't need a discriminator because the JSON never gets deserialised
         // back.
+        @OptIn(ExperimentalSerializationApi::class)
         private inline fun <reified SERIALIZABLE>deserialise(
             serializable: SERIALIZABLE
         ): JSONObject
@@ -218,6 +220,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private fun testKey(alias: String, sentinel: String): JSONArray {
         val entryDescription = StoredKey.describeKeyNamed(alias)
         val result = JSONArray(listOf(JSONObject()
