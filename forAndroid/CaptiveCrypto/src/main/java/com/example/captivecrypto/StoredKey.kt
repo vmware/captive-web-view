@@ -3,9 +3,13 @@
 
 package com.example.captivecrypto
 
+import android.annotation.SuppressLint
+import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyInfo
 import android.security.keystore.KeyProperties
+import android.security.keystore.KeyProperties.SECURITY_LEVEL_STRONGBOX
+import android.security.keystore.KeyProperties.SECURITY_LEVEL_TRUSTED_ENVIRONMENT
 import kotlinx.serialization.*
 import java.security.*
 import javax.crypto.Cipher
@@ -150,8 +154,9 @@ object StoredKey {
         }
     }
 
-    private val Key.description: KeyDescription get() {
-        val canonicalName = javaClass.canonicalName
+    private val Key.description: KeyDescription
+    get() {
+        val canonicalName = javaClass.canonicalName ?: ""
         return try {
             KeyFactory.getInstance(
                 this.algorithm, KEY.AndroidKeyStore.name
@@ -165,7 +170,7 @@ object StoredKey {
                     purposeStrings,
                     encryptionPaddings.asList(),
                     digests.asList(),
-                    isInsideSecureHardware,
+                    insideSecureHardware(this),
                     isUserAuthenticationRequirementEnforcedBySecureHardware
                 )
             }
@@ -191,6 +196,15 @@ object StoredKey {
             else KeyDescription.Partial.KeyFactoryLongException(
                 texts, keyEncoded, algorithm
             )
+        }
+    }
+
+    private fun insideSecureHardware(keyInfo: KeyInfo): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            keyInfo.securityLevel == SECURITY_LEVEL_TRUSTED_ENVIRONMENT
+            || keyInfo.securityLevel == SECURITY_LEVEL_STRONGBOX
+        } else {
+            keyInfo.isInsideSecureHardware
         }
     }
 
@@ -349,7 +363,34 @@ object StoredKey {
         val provider:String,
         val algorithm: String,
         val digest: String?
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as EncryptedMessage
+
+            if (!ciphertext.contentEquals(other.ciphertext)) return false
+            if (iv != null) {
+                if (other.iv == null) return false
+                if (!iv.contentEquals(other.iv)) return false
+            } else if (other.iv != null) return false
+            if (provider != other.provider) return false
+            if (algorithm != other.algorithm) return false
+            if (digest != other.digest) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = ciphertext.contentHashCode()
+            result = 31 * result + (iv?.contentHashCode() ?: 0)
+            result = 31 * result + provider.hashCode()
+            result = 31 * result + algorithm.hashCode()
+            result = 31 * result + (digest?.hashCode() ?: 0)
+            return result
+        }
+    }
 
     fun encryptWithStoredKey(
         plaintext: String,
@@ -358,8 +399,7 @@ object StoredKey {
     ): EncryptedMessage
     {
         val keyStore = loadKeyStore(providerName)
-        val entry = keyStore.getEntry(alias, null)
-        val key = when(entry) {
+        val key = when(val entry = keyStore.getEntry(alias, null)) {
             is KeyStore.PrivateKeyEntry ->
                 // Encrypt with the public key. The public key isn't stored
                 // as a key; it is stored in a certificate that is created

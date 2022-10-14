@@ -1,7 +1,4 @@
 // !$*UTF8*$!
-/* Copyright 2020 VMware, Inc.
- * SPDX-License-Identifier: BSD-2-Clause
- */
 {
 	archiveVersion = 1;
 	classes = {
@@ -305,14 +302,14 @@
 				CODE_SIGN_ENTITLEMENTS = Captivity/Captivity.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_TEAM = S2ZMFGQM93;
+				DEVELOPMENT_TEAM = YCA243M9TR;
 				INFOPLIST_FILE = Captivity/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.captivewebview.Captivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vmware.captivewebview.Captivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;
@@ -327,14 +324,14 @@
 				CODE_SIGN_ENTITLEMENTS = Captivity/Captivity.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DERIVE_MACCATALYST_PRODUCT_BUNDLE_IDENTIFIER = YES;
-				DEVELOPMENT_TEAM = S2ZMFGQM93;
+				DEVELOPMENT_TEAM = YCA243M9TR;
 				INFOPLIST_FILE = Captivity/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.captivewebview.Captivity;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vmware.captivewebview.Captivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTS_MACCATALYST = YES;
 				SWIFT_VERSION = 5.0;

@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.
+// Copyright 2022 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.headless
@@ -60,7 +60,8 @@ class MainActivity : Activity(), WebViewBridge {
             Log.e(TAG, "$exception")
             // Following line returns the exception to the web view, but since
             // it's headless it goes nowhere.
-            jsonObject.put(DefaultActivityMixIn.EXCEPTION_KEY, "$exception")
+            jsonObject.put(
+                DefaultActivityMixIn.Companion.KEY.failed.name, "$exception")
         }
     }
 

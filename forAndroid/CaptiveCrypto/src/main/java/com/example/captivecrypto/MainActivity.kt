@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2022 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.captivecrypto
@@ -8,6 +8,7 @@ import org.json.JSONObject
 
 import com.example.captivewebview.CauseIterator
 import com.example.captivewebview.DefaultActivityMixIn
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
@@ -25,7 +26,7 @@ object FancyDate {
             .filter { withZone || it.trim() != "z"}
             .map { SimpleDateFormat(it, Locale.getDefault()) }
             .map { it.format(date).run {
-                if (it.toPattern() == "MMM") toLowerCase(Locale.getDefault())
+                if (it.toPattern() == "MMM") lowercase(Locale.getDefault())
                 else this
             } }
             .joinToString("")
@@ -77,6 +78,10 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         return this.put(key.name, value)
     }
 
+    // Kotlin doesn't allow enum subclasses. This means that the KEY enum class
+    // here cannot inherit the enumeration from DefaultActivityMixIn.
+    private val FAILED = DefaultActivityMixIn.Companion.KEY.failed.name
+
     // fun KeyStore.Companion.getInstance(key: KEY): KeyStore {
     //    return KeyStore.getInstance(key.name)
     // }
@@ -126,6 +131,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         // kotlinx.serialization library, as a class discriminator. This code
         // doesn't need a discriminator because the JSON never gets deserialised
         // back.
+        @OptIn(ExperimentalSerializationApi::class)
         private inline fun <reified SERIALIZABLE>deserialise(
             serializable: SERIALIZABLE
         ): JSONObject
@@ -214,6 +220,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         }
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private fun testKey(alias: String, sentinel: String): JSONArray {
         val entryDescription = StoredKey.describeKeyNamed(alias)
         val result = JSONArray(listOf(JSONObject()
@@ -236,9 +243,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             val exceptions = JSONArray(CauseIterator(exception)
                 .asSequence().map { it.toString() }.toList())
             result.put(JSONObject(mapOf(
-                DefaultActivityMixIn.EXCEPTION_KEY to
-                        if (exceptions.length() == 1) exceptions[0]
-                        else exceptions)))
+                FAILED to if (exceptions.length() == 1) exceptions[0]
+                else exceptions)))
             return result
         }
 
@@ -254,9 +260,8 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             val exceptions = JSONArray(CauseIterator(exception)
                 .asSequence().map { it.toString() }.toList())
             result.put(JSONObject(mapOf(
-                DefaultActivityMixIn.EXCEPTION_KEY to
-                        if (exceptions.length() == 1) exceptions[0]
-                        else exceptions)))
+                FAILED to if (exceptions.length() == 1) exceptions[0]
+                else exceptions)))
             return result
         }
 

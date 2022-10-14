@@ -5,8 +5,8 @@ Compatibility
 These instructions work for the following software versions.
 
 Software       | Version
----------------|--------
-Android Studio | 3.5
+---------------|--------------------------
+Android Studio | Chipmunk 2021.2.1 Patch 2
 
 How to get the framework
 ==========================
@@ -20,7 +20,7 @@ How to get the framework
 
         /wherever/you/cloned/captive-web-view/forAndroid/
 
-3.  Execute the Gradle task: forAndroid/Tasks/upload/uploadArchives
+3.  Execute the Gradle task: forAndroid/Tasks/publishing/publish
 
 That should create a maven repository under the
 /wherever/you/cloned/captive-web-view/m2repository/ directory.
@@ -43,7 +43,7 @@ Project build.gradle file snippet:
     allprojects {
         repositories {
             google()
-            jcenter()
+            mavenCentral()
 
             // Next declaration is added:
             maven {
@@ -368,9 +368,15 @@ JavaScript end, receiver:
 net::ERR_CACHE_MISS means you don't have the Android uses Internet permission.
 TOTH: https://stackoverflow.com/a/35294446/7657675
 
+How to resolve errors with the Java version, like this one.
 
+>   Caused by: com.android.builder.errors.EvalIssueException: Android Gradle
+>   plugin requires Java 11 to run. You are currently using Java 1.8.
+
+Select the JDK from Android Studio. TOTH
+[https://stackoverflow.com/a/66450524/7657675](https://stackoverflow.com/a/66450524/7657675)
 
 Legal
 =====
-Copyright 2019 VMware, Inc.  
+Copyright 2022 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause

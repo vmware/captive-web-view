@@ -1,4 +1,4 @@
-// Copyright 2021 VMware, Inc.  
+// Copyright 2022 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
@@ -136,7 +136,7 @@ public struct CaptiveWebView {
         // Use a crafty lambda to instantiate the WKWebView and set its
         // navigation delegate. This has to be lazy so that `self` is available
         // in the property initialiser.
-        lazy var webView: WKWebView = {
+        public lazy var webView: WKWebView = {
             var wkWebView = CaptiveWebView.makeWebView(
                 frame: .zero, commandHandler: nil)
             wkWebView.navigationDelegate = self
@@ -151,11 +151,7 @@ public struct CaptiveWebView {
                     as? CaptiveURLHandler)?.bridge
             }
             set {
-                if let handler = webView.configuration.urlSchemeHandler(
-                    forURLScheme: scheme
-                ) as? CaptiveURLHandler {
-                    handler.bridge = newValue
-                }
+                setCommandHandler(of: webView, to: newValue)
             }
         }
     }
@@ -235,6 +231,17 @@ public struct CaptiveWebView {
             handler, name: Key.messageBridge.rawValue)
         handler.bridge = commandHandler
         return configuration
+    }
+    
+    public static func setCommandHandler(
+        of webView:WKWebView,
+        to commandHandler:CaptiveWebViewCommandHandler?
+    ) {
+        if let handler = webView.configuration.urlSchemeHandler(
+            forURLScheme: scheme
+        ) as? CaptiveURLHandler {
+            handler.bridge = commandHandler
+        }
     }
     
     public static func load(in webView:WKWebView,

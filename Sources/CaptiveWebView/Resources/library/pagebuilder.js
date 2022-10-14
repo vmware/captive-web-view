@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2022 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 export default class PageBuilder {
@@ -222,6 +222,8 @@ class CaptiveInput extends PageBuilder {
         return this._inputNode.getAttribute('type');
     }
     set inputType(inputType) {
+        this.node.classList.toggle(
+            'cwv-input_checkbox', inputType === "checkbox");
         return this._inputNode.setAttribute('type', inputType);
     }
     

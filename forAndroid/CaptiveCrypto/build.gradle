@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.  
+// Copyright 2022 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 plugins {
@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdk 32
 
     sourceSets {
         main.assets.srcDirs += new File(new File(
@@ -18,8 +18,8 @@ android {
 
     defaultConfig {
         applicationId "com.example.captivecrypto"
-        minSdkVersion 26
-        targetSdkVersion 30
+        minSdk 26
+        targetSdk 32
         versionCode 1
         versionName "1.0"
 
@@ -37,15 +37,11 @@ android {
 }
 
 dependencies {
-    def appcompat_version = "1.2.0"
+    def appcompat_version = "1.5.1"
 
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.appcompat:appcompat:$appcompat_version"
     implementation "androidx.appcompat:appcompat-resources:$appcompat_version"
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0-RC2"
 

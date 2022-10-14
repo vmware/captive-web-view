@@ -1,7 +1,4 @@
 // !$*UTF8*$!
-/* Copyright 2020 VMware, Inc.
- * SPDX-License-Identifier: BSD-2-Clause
- */
 {
 	archiveVersion = 1;
 	classes = {
@@ -305,14 +302,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = S2ZMFGQM93;
+				DEVELOPMENT_TEAM = YCA243M9TR;
 				INFOPLIST_FILE = Headless/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.captivewebview.Headless;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vmware.captivewebview.Headless;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -324,14 +321,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = S2ZMFGQM93;
+				DEVELOPMENT_TEAM = YCA243M9TR;
 				INFOPLIST_FILE = Headless/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.captivewebview.Headless;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vmware.captivewebview.Headless;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

@@ -8,7 +8,7 @@ following table.
 
 Software | Instructions last tested | Built
 ---------|--------------------------|-------
-Xcode    | 12.2                     | 12.2
+Xcode    | 14.0                     | 14.0
 
 The instructions below describe how to use Captive Web View in your app. For
 more detailed information on how it works, see the
@@ -37,7 +37,7 @@ package dependency.
 
 See the Skeleton application Xcode projects as examples, or proceed as follows.
 
-1.  In Xcode, navigate to File, Swift Packages, Add Package Dependency...
+1.  In Xcode, navigate to File, Add Packages...
 
 2.  If prompted, when working with an Xcode workspace, select the Xcode project
     requiring the framework.
@@ -357,7 +357,7 @@ Proceed as follows.
     -   The `command` to run in the JavaScript layer, as a `Dictionary<String,
         Any>` instance.
     -   The `completionHandler` to receive the response from the JavaScript
-        layer, as a `((Any?, Error?) -> Void)` closure. The hander is optional.
+        layer, as a `((Any?, Error?) -> Void)` closure. The handler is optional.
 
     If called as sendObject(to:) then also pass the WKWebView instance, as the
     first parameter.
@@ -465,5 +465,5 @@ This concludes removing the application storyboard.
 
 Legal
 =====
-Copyright 2020 VMware, Inc.  
+Copyright 2022 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause

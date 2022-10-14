@@ -1,10 +1,10 @@
-// Copyright 2021 VMware, Inc.
+// Copyright 2022 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
-    id 'maven'
+    id 'maven-publish'
 
     // The dokka plugin requires a version or it won't be found.
     // Adds the documentation/dokka task.
@@ -13,7 +13,7 @@ plugins {
 }
 
 android {
-    compileSdkVersion 30
+    compileSdk 32
 
     sourceSets {
         main.assets.srcDirs += new RelativePath(
@@ -22,8 +22,8 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 26
-        targetSdkVersion 30
+        minSdk 26
+        targetSdk 32
         versionCode 1
         versionName "1.0"
     }
@@ -40,16 +40,27 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.webkit:webkit:1.3.0'
+    implementation 'androidx.webkit:webkit:1.5.0'
 }
 
-uploadArchives {
+// Reference for Maven publication of Android library.
+// https://developer.android.com/studio/publish-library/upload-library
+//
+// The `publish` Gradle task seems to do what the old `uploadArchives` task did.
+publishing {
+    publications {
+        release(MavenPublication) {
+            groupId = 'com.example.captivewebview'
+            artifactId = 'captivewebview'
+            version = '7.0'
+            afterEvaluate {
+                from components.release
+            }
+        }
+    }
     repositories {
-        mavenDeployer {
-            mavenLocal()
-            repository(url: uri(new File(rootDir, '../m2repository')))
-            pom.groupId = 'com.example.captivewebview'
-            pom.version = '6.1'
+        maven {
+            url = uri(new File(rootDir, '../m2repository'))
         }
     }
 }
