@@ -1,5 +1,3 @@
-**Notes only for now, sorry**
-
 Compatibility
 =============
 These instructions work for the following software versions.
@@ -245,9 +243,10 @@ To create an Activity, proceed as follows.
 
     This could also be a good opportunity to try out the Chrome developer tools.
     An embedded WebView in an application connected via the Android Developer
-    Bridge (adb) can be inspected with the Chrome developer tools. Do an
-    Internet search for "Chrome developer tools" for basic information and
-    instructions.
+    Bridge (adb) can be inspected with the Chrome developer tools. You can start
+    by opening a new tab in Chrome desktop and entering `chrome://inspect/` in
+    the address bar. Do an internet search for "Chrome developer tools" for
+    basic information and instructions.
     
 8.  Add the Kotlin end of the command handler.
 
@@ -365,7 +364,7 @@ JavaScript end, receiver:
         return Object.assign(command, {"confirm": "Demonstration"});
     };
 
-net::ERR_CACHE_MISS means you don't have the Android uses Internet permission.
+net::ERR_CACHE_MISS means you don't have the Android uses internet permission.
 TOTH: https://stackoverflow.com/a/35294446/7657675
 
 How to resolve errors with the Java version, like this one.
