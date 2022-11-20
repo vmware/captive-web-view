@@ -1,5 +1,5 @@
 # Run with Python 3
-# Copyright 2020 VMware, Inc.  
+# Copyright 2022 VMware, Inc.  
 # SPDX-License-Identifier: BSD-2-Clause
 """\
 HTTP server that can be used as a back end to Captive Web View applications.
@@ -248,20 +248,20 @@ class Main:
             '-p', '--port', type=int, default=8001, help=
             'Port number. Default: 8001.')
         argumentParser.add_argument(
-            dest='directories', metavar='directory', type=str, nargs='+', help=
+            dest='directories', metavar='directory', type=str, nargs='*', help=
             'Directory from which to server web content.')
 
         self.arguments = argumentParser.parse_args(argv[1:])
         self.server = Server(('localhost', self.arguments.port), Handler)
         self.server.handle_command = self.handle_command
-        
+
+    def serverDirectories(self):
+        for directory in self.arguments.directories:
+            yield Path(directory).resolve()
+        yield project_path('Sources', 'CaptiveWebView', 'Resources', 'library')
+
     def __call__(self):
-        self.server.directories = (
-            *(
-                Path(directory).resolve()
-                for directory in self.arguments.directories
-            ), project_path('Sources', 'CaptiveWebView', 'Resources', 'library')
-        )
+        self.server.directories = tuple(self.serverDirectories())
         for directory in self.server.directories:
             if not directory.is_dir():
                 raise ValueError(f'Not a directory "{directory}".')
@@ -273,11 +273,10 @@ class Main:
             "Method `handle_command` must be implemented by Main subclass.")
 
 class CaptivityMain(Main):
-    def __init__(self, argv):
-        argv = (*argv, str(project_path(
-            'WebResources', 'Captivity', 'UserInterface'
-        )))
-        return super().__init__(argv)
+    # Override.
+    def serverDirectories(self):
+        yield project_path('WebResources', 'Captivity', 'UserInterface')
+        yield from super().serverDirectories()
     
     # Override.
     def handle_command(self, commandObject, httpHandler):
