@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.  
+// Copyright 2022 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import PageBuilder from "./pagebuilder.js";
@@ -72,6 +72,8 @@ class Captivity {
 
     _panel_basic(panel) {
         const buttonA = panel.add_button("Command A");
+        const buttonJSFetch = panel.add_button("JS Fetch");
+        const buttonBridgedFetch = panel.add_button("Bridged Fetch");
         const focusInput = panel.add_input('focus', "Default focussed:");
         panel.add_node('span', "User interfaces: ");
         const buttonSecondary = panel.add_button("Secondary");
@@ -80,6 +82,39 @@ class Captivity {
         buttonA.addEventListener('click', () => {
             this._send({"command": "A"});
             focusInput.value = "";
+        });
+        buttonJSFetch.addEventListener('click', (event) => {
+            event.target.disabled = true;
+            fetch(focusInput.value)
+            .then(response => {
+                this._transcribe({ fetchResponse:`${response}` });
+                event.target.disabled = false;
+            })
+            .catch(error => {
+                this._transcribe({
+                    fetchError: `${error}`,
+                    name: error.name,
+                    message: error.message,
+                    cause: error.cause
+                });
+                event.target.disabled = false;
+            });
+        });
+        buttonBridgedFetch.addEventListener('click', (event) => {
+            event.target.disabled = true;
+            let resource = focusInput.value;
+            if (resource === "") {
+                resource = "https://example.com";
+            }
+            this._send({command: "fetch", parameters: {
+                resource: resource
+            }})
+            .then(response => {
+                event.target.disabled = false;
+            })
+            .catch(error => {
+                event.target.disabled = false;
+            });
         });
         buttonSecondary.addEventListener('click', () => {
             this._send(
