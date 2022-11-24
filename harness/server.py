@@ -1,5 +1,5 @@
 # Run with Python 3
-# Copyright 2020 VMware, Inc.  
+# Copyright 2022 VMware, Inc.  
 # SPDX-License-Identifier: BSD-2-Clause
 """\
 HTTP server that can be used as a back end to Captive Web View applications.
@@ -8,11 +8,10 @@ The server is based around a Python3 Simple HTTP Server extended to pick files
 from one of a number of directories.
 
 The server will change directory to the common parent of all directories
-specified.
-"""
+specified."""
 #
 # Standard library imports, in alphabetic order.
-# 
+#
 # Module for command line switches.
 # Tutorial: https://docs.python.org/3/howto/argparse.html
 # Reference: https://docs.python.org/3/library/argparse.html
@@ -38,10 +37,6 @@ import os.path
 # https://docs.python.org/3/library/pathlib.html
 from pathlib import Path
 #
-# Module for recursive copy.
-# https://docs.python.org/3/library/shutil.html
-import shutil
-#
 # Module to create an HTTP server that spawns a thread for each request.
 # https://docs.python.org/3/library/socketserver.html#module-socketserver
 # The ThreadingMixIn is needed because of an apparent defect in Python, see:
@@ -51,17 +46,14 @@ import shutil
 # TOTH: https://github.com/sjjhsjjh/blender-driver/blob/master/blender_driver/application/http.py#L45
 from socketserver import ThreadingMixIn
 #
-# Module for manipulation of the import path.
-# https://docs.python.org/3/library/sys.html#sys.path
-import sys
+# Module for the operating system interface.
+# https://docs.python.org/3/library/sys.html
+from sys import exit, stderr
 #
 # Module for text dedentation.
 # Only used for --help description.
 # https://docs.python.org/3/library/textwrap.html
 import textwrap
-
-def project_path(*segments):
-    return Path(__file__).resolve().parents[1].joinpath(*segments)
 
 class Server(ThreadingMixIn, HTTPServer):
     @property
@@ -240,48 +232,52 @@ class Handler(SimpleHTTPRequestHandler):
         # self.path is ignored.
 
 class Main:
-    def __init__(self, argv):
+    def __init__(self, prog, description, argv):
         argumentParser = argparse.ArgumentParser(
-            # formatter_class=argparse.RawDescriptionHelpFormatter,
-            description=textwrap.dedent(__doc__))
+            prog=prog,
+            description=textwrap.dedent(
+                __doc__ if description is None else description),
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         argumentParser.add_argument(
             '-p', '--port', type=int, default=8001, help=
             'Port number. Default: 8001.')
         argumentParser.add_argument(
-            dest='directories', metavar='directory', type=str, nargs='+', help=
+            dest='directories', metavar='directory', type=str, nargs='*', help=
             'Directory from which to server web content.')
 
         self.arguments = argumentParser.parse_args(argv[1:])
         self.server = Server(('localhost', self.arguments.port), Handler)
         self.server.handle_command = self.handle_command
-        
+
+    def server_directories(self):
+        for directory in self.arguments.directories:
+            yield Path(directory).resolve()
+        yield Path(__file__).resolve().parents[1].joinpath(
+            'Sources', 'CaptiveWebView', 'Resources', 'library')
+
+    def command_handlers(self):
+        # No command handlers by default. Yield from an empty tuple to make this
+        # be a generator function.
+        yield from tuple()
+        return
+
     def __call__(self):
-        self.server.directories = (
-            *(
-                Path(directory).resolve()
-                for directory in self.arguments.directories
-            ), project_path('Sources', 'CaptiveWebView', 'Resources', 'library')
-        )
+        self.server.directories = tuple(self.server_directories())
         for directory in self.server.directories:
             if not directory.is_dir():
                 raise ValueError(f'Not a directory "{directory}".')
+        self._commandHandlers = tuple(self.command_handlers())
         print(self.server.start_message)
         self.server.serve_forever()
 
     def handle_command(self, commandObject, httpHandler):
-        raise NotImplementedError(
-            "Method `handle_command` must be implemented by Main subclass.")
+        response = None
+        for handle in self._commandHandlers:
+            response = handle(commandObject, httpHandler)
+            if response is not None:
+                break
 
-class CaptivityMain(Main):
-    def __init__(self, argv):
-        argv = (*argv, str(project_path(
-            'WebResources', 'Captivity', 'UserInterface'
-        )))
-        return super().__init__(argv)
-    
-    # Override.
-    def handle_command(self, commandObject, httpHandler):
-        
         # Following code would send a redirect to the client. Unfortunately,
         # that causes the client to redirect the POST, instead of it loading
         # another page instead.
@@ -295,14 +291,20 @@ class CaptivityMain(Main):
         #     httpHandler.end_headers()
         #     httpHandler.wfile.write(responseBytes)
         #     return None
-        
+
         # TOTH for ** syntax: https://stackoverflow.com/a/26853961
-        return {
-            **commandObject,
-            "confirm": " ".join((self.__class__.__name__,
-                                 httpHandler.server_version,
-                                 httpHandler.sys_version))
-        }
-    
+        if response is None:
+            response = { **commandObject, "failed": f"Unhandled." }
+
+        if 'failed' not in response and 'confirm' not in response:
+            response['confirm'] = " ".join((
+                self.__class__.__name__,
+                httpHandler.server_version,
+                httpHandler.sys_version))
+
+        return response
+
 if __name__ == '__main__':
-    sys.exit(CaptivityMain(sys.argv)())
+    stderr.write(
+        "This file can only be run as a module, like `python -m harness`\n")
+    exit(1)
