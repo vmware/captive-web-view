@@ -154,7 +154,7 @@ class Fetcher:
             , httpHandler)
 
         return {
-            "fetched": fetched,
+            **fetched,
             "peerCertificateDER": peerCertEncoded,
             "peerCertificateLength": peerCertLength
         }
@@ -212,6 +212,10 @@ class Fetcher:
                 request.method = options['method']
             if 'body' in options:
                 request.data = options['body'].encode()
+                # Assume it's JSON.
+                request.add_header('Content-Type', "application/json")
+            if 'bodyObject' in options:
+                request.data = json.dumps(options['bodyObject']).encode()
                 request.add_header('Content-Type', "application/json")
             if 'headers' in options:
                 for header, value in options['headers'].items():
@@ -241,15 +245,22 @@ class Fetcher:
             f'Fetched length: {None if fetched is None else len(fetched)}.'
         )
 
-        # ToDo: if openedStatus != 200 return error details.
+        if openedStatus >= 400:
+            return {
+                'fetchError': f'{openedStatus}{openedDetail}',
+                'fetchedRaw': fetched
+            }
 
         try:
-            return json.loads(
-                "{}" if fetched is None or len(fetched) == 0 else fetched
-            )
+            return {
+                'fetched': (
+                    None if fetched is None or len(fetched) == 0
+                    else json.loads(fetched))
+            }
         except json.decoder.JSONDecodeError as error:
             return {
-                'JSONDecodeError': str(error), 'notJSON': fetched
+                'fetchError': f'JSONDecodeError {error}',
+                'fetchedRaw': fetched
             }
     
     def openssl_thumbprint(self, serverName, connectAddress, httpHandler):
