@@ -23,7 +23,7 @@ from sys import argv, exit
 #
 # Local imports.
 #
-# Default harness HTTP server.
+# Harness HTTP server base class.
 from harness.server import Main
 #
 # Command handlers.
