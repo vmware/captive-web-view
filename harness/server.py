@@ -8,8 +8,7 @@ The server is based around a Python3 Simple HTTP Server extended to pick files
 from one of a number of directories.
 
 The server will change directory to the common parent of all directories
-specified.
-"""
+specified."""
 #
 # Standard library imports, in alphabetic order.
 #
@@ -234,12 +233,12 @@ class Handler(SimpleHTTPRequestHandler):
 
 class Main:
     def __init__(self, prog, description, argv):
-        if description is None:
-            description = __doc__
         argumentParser = argparse.ArgumentParser(
-            # formatter_class=argparse.RawDescriptionHelpFormatter,
             prog=prog,
-            description=textwrap.dedent(description))
+            description=textwrap.dedent(
+                __doc__ if description is None else description),
+            formatter_class=argparse.RawDescriptionHelpFormatter
+        )
         argumentParser.add_argument(
             '-p', '--port', type=int, default=8001, help=
             'Port number. Default: 8001.')
@@ -273,13 +272,11 @@ class Main:
         self.server.serve_forever()
 
     def handle_command(self, commandObject, httpHandler):
-        commandResponse = commandObject
+        response = None
         for handle in self._commandHandlers:
             response = handle(commandObject, httpHandler)
-            if response is None:
-                continue
-            commandResponse = response
-            break
+            if response is not None:
+                break
 
         # Following code would send a redirect to the client. Unfortunately,
         # that causes the client to redirect the POST, instead of it loading
@@ -296,12 +293,16 @@ class Main:
         #     return None
 
         # TOTH for ** syntax: https://stackoverflow.com/a/26853961
-        return {
-            **commandResponse,
-            "confirm": " ".join((self.__class__.__name__,
-                                 httpHandler.server_version,
-                                 httpHandler.sys_version))
-        }
+        if response is None:
+            response = { **commandObject, "failed": f"Unhandled." }
+
+        if 'failed' not in response and 'confirm' not in response:
+            response['confirm'] = " ".join((
+                self.__class__.__name__,
+                httpHandler.server_version,
+                httpHandler.sys_version))
+
+        return response
 
 if __name__ == '__main__':
     stderr.write(
