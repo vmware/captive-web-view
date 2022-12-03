@@ -184,7 +184,7 @@ class Fetcher:
         peerCertEncoded, peerCertLength = self.get_peer_certificate(
             connection, httpHandler)
 
-        fetchedRaw, details = self._request(connection, parameters)
+        fetchedRaw, details = self._request(connection, parameters, httpHandler)
         connection.close()
 
         if details['status'] >= 400:
@@ -262,33 +262,36 @@ class Fetcher:
 
         return base64.b64encode(peerCertBinary).decode('utf-8'), peerCertLength
 
-    def _request(self, connection, parameters):
-        try:
-            options = parameters['options']
-        except KeyError:
-            options = {}
+    def _request(self, connection, parameters, httpHandler):
+        options = parameters.get('options', {})
+        method = options.get('method', 'GET')
+        # If the 'resource' key is missing the code won't reach this point. That
+        # key is checked for in _parse_resource() before connecting even.
+        resource = parameters['resource']
+        self._log(httpHandler, f'putrequest\n({method},{resource})')
+        connection.putrequest(method, resource)
 
-        method = options.get('method')
-        connection.putrequest(
-            'GET' if method is None else method, parameters['resource'])
-            # try None
+        def put_header(header, value):
+            self._log(httpHandler, f'putheader\n({header},{value})')
+            connection.putheader(header, value)
+
+        for header, value in options.get('headers', {}).items():
+            put_header(header, value)
 
         # Assume any body is JSON for now.
         if 'body' in options or 'bodyObject' in options:
-            connection.putheader('Content-Type', "application/json")
+            put_header('Content-Type', "application/json")
 
-        try:
-            for header, value in options['headers'].items():
-                connection.putheader(header, value)
-        except KeyError:
-            pass
+        body = (
+            options['body'].encode() if 'body' in options
+            else json.dumps(options['bodyObject']).encode()
+            if 'bodyObject' in options
+            else b'')
+        put_header('Content-Length', len(body))
+        connection.endheaders()
 
-        connection.endheaders(
-            options['body'].encode() if 'body' in options else
-            json.dumps(options['bodyObject']).encode()
-            if 'bodyObject' in options else None
-        )
-        connection.send(b'')
+        self._log(httpHandler, f'send\n({body})')
+        connection.send(body)
         response = connection.getresponse()
 
         # ToDo: Make it handle different encoding schemes instead of assuming
