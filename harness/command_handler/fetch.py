@@ -173,9 +173,9 @@ class Fetcher:
             return return_
 
         url, port, fetchError = self._parse_resource(parameters)
-        self._log(httpHandler, f'fetch() {url.hostname} {port}.')
         if fetchError is not None:
             return return_(0, None, fetchError)
+        self._log(httpHandler, f'fetch() {url.hostname} {port}.')
 
         connection, fetchError = self._connect(url.hostname, port)
         if fetchError is not None:
