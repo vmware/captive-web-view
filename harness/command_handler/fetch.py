@@ -157,19 +157,16 @@ class Fetcher:
         # Embedded function to construct the somewhat complex return object.
         def return_(status, fetched, details):
             return_ = {
-                "peerCertificateDER": peerCertEncoded,
-                "peerCertificateLength": peerCertLength,
-                'fetchedRaw': fetchedRaw
+                'peerCertificate': {
+                    'DER': peerCertEncoded, 'length': peerCertLength
+                },
+                'text': fetchedRaw,
+                'json': fetched,
+                'ok': fetched is not None
             }
-            if fetched is None:
-                return_['fetchError'] = details
-                if status is not None:
-                    return_['fetchError']['status'] = status
-            else:
-                return_['fetched'] = fetched
-                return_['fetchedDetails'] = details
-                if status is not None:
-                    return_['fetchedDetails']['status'] = status
+            return_.update(details)
+            if status is not None:
+                return_['status'] = status
             return return_
 
         url, port, fetchError = self._parse_resource(parameters)
@@ -211,31 +208,43 @@ class Fetcher:
         except KeyError:
             return None, None, {
                 'statusText': 'No "resource" in parameters.',
-                'parameterKeys': tuple(parameters.keys())}
+                'headers': {
+                    'parameterKeys': tuple(parameters.keys())
+                }
+            }
 
         url = urlparse(resource)
         if url.hostname is None:
             return None, None, {
                 'statusText': "No host in parameters.resource",
-                'resource': resource,
-                'url': f'{url}'}
+                'headers': { 'resource': resource, 'url': f'{url}'}
+            }
 
         return url, 443 if url.port is None else url.port, None
 
     def _connect(self, host, port):
+        def return_(error, stage):
+            return {
+                'statusText': error.__class__.__name__,
+                'headers': {
+                    'host': host,
+                    'port': port,
+                    'args': error.args,
+                    'message':f'{error}',
+                    'stage': stage
+                }
+            }
+
         try:
             connection = HTTPSConnection(
                 host, port=port, context=self._sslContext)
         except Exception as error:
-            return None, {
-                'statusText': f'HTTPSConnection({host},{port},) {error}'}
+            return None, return_(error, 'HTTPSConnection()')
 
         try:
             connection.connect()
         except Exception as error:
-            return None, {
-                'statusText': (
-                    f'HTTPSConnection({host},{port},).connect() {error}')}
+            return None, return_(error, 'connect()')
         
         return connection, None
 
@@ -311,7 +320,7 @@ class Fetcher:
         except json.decoder.JSONDecodeError as error:
             # https://docs.python.org/3/library/json.html#json.JSONDecodeError
             return None, {
-                'statusText': 'JSONDecodeError',
+                'statusText': error.__class__.__name__,
                 'headers': {
                     'msg':error.msg,
                     'lineno': error.lineno, 'colno': error.colno
