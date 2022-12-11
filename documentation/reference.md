@@ -30,6 +30,65 @@ from the app's bundled resources, instead of from the Internet. The content
 would still be HTML, CSS, and JavaScript, but would be packaged in the
 executable.
 
+## Why is there a bridged fetch command, as well as the option to use JavaScript Fetch?
+JavaScript (JS) Fetch is part of the HTML 5 standard and should be the first
+choice for an HTTP application programming interface (API). However, it has
+these limitations.
+
+-   JS Fetch in a web view won't return results from an HTTP server that doesn't
+    declare itself as an API, by including the Access-Control-Allow-Origin
+    header.
+
+-   JS Fetch doesn't make the server's peer certificate accessible.
+
+The bridged fetch command is there to address those cases. A native HTTP client,
+such as Android HttpsURLConnection, will return results from any HTTP server and
+has access to the peer certificate.
+
+This is the API of the built-in bridged fetch.
+
+-   Request.
+
+        {
+            command: "fetch", parameters: {
+                resource: "https://path.of/the/resource", options: {
+                    method: "POST or GET for example",
+                    body: "JSON string to send as the request body",
+                    bodyObject: {
+                        key1: value, key2: "value"
+                    },
+                    headers: {
+                        httpHeader1: "value", httpHeader2: "value"
+                    }
+                }
+            }
+        }
+
+    If neither `options.body` nor `options.bodyObject` is given then the request
+    body will be empty. If both are given, `bodyObject` takes precedence. If
+    either is given, HTTP header Content-Type is sent with the value
+    "application/json".
+
+-   Response, based on the standard
+    [https://developer.mozilla.org/en-US/docs/Web/API/Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)
+
+        {
+            ok: true if everything was OK,
+            status: Integer code, either an HTTP code or a value less than 200,
+            statusText: "HTTP reason from the server, or an Exception class name",
+            headers: {
+                "HTTP-Header": "value",
+                "Other-detail": "value if HTTP headers aren't being returned"
+            },
+            text: "String of whatever was fetched, raw.",
+            json: { ... } or null if the response wasn't JSON,
+
+            peerCertificate {
+                DER: "Base 64 encoded",
+                length: Integer length in bytes of the decoded DER
+            }
+        }
+
 # Bridge Interface Notes
 The Captive Web View bridging interface works as follows.
 
@@ -157,5 +216,5 @@ See the separate [headless.md](headless.md) file for details.
 
 Legal
 =====
-Copyright 2020 VMware, Inc.  
+Copyright 2022 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
