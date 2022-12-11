@@ -8,13 +8,10 @@ import android.content.Intent
 import android.util.Base64
 import com.example.captivewebview.ActivityMixIn.Companion.WEB_VIEW_ID
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import org.json.JSONTokener
 import java.io.File
-import java.io.IOException
 import java.net.HttpURLConnection
-import java.net.MalformedURLException
 import java.net.SocketTimeoutException
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
@@ -70,22 +67,16 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
 
             // Keys used by the `fetch` command.
             resource, options, method, body, bodyObject, headers
-            , fetched, fetchError, status, statusText, fetchedRaw
-            , bytesTransferred, fetchedDetails
-            ,
+            , status, statusText, message, json, ok,
 
             // Keys used by the `write` command.
             base64decode, text, filename, wrote
         }
-        private fun JSONObject.opt(key: KEY): Any? {
-            return this.opt(key.name)
-        }
-        private fun JSONObject.put(key: KEY, value: Any?): JSONObject {
-            return this.put(key.name, value)
-        }
-        private fun JSONObject.putOpt(key: KEY, value: Any?): JSONObject {
-            return this.putOpt(key.name, value)
-        }
+        private fun JSONObject.opt(key: KEY) = this.opt(key.name)
+        private fun JSONObject.put(key: KEY, value: Any?) =
+            this.put(key.name, value)
+        private fun JSONObject.putOpt(key: KEY, value: Any?) =
+            this.putOpt(key.name, value)
 
         // Enables members of the KEY enumeration to be used as keys in mappings
         // from String to any, for example as mapOf() parameters.
@@ -118,114 +109,132 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             webView.webViewBridge = activity as WebViewBridge
         }
 
+        enum class FETCH_KEY {
+            keys, resource, message, bytesTransferred
+        }
+        private fun JSONObject.put(key: FETCH_KEY, value: Any?) =
+            put(key.name, value)
+        private fun JSONObject.putOpt(key: FETCH_KEY, value: Any?) =
+            putOpt(key.name, value)
+
+        // Android Kotlin has many Exception subclasses but they don't seem to
+        // have properties for details. So a custom Exception is used that has a
+        // JSONObject for storing properties.
+        // In case an error is encountered by one of the component functions of
+        // builtInFetch they can throw an instance of the custom Exception and
+        // add details to it. If the error is from an Exception thrown by
+        // something that the component function called, that exception gets set
+        // as the cause of the custom Exception.
+        //
+        // TOTH custom Exception: https://stackoverflow.com/a/68775013/7657675
+        class FetchException(
+            message: String? = null, cause: Throwable? = null
+        ) : Exception(message, cause) {
+            private val details = JSONObject()
+
+            constructor(cause: Throwable) : this(null, cause)
+
+            init {
+                details.putOpt(KEY.message, cause?.localizedMessage)
+                .putOpt(
+                    FETCH_KEY.bytesTransferred,
+                    (cause as? SocketTimeoutException)?.bytesTransferred
+                )
+            }
+
+            fun put(vararg pairs: Pair<FETCH_KEY, Any?>) =
+                pairs.forEach {
+                    details.put(it.first, it.second ?: JSONObject.NULL)
+                }.let { this }
+
+            fun toJSON(status: Int?):JSONObject = JSONObject()
+                .put(KEY.ok, false)
+                .putOpt(KEY.status, status)
+                .putOpt(KEY.statusText,
+                    message ?: cause?.let { it::class.java.simpleName }
+                )
+                .putOpt(KEY.headers, details)
+                .put(KEY.text, JSONObject.NULL)
+                .put(KEY.json, JSONObject.NULL)
+        }
+
         fun builtInFetch(jsonObject: JSONObject): JSONObject {
-            var fetchedRaw: String? = null
+            val url = try { parseFetchParameters(jsonObject) }
+            catch (exception: FetchException) { return exception.toJSON(0) }
 
-            fun return_(
-                status:Int?, fetched: JSONObject?, details: JSONObject?
-            ):JSONObject = JSONObject()
-                .put(KEY.fetchedRaw, fetchedRaw ?: JSONObject.NULL)
-                .apply {
-                    if (fetched == null) {
-                        put(KEY.fetchError,
-                            (details ?: JSONObject()).putOpt(KEY.status, status)
-                        )
-                    }
-                    else {
-                        put(KEY.fetched, fetched)
-                        put(KEY.fetchedDetails,
-                            (details ?: JSONObject()).putOpt(KEY.status, status)
-                        )
-                    }
-                }
-
-            val url = parseFetchResource(jsonObject).run {
-                second?.let { return return_(0, null, it) }
-                first as URL }
-
-            val connection = connectForFetch(url).run {
-                second?.let { return return_(1, null, it) }
-                first as HttpsURLConnection }
+            val connection = try { connectForFetch(url) }
+            catch (exception: FetchException) { return exception.toJSON(1) }
 
             // ToDo
             // https://developer.android.com/reference/javax/net/ssl/HttpsURLConnection#getServerCertificates()
 
-            val details: JSONObject
-            requestForFetch(connection, jsonObject).also {
-                fetchedRaw = it.first
-                details = it.second
-            }
+            val (fetchedRaw, details) = requestForFetch(connection, jsonObject)
+
             connection.disconnect()
 
-            if ((details.opt(KEY.status) as? Int ?: 0) !in 200..299) {
-                return return_(null, null, details)
+            // -   If the HTTP request was OK but the JSON parsing failed,
+            //     return the JSON exception.
+            // -   If the HTTP request wasn't OK but the JSON parsing succeeded,
+            //     the parsed object will be included in the details.
+            details.put(KEY.text, fetchedRaw)
+            val jsonException:FetchException? = try {
+                details.put(KEY.json, parseJSON(fetchedRaw))
+                null
+            }
+            catch (exception: FetchException) {
+                details.put(KEY.json, JSONObject.NULL)
+                exception
             }
 
-            parseJSON(fetchedRaw).run {
-                second?.let { return return_(2, null, it) }
-                return return_(null, first, details)
-            }
+            return if (details.getBoolean(KEY.ok.name))
+                jsonException?.toJSON(2)?.put(KEY.text, fetchedRaw)
+                // ToDo: Add the details before the toJSON() but remove the
+                // KEY.text and KEY.json before the exception is used.
+                    ?: details
+            else details
         }
 
-        private fun parseFetchResource(jsonObject: JSONObject)
-        : Pair<URL?, JSONObject?>
+        private fun parseFetchParameters(jsonObject: JSONObject): URL
         {
             val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
-                ?: return Pair(null, JSONObject()
-                    .put(KEY.statusText,
-                        "No parameters in fetch command, or isn't JSONObject."))
+                ?: throw FetchException(
+                    "Fetch command had no `parameters` key, or its value"
+                            + " isn't type JSONObject."
+                ).put(
+                    FETCH_KEY.keys to (jsonObject.names() ?: JSONArray())
+                    // ToDo: add a detail for the parameters type.
+                )
+
             val resource = parameters.opt(KEY.resource) as? String
-                ?: return Pair(
-                    null, JSONObject()
-                        .put(KEY.statusText,
-                            "No parameters.resource in fetch command,"
-                            + " or isn't String.")
+                ?: throw FetchException(
+                    "Fetch command parameters had no `resource` key, or its"
+                            + " value isn't type String."
+                ).put(
+                    FETCH_KEY.keys to (parameters.names() ?: JSONArray())
+                    // ToDo: add a detail for the resource type.
                 )
-            return try { Pair(URL(resource), null) }
-            catch (exception: MalformedURLException) { Pair(null, JSONObject()
-                .put(KEY.statusText, exception::class.java.simpleName)
-                .put(KEY.headers, JSONObject().put(KEY.resource, resource))
-            ) }
+
+            return try { URL(resource) }
+            catch (exception: Exception) { throw FetchException(exception)
+                .put(FETCH_KEY.resource to resource) }
         }
 
-        private fun connectForFetch(url: URL)
-        : Pair<HttpsURLConnection?, JSONObject?>
-        {
-            val connection = try { url.openConnection() as HttpsURLConnection }
-            catch (exception: IOException) {
-                return Pair(null, JSONObject()
-                    .put(KEY.statusText, exception.localizedMessage)
-                )
-            }
-
-            return try {
-                connection.connect()
-                Pair(connection, null)
-            }
-            catch (exception: SocketTimeoutException) { Pair(null, JSONObject()
-                .put(KEY.statusText, exception::class.java.simpleName)
-                .put(KEY.headers, JSONObject()
-                    .put(KEY.statusText, exception.localizedMessage)
-                    .put(KEY.bytesTransferred, exception.bytesTransferred))) }
-            catch (exception: IOException) { Pair(null, JSONObject()
-                .put(KEY.statusText, exception::class.java.simpleName)
-                .put(KEY.headers, JSONObject()
-                    .put(KEY.statusText, exception.localizedMessage))) }
-            catch (exception: SecurityException) { Pair(null, JSONObject()
-                .put(KEY.statusText, exception::class.java.simpleName)
-                .put(KEY.headers, JSONObject()
-                    .put(KEY.statusText, exception.localizedMessage))) }
-        }
+        private fun connectForFetch(url: URL) = try {
+            (url.openConnection() as HttpsURLConnection).apply { connect() } }
+        catch (exception: Exception) { throw FetchException(exception)
+            .put(FETCH_KEY.resource to url.toString()) }
 
         private fun requestForFetch(
             connection: HttpsURLConnection, jsonObject: JSONObject
-        ): Pair<String?, JSONObject>
+        ): Pair<String, JSONObject>
         {
-            val details = JSONObject()
+            // Status and everything from the server will be available already
+            // in the connection handle.
+            val httpReturn = JSONObject()
+                .put(KEY.ok, connection.responseCode in 200..299)
                 .put(KEY.status, connection.responseCode)
                 .put(KEY.statusText, connection.responseMessage)
                 .put(KEY.headers, headers(connection))
-
 
             val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
                 ?: JSONObject()
@@ -233,6 +242,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 ?: JSONObject()
 
             var body:String? = null
+            // ToDo: Check for known options with wrong type.
             (options.opt(KEY.method) as? String)?.let {
                 connection.requestMethod = it }
             (options.opt(KEY.body) as? String)?.let {
@@ -248,30 +258,23 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 keys().forEach {
                     connection.setRequestProperty(it, get(it) as String) } }
 
-            return try {
-                body?.let {
-                    connection.doOutput = true
-                    connection.outputStream.write(it.encodeToByteArray())
-                }
-
-                // ToDo add a maximum size parameter to prevent buffer overrun.
-
-                // Reading from the inputStream throws in the 404 case, for
-                // example.
-                val stream = if (connection.responseCode in 200..299)
-                    connection.inputStream else connection.errorStream
-
-                Pair(
-                    generateSequence {
-                        stream.read().takeUnless { it == -1 }?.toByte()
-                    }.toList().run {
-                        ByteArray(size) { index -> get(index) }
-                    }.decodeToString(), details)
+            body?.let {
+                connection.doOutput = true
+                connection.outputStream.write(it.encodeToByteArray())
             }
-            catch (exception:Exception) { Pair(null, JSONObject()
-                .put(KEY.statusText, exception::class.java.simpleName)
-                .put(KEY.headers, JSONObject()
-                    .put(KEY.statusText, exception.localizedMessage))) }
+
+            // ToDo add a maximum size parameter to prevent buffer overrun.
+
+            // Reading from the inputStream throws in the 404 case, for example.
+            val stream = if (connection.responseCode in 200..299)
+                connection.inputStream else connection.errorStream
+
+            return Pair(
+                generateSequence {
+                    stream.read().takeUnless { it == -1 }?.toByte()
+                }.toList().run {
+                    ByteArray(size) { index -> get(index) }
+                }.decodeToString(), httpReturn)
         }
 
         private fun headers(connection: HttpURLConnection):JSONObject {
@@ -287,21 +290,17 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             return headers
         }
 
-        private fun parseJSON(raw:String?):Pair<JSONObject?, JSONObject?> {
-            return try {
-                val tokener = JSONTokener(raw ?: "")
-                when (val parsed = tokener.nextValue()) {
-                    is JSONObject -> Pair(parsed, null)
-                    else -> throw tokener.syntaxError(
-                        "Expected JSONObject but found"
-                        + " ${parsed::class.java.simpleName}")
+        private fun parseJSON(raw:String):JSONObject =
+            JSONTokener(raw).run {
+                val parsed = try { nextValue() }
+                catch (exception: Exception) {
+                    throw FetchException(exception)
                 }
+                parsed as? JSONObject ?: throw FetchException(syntaxError(
+                    "Expected JSONObject but found"
+                            + " ${parsed::class.java.simpleName}"))
+                // ToDo: Add class of it and value here.
             }
-            catch (exception: JSONException) {
-                Pair(null, JSONObject()
-                    .put(KEY.statusText, exception.localizedMessage))
-            }
-        }
 
         fun builtInWrite(context: Context, jsonObject: JSONObject): JSONObject {
             val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
