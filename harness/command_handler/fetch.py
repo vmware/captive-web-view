@@ -146,50 +146,48 @@ class Fetcher:
 # Returns a 400 and error message in HTML.
 # https://client.badssl.com/
 #
-# Returns a 404 and the usual front page HTML.
-# https://example.com/bobo
+# Returns a 404 and the usual front page HTML. Note that 404 isn't a special
+# value for the example.com server.  
+# https://example.com/404
 
     def fetch(self, parameters, httpHandler=None):
-        peerCertEncoded = None
-        peerCertLength = None
-        fetchedRaw = None
+        return_ = {
+            'peerCertificate': { 'DER': None, 'length': None },
+            "text": None, "json": None, "ok": False
+        }
 
-        # Embedded function to construct the somewhat complex return object.
-        def return_(status, fetched, details):
-            return_ = {
-                'peerCertificate': {
-                    'DER': peerCertEncoded, 'length': peerCertLength
-                },
-                'text': fetchedRaw,
-                'json': fetched,
-                'ok': fetched is not None
-            }
-            return_.update(details)
-            if status is not None:
-                return_['status'] = status
+        url, port, parameterError = self._parse_resource(parameters)
+        if parameterError is not None:
+            return_['status'] = 0
+            return_.update(parameterError)
             return return_
-
-        url, port, fetchError = self._parse_resource(parameters)
-        if fetchError is not None:
-            return return_(0, None, fetchError)
         self._log(httpHandler, f'fetch() {url.hostname} {port}.')
 
-        connection, fetchError = self._connect(url.hostname, port)
-        if fetchError is not None:
-            return return_(1, None, fetchError)
+        connection, connectError = self._connect(url.hostname, port)
+        if connectError is not None:
+            return_['status'] = 1
+            return_.update(connectError)
+            return return_
 
-        peerCertEncoded, peerCertLength = self.get_peer_certificate(
-            connection, httpHandler)
+        (
+            return_['peerCertificate']['DER'],
+            return_['peerCertificate']['length']
+        ) = self.get_peer_certificate(connection, httpHandler)
 
-        fetchedRaw, details = self._request(connection, parameters, httpHandler)
+        return_['text'], details = self._request(
+            connection, parameters, httpHandler)
         connection.close()
+ 
+        return_['json'], jsonError = self._parse_JSON(return_['text'])
 
-        if details['status'] >= 400:
-            return return_(None, None, details)
-
-        fetchedObject, fetchError = self._parse_JSON(fetchedRaw)
-        if fetchError is not None:
-            return return_(2, None, fetchError)
+        if details['ok']:
+            if jsonError is None:
+                return_.update(details)
+            else:
+                return_['status'] = 2
+                return_.update(jsonError)
+        else:
+            return_.update(details)
 
         # As an additional manual check, dump the thumbprint with the openssl
         # CLI.
@@ -200,7 +198,7 @@ class Fetcher:
             , f'{url.hostname}:{port}' if url.port is None else url.netloc
             , httpHandler)
         
-        return return_(None, fetchedObject, details)
+        return return_
 
     def _parse_resource(self, parameters):
         try:
@@ -306,14 +304,15 @@ class Fetcher:
         # ToDo: Make it handle different encoding schemes instead of assuming
         # utf-8.
         return response.read().decode('utf-8'), {
+            'ok': response.status >= 200 and response.status <= 299,
             'status': response.status,
             'statusText': response.reason,
             'headers': dict(response.getheaders())
         }
 
     def _parse_JSON(self, raw):
-        if raw is None or len(raw) == 0:
-            return raw, None
+        if raw is None:
+            raw = ""
 
         try:
             return json.loads(raw), None
