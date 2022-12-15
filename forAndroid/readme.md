@@ -345,6 +345,40 @@ Now proceed with adding the Captive Web View library.
 
     Reference: https://developer.android.com/guide/webapps/managing-webview#metrics
 
+# Appendix: Source Integration
+Captive Web View can instead be integrated as a sub-module from source, instead
+of as a compiled library. That can be useful if you are working on the library
+code on a branch for example. Make these changes to the build configuration.
+
+In the project `build.gradle` file, remove or comment out the local Maven
+declaration, like this.
+
+    allprojects {
+        repositories {
+            google()
+            mavenCentral()
+
+            // maven {
+            //     url uri(new File(rootDir, '../captive-web-view/m2repository'))
+            // }
+        }
+    }
+
+In the project `settings.gradle` file, add include statements for the Captive
+Web View project and library module.
+
+    include 'captive-web-view'
+    project(':captive-web-view').projectDir = file(
+        '../relative/path/to/captive-web-view/forAndroid')
+    include ':captive-web-view:captivewebview'
+
+In the app module `build.gradle` file, replace the library dependency with a
+project dependency that builds from source.
+
+    // implementation 'com.example.captivewebview:captivewebview:7.0'
+    implementation project(':captive-web-view:captivewebview')
+
+Re-synchronise Android Studio from the Gradle to finalise the changes.
 
 Scratchpad
 ==========
