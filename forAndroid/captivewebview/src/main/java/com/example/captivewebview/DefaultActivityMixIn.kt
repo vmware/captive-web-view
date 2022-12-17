@@ -110,7 +110,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         }
 
         enum class FETCH_KEY {
-            keys, resource, message, bytesTransferred
+            keys, resource, bytesTransferred, type, value
         }
         private fun JSONObject.put(key: FETCH_KEY, value: Any?) =
             put(key.name, value)
@@ -159,16 +159,16 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         }
 
         fun builtInFetch(jsonObject: JSONObject): JSONObject {
-            val url = try { parseFetchParameters(jsonObject) }
+            val (url, options) = try { parseFetchParameters(jsonObject) }
             catch (exception: FetchException) { return exception.toJSON(0) }
 
-            val connection = try { connectForFetch(url) }
+            val connection = try { prepareConnection(url, options) }
             catch (exception: FetchException) { return exception.toJSON(1) }
 
             // ToDo
             // https://developer.android.com/reference/javax/net/ssl/HttpsURLConnection#getServerCertificates()
 
-            val (fetchedRaw, details) = requestForFetch(connection, jsonObject)
+            val (fetchedRaw, details) = requestForFetch(connection, options)
 
             connection.disconnect()
 
@@ -194,15 +194,17 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             else details
         }
 
-        private fun parseFetchParameters(jsonObject: JSONObject): URL
+        private fun parseFetchParameters(jsonObject: JSONObject)
+        : Pair<URL, JSONObject>
         {
             val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
                 ?: throw FetchException(
                     "Fetch command had no `parameters` key, or its value"
                             + " isn't type JSONObject."
                 ).put(
-                    FETCH_KEY.keys to (jsonObject.names() ?: JSONArray())
-                    // ToDo: add a detail for the parameters type.
+                    FETCH_KEY.keys to (jsonObject.names() ?: JSONArray()),
+                    FETCH_KEY.type to jsonObject.opt(KEY.parameters)?.let {
+                        it::class.java.simpleName }
                 )
 
             val resource = parameters.opt(KEY.resource) as? String
@@ -210,58 +212,56 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                     "Fetch command parameters had no `resource` key, or its"
                             + " value isn't type String."
                 ).put(
-                    FETCH_KEY.keys to (parameters.names() ?: JSONArray())
-                    // ToDo: add a detail for the resource type.
+                    FETCH_KEY.keys to (parameters.names() ?: JSONArray()),
+                    FETCH_KEY.type to parameters.opt(KEY.resource)?.let {
+                        it::class.java.simpleName }
                 )
 
-            return try { URL(resource) }
+            return try { Pair(
+                URL(resource),
+                parameters.opt(KEY.options) as? JSONObject ?: JSONObject()
+            ) }
             catch (exception: Exception) { throw FetchException(exception)
                 .put(FETCH_KEY.resource to resource) }
         }
 
-        private fun connectForFetch(url: URL) = try {
-            (url.openConnection() as HttpsURLConnection).apply { connect() } }
+        private fun prepareConnection(url: URL, options: JSONObject) = try {
+            (url.openConnection() as HttpsURLConnection).apply {
+                // ToDo: Check for known options with wrong type.
+                (options.opt(KEY.method) as? String)?.let { requestMethod = it }
+                (options.opt(KEY.body) as? String)?.let {
+                    // Assume JSON but already as a String somehow.
+                    setRequestProperty("Content-Type", "application/json")
+                    doOutput = true
+                }
+                (options.opt(KEY.bodyObject) as? JSONObject)?.let {
+                    setRequestProperty("Content-Type", "application/json")
+                    doOutput = true
+                }
+                (options.opt(KEY.headers) as? JSONObject)?.apply {
+                    keys().forEach {
+                        setRequestProperty(it, get(it) as String) } }
+            } }
         catch (exception: Exception) { throw FetchException(exception)
             .put(FETCH_KEY.resource to url.toString()) }
 
         private fun requestForFetch(
-            connection: HttpsURLConnection, jsonObject: JSONObject
+            connection: HttpsURLConnection, options: JSONObject
         ): Pair<String, JSONObject>
         {
-            // Status and everything from the server will be available already
-            // in the connection handle.
+            // ToDo: Check for known options with wrong type.
+            val body =
+                (options.opt(KEY.body) as? String)?.let { it + "\r\n\r\n" } ?:
+                (options.opt(KEY.bodyObject) as? JSONObject)?.let {
+                    it.toString() + "\r\n\r\n" }
+
+            body?.let { connection.outputStream.write(it.encodeToByteArray()) }
+
             val httpReturn = JSONObject()
                 .put(KEY.ok, connection.responseCode in 200..299)
                 .put(KEY.status, connection.responseCode)
                 .put(KEY.statusText, connection.responseMessage)
                 .put(KEY.headers, headers(connection))
-
-            val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
-                ?: JSONObject()
-            val options = parameters.opt(KEY.options) as? JSONObject
-                ?: JSONObject()
-
-            var body:String? = null
-            // ToDo: Check for known options with wrong type.
-            (options.opt(KEY.method) as? String)?.let {
-                connection.requestMethod = it }
-            (options.opt(KEY.body) as? String)?.let {
-                // Assume JSON but already as a String somehow.
-                connection.setRequestProperty(
-                    "Content-Type", "application/json")
-                body = it + "\r\n\r\n" }
-            (options.opt(KEY.bodyObject) as? JSONObject)?.let {
-                connection.setRequestProperty(
-                    "Content-Type", "application/json")
-                body = it.toString() + "\r\n\r\n" }
-            (options.opt(KEY.headers) as? JSONObject)?.apply {
-                keys().forEach {
-                    connection.setRequestProperty(it, get(it) as String) } }
-
-            body?.let {
-                connection.doOutput = true
-                connection.outputStream.write(it.encodeToByteArray())
-            }
 
             // ToDo add a maximum size parameter to prevent buffer overrun.
 
@@ -290,17 +290,19 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             return headers
         }
 
-        private fun parseJSON(raw:String):JSONObject =
-            JSONTokener(raw).run {
-                val parsed = try { nextValue() }
-                catch (exception: Exception) {
-                    throw FetchException(exception)
-                }
-                parsed as? JSONObject ?: throw FetchException(syntaxError(
-                    "Expected JSONObject but found"
-                            + " ${parsed::class.java.simpleName}"))
-                // ToDo: Add class of it and value here.
-            }
+        private fun parseJSON(raw:String):Any = JSONTokener(raw).run {
+            try { nextValue() }
+            catch (exception: Exception) {
+                throw FetchException(exception)
+            }.also {
+                if (it !is JSONObject && it !is JSONArray) throw
+                FetchException(syntaxError(
+                    "Expected JSONObject or JSONArray but found"
+                            + " ${it::class.java.simpleName}"
+                )).put(
+                    FETCH_KEY.type to it::class.java.simpleName,
+                    FETCH_KEY.value to it )
+            } }
 
         fun builtInWrite(context: Context, jsonObject: JSONObject): JSONObject {
             val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
