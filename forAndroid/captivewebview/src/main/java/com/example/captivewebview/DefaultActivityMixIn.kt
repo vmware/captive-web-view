@@ -158,12 +158,21 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 .put(KEY.json, JSONObject.NULL)
         }
 
-        fun builtInFetch(jsonObject: JSONObject): JSONObject {
+        fun builtInFetch(jsonObject: JSONObject) = builtInFetch(jsonObject) {}
+
+        fun builtInFetch(
+            jsonObject: JSONObject, cause: (throwable: Throwable) -> Unit
+        ): JSONObject
+        {
             val (url, options) = try { parseFetchParameters(jsonObject) }
-            catch (exception: FetchException) { return exception.toJSON(0) }
+            catch (exception: FetchException) {
+                exception.cause?.let { cause(it) }
+                return exception.toJSON(0) }
 
             val connection = try { prepareConnection(url, options) }
-            catch (exception: FetchException) { return exception.toJSON(1) }
+            catch (exception: FetchException) {
+                exception.cause?.let { cause(it) }
+                return exception.toJSON(1) }
 
             // ToDo
             // https://developer.android.com/reference/javax/net/ssl/HttpsURLConnection#getServerCertificates()
@@ -182,6 +191,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 null
             }
             catch (exception: FetchException) {
+                exception.cause?.let { cause(it) }
                 details.put(KEY.json, JSONObject.NULL)
                 exception
             }
@@ -241,14 +251,14 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 (options.opt(KEY.headers) as? JSONObject)?.apply {
                     keys().forEach {
                         setRequestProperty(it, get(it) as String) } }
+                connect()
             } }
         catch (exception: Exception) { throw FetchException(exception)
             .put(FETCH_KEY.resource to url.toString()) }
 
         private fun requestForFetch(
             connection: HttpsURLConnection, options: JSONObject
-        ): Pair<String, JSONObject>
-        {
+        ) = try {
             // ToDo: Check for known options with wrong type.
             val body =
                 (options.opt(KEY.body) as? String)?.let { it + "\r\n\r\n" } ?:
@@ -269,13 +279,14 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             val stream = if (connection.responseCode in 200..299)
                 connection.inputStream else connection.errorStream
 
-            return Pair(
+            Pair(
                 generateSequence {
                     stream.read().takeUnless { it == -1 }?.toByte()
                 }.toList().run {
                     ByteArray(size) { index -> get(index) }
                 }.decodeToString(), httpReturn)
         }
+        catch (exception: Exception) { throw FetchException(exception) }
 
         private fun headers(connection: HttpURLConnection):JSONObject {
             val headers = JSONObject()
@@ -400,7 +411,12 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 this.finish()
             }
 
-            Command.fetch -> builtInFetch(jsonObject)
+            Command.fetch -> builtInFetch(jsonObject) {
+                // Placeholder for logging or taking some other action with the
+                // cause of an exception. The exception itself will have been
+                // rendered into JSON and returned to the JS layer.
+                val throwable = it
+            }
 
             Command.focus -> jsonObject.put("focussed", focusWebView())
 
