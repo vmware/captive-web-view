@@ -68,6 +68,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             // Keys used by the `fetch` command.
             resource, options, method, body, bodyObject, headers
             , status, statusText, message, json, ok,
+            peerCertificate, DER, length,
 
             // Keys used by the `write` command.
             base64decode, text, filename, wrote
@@ -77,6 +78,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             this.put(key.name, value)
         private fun JSONObject.putOpt(key: KEY, value: Any?) =
             this.putOpt(key.name, value)
+        private fun JSONObject.remove(key: KEY) = this.remove(key.name)
 
         // Enables members of the KEY enumeration to be used as keys in mappings
         // from String to any, for example as mapOf() parameters.
@@ -110,7 +112,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
         }
 
         enum class FETCH_KEY {
-            keys, resource, bytesTransferred, type, value
+            keys, resource, bytesTransferred, type, value, httpReturn
         }
         private fun JSONObject.put(key: FETCH_KEY, value: Any?) =
             put(key.name, value)
@@ -156,6 +158,7 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 .putOpt(KEY.headers, details)
                 .put(KEY.text, JSONObject.NULL)
                 .put(KEY.json, JSONObject.NULL)
+                .put(KEY.peerCertificate, JSONObject.NULL)
         }
 
         fun builtInFetch(jsonObject: JSONObject) = builtInFetch(jsonObject) {}
@@ -174,12 +177,16 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
                 exception.cause?.let { cause(it) }
                 return exception.toJSON(1) }
 
-            // ToDo
-            // https://developer.android.com/reference/javax/net/ssl/HttpsURLConnection#getServerCertificates()
-
-            val (fetchedRaw, details) = requestForFetch(connection, options)
-
-            connection.disconnect()
+            val (fetchedRaw, details) = try {
+                requestForFetch(connection, options)
+            }
+            catch (exception: FetchException) {
+                exception.cause?.let { cause(it) }
+                return exception.toJSON(2)
+            }
+            finally {
+                connection.disconnect()
+            }
 
             // -   If the HTTP request was OK but the JSON parsing failed,
             //     return the JSON exception.
@@ -197,10 +204,18 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
             }
 
             return if (details.getBoolean(KEY.ok.name))
-                jsonException?.toJSON(2)?.put(KEY.text, fetchedRaw)
-                // ToDo: Add the details before the toJSON() but remove the
-                // KEY.text and KEY.json before the exception is used.
-                    ?: details
+                jsonException?.run {
+                    // If JSON parsing failed, boost some details properties to
+                    // the top of the return object.
+                    val peerCertificate = details.remove(KEY.peerCertificate)
+                    val text = details.remove(KEY.text)
+                    details.remove(KEY.json)
+                    put(FETCH_KEY.httpReturn to details)
+                        .toJSON(3)
+                        .put(KEY.text, text ?: JSONObject.NULL)
+                        .put(KEY.peerCertificate,
+                            peerCertificate ?: JSONObject.NULL)
+                } ?: details
             else details
         }
 
@@ -258,35 +273,58 @@ interface DefaultActivityMixIn : ActivityMixIn, WebViewBridge {
 
         private fun requestForFetch(
             connection: HttpsURLConnection, options: JSONObject
-        ) = try {
-            // ToDo: Check for known options with wrong type.
-            val body =
-                (options.opt(KEY.body) as? String)?.let { it + "\r\n\r\n" } ?:
-                (options.opt(KEY.bodyObject) as? JSONObject)?.let {
-                    it.toString() + "\r\n\r\n" }
+        ): Pair<String, JSONObject>
+        {
+            val httpReturn = connection.serverCertificates[0].encoded.let {
+                JSONObject().put(
+                    KEY.peerCertificate, JSONObject()
+                        .put(
+                            KEY.DER,
+                            Base64.encode(it, Base64.NO_WRAP).decodeToString()
+                        )
+                        .put(KEY.length, it.size)
+                )
+            }
 
-            body?.let { connection.outputStream.write(it.encodeToByteArray()) }
+            try {
+                // ToDo: Check for known options with wrong type.
+                val body =
+                    (options.opt(KEY.body) as? String)?.let {
+                        it + "\r\n\r\n"
+                    } ?: (options.opt(KEY.bodyObject) as? JSONObject)?.let {
+                        it.toString() + "\r\n\r\n"
+                    }
 
-            val httpReturn = JSONObject()
-                .put(KEY.ok, connection.responseCode in 200..299)
-                .put(KEY.status, connection.responseCode)
-                .put(KEY.statusText, connection.responseMessage)
-                .put(KEY.headers, headers(connection))
+                body?.let {
+                    connection.outputStream.write(it.encodeToByteArray())
+                }
 
-            // ToDo add a maximum size parameter to prevent buffer overrun.
+                httpReturn.put(KEY.ok, connection.responseCode in 200..299)
+                    .put(KEY.status, connection.responseCode)
+                    .put(KEY.statusText, connection.responseMessage)
+                    .put(KEY.headers, headers(connection))
 
-            // Reading from the inputStream throws in the 404 case, for example.
-            val stream = if (connection.responseCode in 200..299)
-                connection.inputStream else connection.errorStream
+                // ToDo add a maximum size parameter to prevent buffer overrun.
 
-            Pair(
-                generateSequence {
-                    stream.read().takeUnless { it == -1 }?.toByte()
-                }.toList().run {
-                    ByteArray(size) { index -> get(index) }
-                }.decodeToString(), httpReturn)
+                // Reading from the inputStream throws in the 404 case,
+                // for example.
+                val stream = if (connection.responseCode in 200..299)
+                    connection.inputStream else connection.errorStream
+
+                return Pair(
+                    generateSequence {
+                        stream.read().takeUnless { it == -1 }?.toByte()
+                    }.toList().run {
+                        ByteArray(size) { index -> get(index) }
+                    }.decodeToString(), httpReturn
+                )
+            }
+            catch (exception: Exception) {
+                throw FetchException(exception).put(
+                    FETCH_KEY.httpReturn to httpReturn
+                )
+            }
         }
-        catch (exception: Exception) { throw FetchException(exception) }
 
         private fun headers(connection: HttpURLConnection):JSONObject {
             val headers = JSONObject()
