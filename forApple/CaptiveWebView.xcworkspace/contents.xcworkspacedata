@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-    Copyright 2020 VMware, Inc.
+    Copyright 2023 VMware, Inc.
     SPDX-License-Identifier: BSD-2-Clause
 -->
 <Workspace
@@ -13,6 +13,9 @@
    </FileRef>
    <FileRef
       location = "group:CaptiveCrypto/CaptiveCrypto.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:FetchTest/FetchTest.xcodeproj">
    </FileRef>
    <FileRef
       location = "group:../">
