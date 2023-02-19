@@ -4,8 +4,10 @@
 import Foundation
 
 private enum KEY: String {
+    typealias RawValue = String
+    
     // Common keys.
-    case command, confirm, failed, load, secure, parameters
+    case parameters
     
     // Keys used by the `close` command.
     case closed
@@ -14,8 +16,8 @@ private enum KEY: String {
     case resource, options, method, body, bodyObject, headers,
          status, statusText, message, json, ok,
          peerCertificate, DER, length, httpReturn
-//         fetched, fetchError
-    
+    case keys, type, value
+
     // Keys used by `load` command.
     case page, loaded, dispatched
     
@@ -28,66 +30,15 @@ private enum KEY: String {
 // https://www.avanderlee.com/swift/custom-subscripts/#making-a-read-and-write-subscript
 extension Dictionary where Key == String {
     fileprivate subscript(_ key:KEY) -> Value? {
-        get {
-            self[key.rawValue]
-        }
-        set {
-            self[key.rawValue] = newValue
-        }
+        get { self[key.rawValue] }
+        set { self[key.rawValue] = newValue }
     }
     
-    @discardableResult fileprivate mutating func removeValue(forKey key: KEY) -> Value? {
+    @discardableResult fileprivate mutating func removeValue(
+        forKey key: KEY
+    ) -> Value?
+    {
         return removeValue(forKey: key.rawValue)
-    }
-
-}
-
-enum FetchKey: String {
-    case keys, type, value, resource
-}
-
-class FetchError: Error {
-    var message:String
-    var details:[String: Any?] = [:]
-    init(_ message:String, _ details: [FetchKey : Any?]) {
-        self.message = message
-        details.forEach() {
-            self.details[$0.rawValue] = $1
-        }
-    }
-    
-    fileprivate convenience init(
-        _ message:String, // _ details:[FetchKey : Any?],
-        dictionary: [String:Any], missingKey:KEY
-    ) {
-        let typeString:String?
-        let value: String?
-        if let entry = dictionary[missingKey] {
-            typeString = String(describing: type(of: entry))
-            value = String(describing: entry)
-        }
-        else {
-            typeString = nil
-            value = nil
-        }
-        
-        self.init(message, [
-            .keys: Array(dictionary.keys),
-            .type: typeString,
-            .value: value
-        ] )
-    }
-    
-    func jsonAble(_ status: Int?) -> [String:Any?] {
-        var return_:[String:Any?] = [:]
-        return_[.ok] = false
-        return_[.status] = status
-        return_[.statusText] = message
-        return_[.headers] = details
-        return_[.text] = nil
-        return_[.json] = nil
-        return_[.peerCertificate] = nil
-        return return_
     }
 
 }
@@ -163,7 +114,7 @@ private func parseFetchParameters(
             "Fetch command had no `parameters` key, or its value"
             + " isn't type JSONObject.",
             dictionary: commandDictionary,
-            missingKey: .parameters
+            missingKey: KEY.parameters
         )
     }
     guard let resource = parameters[.resource] as? String else {
@@ -171,12 +122,12 @@ private func parseFetchParameters(
             "Fetch command parameters had no `resource` key, or its"
             + " value isn't type String.",
             dictionary: parameters,
-            missingKey: .resource
+            missingKey: KEY.resource
         )
     }
     guard let url = URL(string: resource) else {
-        throw FetchError(
-            "Resource couldn't be parsed to a URL.", [.resource: resource])
+        throw FetchError("Resource couldn't be parsed to a URL.")
+            .appending(KEY.resource, resource)
     }
 
     return (url, parameters[.options] as? [String:Any])
@@ -298,6 +249,9 @@ private func actualFetch(_ request:URLRequest) -> (Data?, [String:Any]) {
     // ToDo if fetchError isn't null then throw a FetchError.
     // Hope iOS won't set fetchError for HTTP codes other than 200.
 
+    if let nsError = fetchError as? NSError {
+        
+    }
     
     
     // By now the delegate challenge receiver must have been invoked, if a
@@ -319,9 +273,7 @@ private func actualFetch(_ request:URLRequest) -> (Data?, [String:Any]) {
         details[.ok] = false
     }
 
-    details[.headers] = httpResponse?.allHeaderFields.map { key, value in
-        [String(describing: key) : value]
-    }
+    details[.headers] = httpResponse?.allHeaderFields.withStringKeys()
     // https://developer.apple.com/documentation/foundation/httpurlresponse
     
     let delegate = session.delegate as! CertificateKeepingDelegate
@@ -333,6 +285,14 @@ private func actualFetch(_ request:URLRequest) -> (Data?, [String:Any]) {
     details[.peerCertificate] = peerCertificate
     
     return (fetchedData, details)
+}
+
+private extension Dictionary where Key == AnyHashable {
+    func withStringKeys() -> [String: Value] {
+        return Dictionary<String, Value>(uniqueKeysWithValues: self.map {
+            (String(describing:$0), $1)
+        })
+    }
 }
 
 private func parseJSON(
@@ -352,7 +312,8 @@ private func parseJSON(
     catch {
         // Not JSON format.
         callback(text, nil)
-        throw FetchError(error.localizedDescription, [:])
+        // The error always is an NSError, Xcode says.
+        throw FetchError(error as NSError)
     }
     
     guard let json:Any = jsonAny as? [String:Any] ?? jsonAny as? [Any] else {
