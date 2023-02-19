@@ -27,9 +27,11 @@ class Main {
     
     _add_buttons() {
         [
-            ["JSON object.", "https://httpbin.org/get"],
+            ["JSON object OK.", "https://httpbin.org/get"],
+            ["Not a URL fail.", "Not a URL"],
+            ["Bad address.", "https://badaddress"],
             ["GET w/body iOS fail.", "https://example.com", {bodyObject:{}}],
-            ["HTML page.", "https://example.com"],
+            ["HTML page, fails JSON parsing.", "https://example.com"],
             ["404 and empty body.", "https://httpbin.org/status/404"],
             ["400 and error message in HTML.", "https://client.badssl.com/"],
             ["404 and the usual front page HTML."
