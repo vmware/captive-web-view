@@ -18,7 +18,13 @@ class FetchError: Error {
 
         details[.message] = cause.localizedDescription
         cause.userInfo.forEach {key, value in
-            details[key] = value
+            
+            
+            // ToDo make a recursive extension to NSError that JSONifies it.
+            
+            
+            details[key] = JSONSerialization.isValidJSONObject(value) ? value
+            : String(describing: value)
         }
     }
 

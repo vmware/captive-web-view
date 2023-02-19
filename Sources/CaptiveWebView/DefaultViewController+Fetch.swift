@@ -65,7 +65,14 @@ public extension CaptiveWebView.DefaultViewController {
             return fetchError.jsonAble(0)
         }
 
-        var (fetchedData, details) = actualFetch(request)
+        let fetchedData:Data?
+        var details:[String:Any]
+        do {
+            (fetchedData, details) = try actualFetch(request)
+        }
+        catch let fetchError as FetchError {
+            return fetchError.jsonAble(2)
+        }
 
         // -   If the HTTP request was OK but the JSON parsing failed,
         //     return the JSON exception.
@@ -89,7 +96,8 @@ public extension CaptiveWebView.DefaultViewController {
             if let jsonException = jsonException {
                 // If JSON parsing failed, boost some details properties to
                 // the top of the return object.
-                let peerCertificate = details.removeValue(forKey: .peerCertificate)
+                let peerCertificate = details.removeValue(
+                    forKey: .peerCertificate)
                 let text = details.removeValue(forKey: .text)
                 details.removeValue(forKey: .json)
                 var return_ = jsonException.jsonAble(3)
@@ -210,7 +218,7 @@ class CertificateKeepingDelegate: NSObject, URLSessionDelegate {
     
 }
 
-private func actualFetch(_ request:URLRequest) -> (Data?, [String:Any]) {
+private func actualFetch(_ request:URLRequest) throws -> (Data?, [String:Any]) {
     // Using the `ephemeral` session should cause the delegate challenge receiver
     // to be invoked every time. Other session types could cache the trust
     // result.
@@ -246,13 +254,9 @@ private func actualFetch(_ request:URLRequest) -> (Data?, [String:Any]) {
     // -1103 Error Domain=NSURLErrorDomain Code=-1103 "resource exceeds maximum size"
     // See and TOTH https://stackoverflow.com/a/56973866/7657675
 
-    // ToDo if fetchError isn't null then throw a FetchError.
-    // Hope iOS won't set fetchError for HTTP codes other than 200.
-
     if let nsError = fetchError as? NSError {
-        
+        throw FetchError(nsError)
     }
-    
     
     // By now the delegate challenge receiver must have been invoked, if a
     // connection was made.
