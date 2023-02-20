@@ -16,10 +16,6 @@ private enum KEY: String {
     // Keys used by the `close` command.
     case closed
     
-    // Keys used by `fetch` command.
-    case resource, options, method, body, bodyObject, headers, fetched,
-         fetchError
-    
     // Keys used by `load` command.
     case page, loaded, dispatched
     
@@ -94,7 +90,7 @@ extension CaptiveWebView.DefaultViewController {
         _ viewController: CaptiveWebView.DefaultViewController,
         to command: String,
         in commandDictionary: Dictionary<String, Any>
-        ) throws -> Dictionary<String, Any>
+        ) throws -> Dictionary<String, Any?>
     {
         switch Command(rawValue:command) {
         case .close:
@@ -102,7 +98,12 @@ extension CaptiveWebView.DefaultViewController {
             return [.closed: true].withStringKeys()
         
         case .fetch:
-            return try builtInFetch(commandDictionary)
+            return try builtInFetch(commandDictionary) {nsError in
+                // Placeholder for logging or taking some other action with the
+                // cause of an exception. The exception itself will have been
+                // rendered into JSON and returned to the JS layer.
+                let thrown = nsError
+            } as Dictionary<String, Any?>
 
         case .focus:
             return ["focussed controller": viewController.becomeFirstResponder()]

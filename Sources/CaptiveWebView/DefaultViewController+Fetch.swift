@@ -43,9 +43,17 @@ extension Dictionary where Key == String {
 
 }
 
+
 public extension CaptiveWebView.DefaultViewController {
     static func builtInFetch(
         _ commandDictionary: [String:Any]
+    ) throws -> [String:Any?]
+    {
+        return try builtInFetch(commandDictionary, nil)
+    }
+
+    static func builtInFetch(
+        _ commandDictionary: [String:Any], _ cause:((NSError) -> Void)?
     ) throws -> [String:Any?]
     {
         let url:URL
@@ -54,6 +62,7 @@ public extension CaptiveWebView.DefaultViewController {
             (url, options) = try parseFetchParameters(commandDictionary)
         }
         catch let fetchError as FetchError {
+            if let nsError = fetchError.cause { cause?(nsError) }
             return fetchError.jsonAble(0)
         }
         
@@ -62,6 +71,7 @@ public extension CaptiveWebView.DefaultViewController {
             request = try buildRequest(url, options)
         }
         catch let fetchError as FetchError {
+            if let nsError = fetchError.cause { cause?(nsError) }
             return fetchError.jsonAble(0)
         }
 
@@ -71,6 +81,7 @@ public extension CaptiveWebView.DefaultViewController {
             (fetchedData, details) = try actualFetch(request)
         }
         catch let fetchError as FetchError {
+            if let nsError = fetchError.cause { cause?(nsError) }
             return fetchError.jsonAble(2)
         }
 
@@ -89,6 +100,7 @@ public extension CaptiveWebView.DefaultViewController {
             jsonException = nil
         }
         catch  let fetchError as FetchError {
+            if let nsError = fetchError.cause { cause?(nsError) }
             jsonException = fetchError
         }
 
