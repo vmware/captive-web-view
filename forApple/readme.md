@@ -23,9 +23,18 @@ application based on Captive Web View.
 
 Those applications include the Captive Web View as a remote package dependency.
 
-The other sample applications in this repository include Captive Web View as a
-local package dependency. They demonstrate its use but aren't so suitable as a
-starting point.
+The other sample applications in this repository are in an Xcode workspace with
+the  Captive Web View code and include it as a local package dependency. They
+demonstrate its use but aren't so suitable as a starting point.
+
+The difference between remote and local package dependencies can be seen in
+Xcode.
+
+-   Remote package dependencies appear in the Project editor, on the Package
+    Dependencies tab, and also appear in the Target editor, on the General tab,
+    in the Frameworks, Libraries, and Embedded Content section.
+-   Local package dependencies only appear in the Target editor, in the same
+    place as remote dependencies.
 
 You can copy either Skeleton app, or start with a new app, or change an existing
 app.
@@ -465,5 +474,5 @@ This concludes removing the application storyboard.
 
 Legal
 =====
-Copyright 2022 VMware, Inc.  
+Copyright 2023 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
