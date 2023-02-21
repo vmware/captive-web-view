@@ -231,12 +231,13 @@ class CertificateKeepingDelegate: NSObject, URLSessionDelegate {
 }
 
 private func actualFetch(_ request:URLRequest) throws -> (Data?, [String:Any]) {
+    let certificateKeepingDelegate = CertificateKeepingDelegate()
     // Using the `ephemeral` session should cause the delegate challenge receiver
     // to be invoked every time. Other session types could cache the trust
     // result.
     let session = URLSession(
         configuration: URLSessionConfiguration.ephemeral,
-        delegate: CertificateKeepingDelegate(),
+        delegate: certificateKeepingDelegate,
         delegateQueue: nil
     )
     defer { session.finishTasksAndInvalidate() }
@@ -291,12 +292,10 @@ private func actualFetch(_ request:URLRequest) throws -> (Data?, [String:Any]) {
 
     details[.headers] = httpResponse?.allHeaderFields.withStringKeys()
     // https://developer.apple.com/documentation/foundation/httpurlresponse
-    
-    let delegate = session.delegate as! CertificateKeepingDelegate
 
     var peerCertificate:[String:Any] = [:]
-    peerCertificate[.DER] = delegate.peerBase64
-    peerCertificate[.length] = delegate.peerSize
+    peerCertificate[.DER] = certificateKeepingDelegate.peerBase64
+    peerCertificate[.length] = certificateKeepingDelegate.peerSize
     
     details[.peerCertificate] = peerCertificate
     
