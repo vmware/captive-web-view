@@ -1,4 +1,4 @@
-// Copyright 2022 VMware, Inc.  
+// Copyright 2023 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 [
@@ -6,7 +6,7 @@
     ':captivewebview',
 
     // Sample applications:
-    ':Captivity', ':Headless', ':Skeleton', ':CaptiveCrypto',
+    ':Captivity', ':Headless', ':Skeleton', ':CaptiveCrypto', ':FetchTest'
 ].each({include it})
 
 // TOTH: https://stackoverflow.com/a/43497244/7657675
