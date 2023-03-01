@@ -9,13 +9,14 @@
 
 Pod::Spec.new do |s|
   s.name             = 'CaptiveWebView'
-  s.version          = '1.0.0'
+  s.version          = '8.0.0'
   s.summary          = 'The Captive Web View library facilitates use of web technologies in mobile applications.'
 
   s.homepage         = 'https://github.com/vmware/captive-web-view'
   s.license          = { :type => 'BSD-2', :file => 'LICENSE.txt' }
   s.author           = 'vmware'
-  s.source           = { :git => 'https://github.com/vmware/captive-web-view.git', :branch => "19-detailed-fetch-errors" }
+  s.source           = { :git => 'https://github.com/vmware/captive-web-view.git', :tag => "#{s.version}" }
+
 
   s.ios.deployment_target = '14.0'
 
