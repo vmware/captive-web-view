@@ -336,6 +336,23 @@ Allow the Gradle build to finish and you have a new project.
 
 Now proceed with adding the Captive Web View library.
 
+-   The `settings.gradle` file might have a configuration to block local
+    repositories. If it does then you may remove that configuration, by
+    commenting it out, for example like this.
+
+        dependencyResolutionManagement {
+            // Comment out this line.
+            // repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories { ... other code can stay ... }
+        }
+    
+    If the configuration is in effect then an error like this gets generated at
+    build time.
+
+        > Build was configured to prefer settings repositories over project
+        repositories but repository 'Google' was added by build file
+        'build.gradle'
+
 -   You may wish to add the following to the Android manifest file:
 
         <meta-data
@@ -411,5 +428,5 @@ Select the JDK from Android Studio. TOTH
 
 Legal
 =====
-Copyright 2022 VMware, Inc.  
+Copyright 2023 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
