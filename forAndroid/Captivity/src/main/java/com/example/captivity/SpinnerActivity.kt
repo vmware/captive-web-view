@@ -1,9 +1,9 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.captivity
 
-import com.example.captivewebview.DefaultActivityMixIn
+import com.example.captivewebview.put
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -27,10 +27,6 @@ class SpinnerActivity : com.example.captivewebview.DefaultActivity()  {
     }
 
     enum class Key { showLog, message }
-
-    fun JSONObject.put(key: Key, value: Any): JSONObject {
-        return this.put(key.name, value)
-    }
 
     var polls = 0
 

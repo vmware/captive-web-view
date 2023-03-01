@@ -1,4 +1,4 @@
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.headless
@@ -9,8 +9,8 @@ import android.util.Log
 import android.view.View
 import android.widget.ScrollView
 import android.widget.TextView
-import com.example.captivewebview.DefaultActivityMixIn
 import com.example.captivewebview.WebViewBridge
+import com.example.captivewebview.put
 import org.json.JSONObject
 import java.lang.Exception
 
@@ -18,6 +18,12 @@ class MainActivity : Activity(), WebViewBridge {
     companion object {
 //        val WEB_VIEW_ID = View.generateViewId()
         val TAG = MainActivity.javaClass.simpleName
+
+        private enum class KEY {
+            // Common keys.
+            failed
+        }
+
     }
 
     private var token:String? = null
@@ -60,8 +66,7 @@ class MainActivity : Activity(), WebViewBridge {
             Log.e(TAG, "$exception")
             // Following line returns the exception to the web view, but since
             // it's headless it goes nowhere.
-            jsonObject.put(
-                DefaultActivityMixIn.Companion.KEY.failed.name, "$exception")
+            jsonObject.put(KEY.failed, "$exception")
         }
     }
 

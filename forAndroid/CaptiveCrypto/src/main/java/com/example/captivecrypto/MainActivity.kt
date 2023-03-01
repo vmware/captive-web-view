@@ -1,4 +1,4 @@
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 package com.example.captivecrypto
@@ -7,9 +7,10 @@ import android.os.Build
 import org.json.JSONObject
 
 import com.example.captivewebview.CauseIterator
-import com.example.captivewebview.DefaultActivityMixIn
+import com.example.captivewebview.opt
+import com.example.captivewebview.put
+import com.example.captivewebview.to
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import org.json.JSONArray
@@ -50,8 +51,14 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         }
     }
 
-    enum class KEY {
-        parameters, alias, string,
+    // These import statements at the top of the file make `KEY` constants
+    // usable as JSONObject keys and as keys in `to` mappings.
+    //
+    //     import com.example.captivewebview.opt
+    //     import com.example.captivewebview.put
+    //     import com.example.captivewebview.to
+    private enum class KEY {
+        parameters, alias, string, failed,
 
         summary, services, algorithm, `class`, type,
 
@@ -63,24 +70,6 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             return this.name
         }
     }
-
-    // Enables members of the KEY enumeration to be used as keys in mappings
-    // from String to any, for example as mapOf() parameters.
-    private infix fun <VALUE> KEY.to(that: VALUE): Pair<String, VALUE> {
-        return this.name to that
-    }
-
-    private fun JSONObject.opt(key: KEY): Any? {
-        return this.opt(key.name)
-    }
-
-    private fun JSONObject.put(key: KEY, value: Any?): JSONObject {
-        return this.put(key.name, value)
-    }
-
-    // Kotlin doesn't allow enum subclasses. This means that the KEY enum class
-    // here cannot inherit the enumeration from DefaultActivityMixIn.
-    private val FAILED = DefaultActivityMixIn.Companion.KEY.failed.name
 
     // fun KeyStore.Companion.getInstance(key: KEY): KeyStore {
     //    return KeyStore.getInstance(key.name)
@@ -243,7 +232,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             val exceptions = JSONArray(CauseIterator(exception)
                 .asSequence().map { it.toString() }.toList())
             result.put(JSONObject(mapOf(
-                FAILED to if (exceptions.length() == 1) exceptions[0]
+                KEY.failed to if (exceptions.length() == 1) exceptions[0]
                 else exceptions)))
             return result
         }
@@ -260,7 +249,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             val exceptions = JSONArray(CauseIterator(exception)
                 .asSequence().map { it.toString() }.toList())
             result.put(JSONObject(mapOf(
-                FAILED to if (exceptions.length() == 1) exceptions[0]
+                KEY.failed to if (exceptions.length() == 1) exceptions[0]
                 else exceptions)))
             return result
         }
