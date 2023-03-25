@@ -1,7 +1,9 @@
-# Run with Python 3
-# Copyright 2022 VMware, Inc.  
+# Copyright 2023 VMware, Inc.  
 # SPDX-License-Identifier: BSD-2-Clause
+"""\
+Captive Web View python harness command handler base class and JSON handler.
 
+Import and use it like the ../../captivityHarness/__main__.py server does."""
 # Standard library imports, in alphabetic order.
 #
 # JSON module.

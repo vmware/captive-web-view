@@ -1,13 +1,9 @@
-# Run with Python 3
+# Copyright 2023 VMware, Inc.  
+# SPDX-License-Identifier: BSD-2-Clause
 """\
-HTTP server that can be used as a back end. This server is based on the HTTP
-back end to Local WebView applications.
+Captive Web View python harness command handler for the fetch command.
 
-Run it like:
-
-    cd /path/where/you/cloned/cwvpiv/
-    python3 ./httpBridge/cwvpiv.py
-"""
+Import and use it like the ../../captivityHarness/__main__.py server does."""
 #
 # Standard library imports, in alphabetic order.
 # Module for HTTP server, not imported here but handy to have the link.
