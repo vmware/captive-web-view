@@ -13,6 +13,7 @@ plugins {
 }
 
 android {
+    namespace 'com.example.captivewebview'
     compileSdk 32
 
     sourceSets {

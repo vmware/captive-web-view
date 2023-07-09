@@ -7,6 +7,7 @@ plugins {
 }
 
 android {
+    namespace 'com.example.fetchtest'
     compileSdk 32
 
     sourceSets {
