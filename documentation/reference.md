@@ -211,10 +211,21 @@ Typical structure is as follows.
     This means that all the other package pieces, like the Source/ and Tests/
     directories, also have be in the root of the repository.
 
+-   The apps and library for Android declare their package names in their
+    build.gradle files, in the applicationID and namespace properties, and not
+    in their manifests.
+
+    This web page has recommendations.  
+    [https://developer.android.com/build/configure-app-module](https://developer.android.com/build/configure-app-module)
+
+    Specifically this.
+
+    >   Keep the application ID the same as the namespace.
+
 # Headless Web View
 See the separate [headless.md](headless.md) file for details.
 
 Legal
 =====
-Copyright 2022 VMware, Inc.  
+Copyright 2023 VMware, Inc.  
 SPDX-License-Identifier: BSD-2-Clause
