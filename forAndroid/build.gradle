@@ -30,5 +30,5 @@ task clean(type: Delete) {
 
 ext {
     // Version number of the Captive Web View library for Android.
-    captiveWebViewVersion = '8.0.0'
+    captiveWebViewVersion = '8.1.0'
 }
