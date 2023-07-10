@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace 'com.example.headless'
-    compileSdk 32
+    compileSdk 33
 
     sourceSets {
         main.assets.srcDirs += new RelativePath(
@@ -18,8 +18,8 @@ android {
 
     defaultConfig {
         applicationId "com.example.headless"
-        minSdk 26
-        targetSdk 32
+        minSdk 29
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-    def appcompat_version = "1.5.1"
+    def appcompat_version = "1.6.1"
     def constraintLayout_version = "2.1.4"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
