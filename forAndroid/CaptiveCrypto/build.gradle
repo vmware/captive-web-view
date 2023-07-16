@@ -1,4 +1,4 @@
-// Copyright 2022 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 plugins {
@@ -9,7 +9,8 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    namespace 'com.example.captivecrypto'
+    compileSdk 33
 
     sourceSets {
         main.assets.srcDirs += new File(new File(
@@ -18,8 +19,8 @@ android {
 
     defaultConfig {
         applicationId "com.example.captivecrypto"
-        minSdk 26
-        targetSdk 32
+        minSdk 29
+        targetSdk 33
         versionCode 1
         versionName "1.0"
 
@@ -37,7 +38,7 @@ android {
 }
 
 dependencies {
-    def appcompat_version = "1.5.1"
+    def appcompat_version = "1.6.1"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.appcompat:appcompat:$appcompat_version"

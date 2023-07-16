@@ -4,7 +4,7 @@ These instructions work for the following software versions.
 
 Software       | Version
 ---------------|--------------------------
-Android Studio | Chipmunk 2021.2.1 Patch 2
+Android Studio | Flamingo 2022.2.1 Patch 2
 
 How to get the framework
 ==========================

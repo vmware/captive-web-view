@@ -1,16 +1,18 @@
 <!--
-    Copyright 2022 VMware, Inc.
+    Copyright 2023 VMware, Inc.
     SPDX-License-Identifier: BSD-2-Clause
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-        package="com.example.captivity">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-feature
         android:name="android.hardware.camera2"
-        android:required="true"
+        android:required="false"
         />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
     <application
             android:allowBackup="true"
