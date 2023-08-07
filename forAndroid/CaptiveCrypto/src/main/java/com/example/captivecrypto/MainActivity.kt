@@ -4,6 +4,7 @@
 package com.example.captivecrypto
 
 import android.os.Build
+import com.example.captivecrypto.storedkey.StoredKey
 import org.json.JSONObject
 
 import com.example.captivewebview.CauseIterator
@@ -184,7 +185,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
                     ).joinToString(""))
 
                 jsonObject.put(KEY.results, deserialise(
-                    StoredKey.generateKeyWithName(alias)))
+                    StoredKey.generateKeyNamed(alias)))
             }
 
             Command.generatePair -> {
@@ -200,7 +201,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
                     ).joinToString(""))
 
                 jsonObject.put(KEY.results, deserialise(
-                    StoredKey.generateKeyPairWithName(alias)))
+                    StoredKey.generateKeyPairNamed(alias)))
             }
 
             Command.ready -> jsonObject
@@ -218,7 +219,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         ))
 
         val encrypted = try {
-            StoredKey.encryptWithStoredKey(sentinel, alias).also {
+            StoredKey.encipherWithKeyNamed(sentinel, alias).also {
                 result.put(
                     // The ciphertext could be 256 bytes, each represented as a
                     // number in JSON. It's a bit long to replace it with
@@ -238,7 +239,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         }
 
         val decrypted = try {
-            StoredKey.decryptWithStoredKey(encrypted, alias).also {
+            StoredKey.decipherWithKeyNamed(encrypted, alias).also {
                 result.put(JSONObject(mapOf(
                     KEY.decryptedSentinel to it,
                     KEY.passed to sentinel.equals(it)
