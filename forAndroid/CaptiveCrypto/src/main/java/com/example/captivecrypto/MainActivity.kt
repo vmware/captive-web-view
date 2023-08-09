@@ -3,6 +3,8 @@
 
 package com.example.captivecrypto
 
+import android.app.Activity
+import android.content.pm.PackageManager
 import android.os.Build
 import com.example.captivecrypto.storedkey.StoredKey
 import org.json.JSONObject
@@ -79,25 +81,50 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     // https://stackoverflow.com/questions/33911457/how-can-one-add-static-methods-to-java-classes-in-kotlin
 
     companion object {
-        fun providersSummary():Map<String, Any> {
+        fun providersSummary(activity: Activity):Map<String, Any> {
+            val packageManager = activity.packageManager
+
             val returning = mutableMapOf<String, Any>(
                 "build" to mapOf(
                     "device" to Build.DEVICE,
                     "display" to Build.DISPLAY,
+                    "version sdk_int" to Build.VERSION.SDK_INT,
                     "manufacturer" to Build.MANUFACTURER,
                     "model" to Build.MODEL,
                     "brand" to Build.BRAND,
                     "product" to Build.PRODUCT,
                     "time" to FancyDate(Date(Build.TIME), false)
                 ),
+                "systemAvailableFeatures" to packageManager
+                    .systemAvailableFeatures.map {
+                        (it.name ?: it.toString()) + " ${it.version}"
+                    }.sorted(),
+                "hasSystemFeature40" to mapOf(
+                    "FEATURE_HARDWARE_KEYSTORE" to
+                            packageManager.hasSystemFeature(
+                                PackageManager.FEATURE_HARDWARE_KEYSTORE, 40),
+                    "FEATURE_STRONGBOX_KEYSTORE" to
+                            packageManager.hasSystemFeature(
+                                PackageManager.FEATURE_STRONGBOX_KEYSTORE, 40)
+                ),
+                "hasSystemFeature" to mapOf(
+                    "FEATURE_HARDWARE_KEYSTORE" to
+                            packageManager.hasSystemFeature(
+                                PackageManager.FEATURE_HARDWARE_KEYSTORE),
+                    "FEATURE_STRONGBOX_KEYSTORE" to
+                            packageManager.hasSystemFeature(
+                                PackageManager.FEATURE_STRONGBOX_KEYSTORE)
+                ),
                 "date" to FancyDate(Date(), true)
             )
             return Security.getProviders().map {
-                it.name to it.toMap()
+                it.name to it.toMutableMap().apply {
+                    this["info"] = it.info
+                }
             }.toMap(returning)
         }
 
-        fun providerSummay(providerName:String):Map<String, Any> {
+        fun providerSummary(providerName:String):Map<String, Any> {
             return Security.getProvider(providerName).run { mapOf(
                 name to mapOf(
                     KEY.string to toString(),
@@ -139,7 +166,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
         // All commands here insert a `results` item into the input JSON object.
         return when(Command.matching(command)) {
             Command.capabilities -> jsonObject.put(KEY.results,
-                JSONObject(providersSummary()))
+                JSONObject(providersSummary(this)))
 
             Command.deleteAll -> jsonObject.put(KEY.results, deserialise(
                 StoredKey.deleteAll()))
