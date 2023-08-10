@@ -11,6 +11,8 @@ import java.security.Key
 import java.security.KeyFactory
 import java.security.KeyStore
 import java.security.NoSuchAlgorithmException
+import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
 
 fun describeAllStoredKeys(providerName: String = KEY.AndroidKeyStore.name)
         : List<EntryDescription> = loadKeyStore(providerName).describeAllKeys()
@@ -45,18 +47,13 @@ sealed class KeyDescription {
         val encryptionPaddings: List<String>,
         val digests: List<String>,
         val insideSecureHardware: Boolean,
-        val userAuthenticationRequirementEnforcedBySecureHardware: Boolean
+        val userAuthenticationRequirementEnforcedBySecureHardware: Boolean,
+        val securityLevel: String
     ) : KeyDescription()
 
     @Serializable
     sealed class Partial: KeyDescription() {
         abstract val encoded: String
-
-        @Serializable
-        data class NoKey(
-            override val encoded: String,
-            override val algorithm: String
-        ) : Partial()
 
         @Serializable
         data class KeyFactoryShortException(
@@ -75,48 +72,45 @@ sealed class KeyDescription {
 }
 
 val Key.description: KeyDescription
-    get() {
-        val canonicalName = javaClass.canonicalName ?: ""
-        return try {
+    get() = try {
+        try {
             KeyFactory.getInstance(
                 this.algorithm, KEY.AndroidKeyStore.name
-            ).getKeySpec(this, KeyInfo::class.java).run {
-                KeyDescription.Full(
-                    canonicalName,
-                    keystoreAlias,
-                    algorithm,
-                    keySize,
-                    blockModes.asList(),
-                    purposeStrings,
-                    encryptionPaddings.asList(),
-                    digests.asList(),
-                    insideSecureHardware(this),
-                    isUserAuthenticationRequirementEnforcedBySecureHardware
-                )
-            }
+            ).getKeySpec(this, KeyInfo::class.java)
         }
         catch (exception: NoSuchAlgorithmException) {
-            // This exception is raised if the key store can't transform a key
-            // of this algorithm into a key specification. This is true of AES,
-            // for example.
-            KeyDescription.Partial.NoKey(
-                encoded?.toString() ?: "No encoded form.", algorithm
+            SecretKeyFactory.getInstance(
+                this.algorithm, KEY.AndroidKeyStore.name
+            ).getKeySpec(this as SecretKey?, KeyInfo::class.java) as KeyInfo
+        }.run {
+            KeyDescription.Full(
+                this@description.javaClass.canonicalName ?: "",
+                keystoreAlias,
+                algorithm,
+                keySize,
+                blockModes.asList(),
+                purposeStrings,
+                encryptionPaddings.asList(),
+                digests.asList(),
+                insideSecureHardware(this),
+                isUserAuthenticationRequirementEnforcedBySecureHardware,
+                securityLevel(this)
             )
         }
-        catch (exception: Exception) {
-            // Some other exception.
+    }
+    catch (exception: Exception) {
+        // Some other exception.
 
-            // Some have multiple sentences and get too long. Change those into
-            // an array.
-            val texts = exception.toString().splitToSequence(". ").toList()
-            val keyEncoded = encoded?.toString() ?: "null"
-            if (texts.size == 1) KeyDescription.Partial.KeyFactoryShortException(
-                texts[0], keyEncoded, algorithm
-            )
-            else KeyDescription.Partial.KeyFactoryLongException(
-                texts, keyEncoded, algorithm
-            )
-        }
+        // Some have multiple sentences and get too long. Change those into
+        // an array.
+        val texts = exception.toString().splitToSequence(". ").toList()
+        val keyEncoded = encoded?.toString() ?: "null"
+        if (texts.size == 1) KeyDescription.Partial.KeyFactoryShortException(
+            texts[0], keyEncoded, algorithm
+        )
+        else KeyDescription.Partial.KeyFactoryLongException(
+            texts, keyEncoded, algorithm
+        )
     }
 
 private fun insideSecureHardware(keyInfo: KeyInfo): Boolean =
@@ -126,6 +120,27 @@ private fun insideSecureHardware(keyInfo: KeyInfo): Boolean =
     } else {
         keyInfo.isInsideSecureHardware
     }
+
+private fun securityLevel(keyInfo: KeyInfo): String =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        when(keyInfo.securityLevel) {
+            KeyProperties.SECURITY_LEVEL_SOFTWARE ->
+                "SECURITY_LEVEL_SOFTWARE"
+
+            KeyProperties.SECURITY_LEVEL_STRONGBOX ->
+                "SECURITY_LEVEL_STRONGBOX"
+
+            KeyProperties.SECURITY_LEVEL_TRUSTED_ENVIRONMENT ->
+                "SECURITY_LEVEL_TRUSTED_ENVIRONMENT"
+
+            KeyProperties.SECURITY_LEVEL_UNKNOWN -> "SECURITY_LEVEL_UNKNOWN"
+
+            KeyProperties.SECURITY_LEVEL_UNKNOWN_SECURE ->
+                "SECURITY_LEVEL_UNKNOWN_SECURE"
+
+            else -> keyInfo.securityLevel.toString()
+        }
+    else unavailableMessage(Build.VERSION_CODES.S)
 
 private fun KeyStore.describeAllKeys(): List<EntryDescription> =
     aliases().toList().map { this.describeKeyNamed(it) }
@@ -168,4 +183,3 @@ private fun KeyStore.describeKeyNamed(alias:String):EntryDescription {
     // description includes a KeyDescription, which can only be generated by
     // the Key. The Key isn't accessible from the KeyEntry.
 }
-
