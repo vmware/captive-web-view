@@ -1,0 +1,22 @@
+// Copyright 2023 VMware, Inc.
+// SPDX-License-Identifier: BSD-2-Clause
+
+// This is a workspace declaration to facilitate use of VSCode and VSCodium to
+// edit the readme and other documentation under this directory.
+// See https://code.visualstudio.com/docs/editor/multi-root-workspaces
+{
+    "folders": [
+        { "path": ".", "name": "Captive Web View" }
+    ],
+    "settings": {
+        // Variable names are documented in the VSCod[e|ium] Settings.  
+        // Search for "window title".
+        "window.title": "${activeEditorShort}${separator}${folderName}"
+    },
+    "extensions": {
+        "recommendations": [
+            // Word wrapping for Markdown and comments.
+            "stkb.rewrap"
+        ]
+    }
+}
