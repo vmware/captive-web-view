@@ -97,10 +97,7 @@ private fun keyPairGeneratorGeneric(
         alias,
         KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
     ).run {
-        setBlockModes(KeyProperties.BLOCK_MODE_ECB)
-        setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
-        setDigests(
-            KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+        setForRSA()
         build()
     }
 ) }
@@ -114,14 +111,26 @@ private fun keyPairGeneratorStrongBox(
         alias,
         KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
     ).run {
-        setBlockModes(KeyProperties.BLOCK_MODE_ECB)
-        setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
-        setDigests(
-            KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+        setForRSA()
         setIsStrongBoxBacked(true)
         build()
     }
 ) }
+
+private fun KeyGenParameterSpec.Builder.setForRSA() {
+    setBlockModes(KeyProperties.BLOCK_MODE_ECB)
+    setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_RSA_OAEP)
+    setDigests(
+        KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+
+    // Set an attestation challenge so that a chain of trust will be generated.
+    // The challenge here is an empty byte array; any non-null value causes the
+    // chain of trust to be generated.
+    //
+    // TOTH for the need to call this:
+    // https://stackoverflow.com/a/64797384/7657675
+    setAttestationChallenge(byteArrayOf())
+}
 
 private enum class GenerationSentinelResult {
     Passed, Failed;
