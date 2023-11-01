@@ -91,18 +91,6 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         // Encodable.
     }
     
-    private struct AnyEncodable:Encodable {
-        let encodable:Encodable
-        
-        init(_ encodable:Encodable) {
-            self.encodable = encodable
-        }
-
-        func encode(to encoder: Encoder) throws {
-            try encodable.encode(to: encoder)
-        }
-    }
-
     // Utility function to attempt to generate a generic object from an
     // Encodable, via the JSON encoder, and put it in a `results` mapping.
     private func result(of encodable:Encodable) throws -> [String: Any] {
