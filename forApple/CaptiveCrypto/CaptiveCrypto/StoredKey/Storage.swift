@@ -8,7 +8,7 @@ extension StoredKey {
     // as generic passwords in the keychain, or as keys in the keychain. The
     // keychain only stores private keys as keys, so symmetric keys must be
     // stored as generic passwords.
-    enum Storage: String, CaseIterable {
+    internal enum Storage: String, CaseIterable {
         case generic, key
 
         var secClass:CFString {
