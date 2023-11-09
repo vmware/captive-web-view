@@ -16,10 +16,10 @@ extension StoredKey {
         if keys.count == 1 {
             let storedKey = basis.storedKey()
             let sentinel = "InMemorySentinel"
-            let encrypted = try storedKey.encrypt(sentinel)
-            let decrypted = try self.decrypt(
-                encrypted, withFirstKeyNamed: alias)
-            return sentinel == decrypted ? .passed : .failed
+            let enciphered = try storedKey.encipher(sentinel)
+            let deciphered = try self.decipher(
+                enciphered, withFirstKeyNamed: alias)
+            return sentinel == deciphered ? .passed : .failed
         }
         else {
             return .multipleKeys

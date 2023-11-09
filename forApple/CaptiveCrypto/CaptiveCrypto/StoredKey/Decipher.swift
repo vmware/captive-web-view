@@ -6,28 +6,27 @@ import CryptoKit
 
 extension StoredKey {
     // Instance methods.
-    func decrypt(_ encrypted:Data) throws -> String {
+    func decipher(_ enciphered:Data) throws -> String {
         switch _storage {
         case .key:
-            return try decryptWithPrivateKey(encrypted as CFData)
+            return try decipherWithPrivateKey(enciphered as CFData)
         case .generic:
-            return try decryptWithSymmetricKey(encrypted)
+            return try decipherWithSymmetricKey(enciphered)
         }
     }
-    func decrypt(_ encrypted:Encrypted) throws -> String {
-        return try decrypt(encrypted.message)
+    func decipher(_ enciphered:Enciphered) throws -> String {
+        return try decipher(enciphered.message)
     }
     
-    private func decryptWithSymmetricKey(_ encrypted:Data) throws -> String {
-        let sealed = try AES.GCM.SealedBox(combined: encrypted)
-        let decryptedData = try AES.GCM.open(sealed, using: symmetricKey!)
+    private func decipherWithSymmetricKey(_ enciphered:Data) throws -> String {
+        let sealed = try AES.GCM.SealedBox(combined: enciphered)
+        let decipheredData = try AES.GCM.open(sealed, using: symmetricKey!)
         let message =
-            String(data: decryptedData, encoding: .utf8) ?? "\(decryptedData)"
+            String(data: decipheredData, encoding: .utf8) ?? "\(decipheredData)"
         return message
     }
 
-
-    private func decryptWithPrivateKey(_ encrypted:CFData) throws -> String {
+    private func decipherWithPrivateKey(_ enciphered:CFData) throws -> String {
         guard let publicKey = SecKeyCopyPublicKey(secKey!) else {
             throw StoredKeyError("No public key.")
         }
@@ -39,25 +38,25 @@ extension StoredKey {
         }
 
         var error: Unmanaged<CFError>?
-        guard let decryptedBytes = SecKeyCreateDecryptedData(
-            secKey!, algorithm, encrypted, &error) else {
+        guard let decipheredBytes = SecKeyCreateDecryptedData(
+            secKey!, algorithm, enciphered, &error) else {
             throw error!.takeRetainedValue() as Error
         }
         
         let message = String(
-            data: decryptedBytes as Data, encoding: .utf8)
-            ?? "\(decryptedBytes)"
+            data: decipheredBytes as Data, encoding: .utf8)
+            ?? "\(decipheredBytes)"
         return message
     }
 
     // Static methods that work with a key alias instead of a StoredKey
     // instance.
-    static func decrypt(_ encrypted:Encrypted, withFirstKeyNamed alias:String)
+    static func decipher(_ enciphered:Enciphered, withFirstKeyNamed alias:String)
     throws -> String
     {
         guard let key = try keysWithName(alias).first else {
             throw StoredKeyError(errSecItemNotFound)
         }
-        return try key.decrypt(encrypted)
+        return try key.decipher(enciphered)
     }
 }

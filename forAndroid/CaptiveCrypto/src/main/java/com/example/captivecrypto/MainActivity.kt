@@ -22,7 +22,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     // Android Studio warns that `ready` should start with a capital letter but
     // it shouldn't because it has to match what gets sent from the JS layer.
     private enum class Command {
-        capabilities, deleteAll, encrypt, summariseStore,
+        capabilities, deleteAll, encipher, summariseStore,
         generateKey, generatePair, ready, UNKNOWN;
 
         companion object {
@@ -43,7 +43,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
     private enum class KEY {
         parameters, alias, failed, type,
 
-        sentinel, ciphertext, decryptedSentinel, passed, storage,
+        sentinel, ciphertext, decipheredSentinel, passed, storage,
 
         results;
 
@@ -85,20 +85,20 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             Command.deleteAll -> jsonObject.put(KEY.results, deserialise(
                 StoredKey.deleteAll()))
 
-            Command.encrypt -> {
+            Command.encipher -> {
                 val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
                     ?: throw Exception(listOf(
-                        "Command `", Command.encrypt, "` requires `",
+                        "Command `", Command.encipher, "` requires `",
                         KEY.parameters, "`."
                     ).joinToString(""))
                 val alias = parameters.opt(KEY.alias) as? String
                     ?: throw Exception(listOf(
-                        "Command `", Command.encrypt, "` requires `",
+                        "Command `", Command.encipher, "` requires `",
                         KEY.parameters, "` with `", KEY.alias, "` element."
                     ).joinToString(""))
                 val sentinel = parameters.opt(KEY.sentinel) as? String
                     ?: throw Exception(listOf(
-                        "Command `", Command.encrypt, "` requires `",
+                        "Command `", Command.encipher, "` requires `",
                         KEY.parameters, "` with `", KEY.sentinel, "` element."
                     ).joinToString(""))
 
@@ -116,12 +116,12 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             Command.generateKey -> {
                 val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
                     ?: throw Exception(listOf(
-                        "Command `", Command.encrypt, "` requires `",
+                        "Command `", Command.encipher, "` requires `",
                         KEY.parameters, "`."
                     ).joinToString(""))
                 val alias = parameters.opt(KEY.alias) as? String
                     ?: throw Exception(listOf(
-                        "Command `", Command.encrypt, "` requires `",
+                        "Command `", Command.encipher, "` requires `",
                         KEY.parameters, "` with `", KEY.alias, "` element."
                     ).joinToString(""))
 
@@ -132,12 +132,12 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             Command.generatePair -> {
                 val parameters = jsonObject.opt(KEY.parameters) as? JSONObject
                     ?: throw Exception(listOf(
-                        "Command `", Command.encrypt, "` requires `",
+                        "Command `", Command.encipher, "` requires `",
                         KEY.parameters, "`."
                     ).joinToString(""))
                 val alias = parameters.opt(KEY.alias) as? String
                     ?: throw Exception(listOf(
-                        "Command `", Command.encrypt, "` requires `",
+                        "Command `", Command.encipher, "` requires `",
                         KEY.parameters, "` with `", KEY.alias, "` element."
                     ).joinToString(""))
 
@@ -159,7 +159,7 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             .put(KEY.alias, entryDescription.name)
         ))
 
-        val encrypted = try {
+        val enciphered = try {
             StoredKey.encipherWithKeyNamed(sentinel, alias).also {
                 result.put(
                     // The ciphertext could be 256 bytes, each represented as a
@@ -179,10 +179,10 @@ class MainActivity: com.example.captivewebview.DefaultActivity() {
             return result
         }
 
-        val decrypted = try {
-            StoredKey.decipherWithKeyNamed(encrypted, alias).also {
+        val deciphered = try {
+            StoredKey.decipherWithKeyNamed(enciphered, alias).also {
                 result.put(JSONObject(mapOf(
-                    KEY.decryptedSentinel to it,
+                    KEY.decipheredSentinel to it,
                     KEY.passed to sentinel.equals(it)
                 )))
             }
