@@ -31,20 +31,22 @@ def str_quote(subject):
     return (
         "None" if subject is None
         else str(subject) if type(subject) == int
-        else f'"{subject}"'
+        else ascii(subject).replace("\t", "\\t")
     )
 
 class NoticeState(enum.Enum):
     EXEMPT = "-"
     MISSING = "0"
     CORRECT = "."
-    INCORRECT = "X"
+    INCORRECT_DATE = "X"
+    ERROR = "!"
 
 class NoticedFile(NamedTuple):
     path: Path
     gitModifiedDate: datetime
     notice: CopyrightNotice
     state: NoticeState
+    exception: Exception
 
     def __str__(self):
         summary = [self.state.name,]
@@ -66,20 +68,25 @@ class NoticedFile(NamedTuple):
     
     @classmethod
     def from_path_and_git_date(cls, path, gitModifiedDate):
-        notice = CopyrightNotice.from_path(path)
-        return cls(
-            path, gitModifiedDate,
-            None if notice.style is None else notice,
-            NoticeState.MISSING if notice.style is None else
-            NoticeState.INCORRECT if notice.year != gitModifiedDate.year else NoticeState.CORRECT
-        )
+        try:
+            notice = CopyrightNotice.from_path(path)
+            return cls(
+                path, gitModifiedDate,
+                None if notice.style is None else notice,
+                NoticeState.MISSING if notice.style is None else
+                NoticeState.INCORRECT_DATE
+                if notice.year != gitModifiedDate.year
+                else NoticeState.CORRECT
+                , None
+            )
+        except UnicodeDecodeError as exception:
+            return cls(path, None, None, NoticeState.ERROR, exception)
 
     @classmethod
     def from_exempt_path(cls, path):
-        return cls(path, None, None, NoticeState.EXEMPT)
+        return cls(path, None, None, NoticeState.EXEMPT, None)
 
     @classmethod
     def from_directory(cls):
         for path in git_ls_files():
             yield cls.from_path(path)
-
