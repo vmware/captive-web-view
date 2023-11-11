@@ -21,6 +21,10 @@ from pathlib import Path
 # https://docs.python.org/3/library/re.html
 import re
 #
+# Temporary file module.
+# https://docs.python.org/3/library/tempfile.html
+from tempfile import NamedTemporaryFile
+#
 # Module for simple immutable objects with type specification.
 # https://docs.python.org/3/library/typing.html#typing.NamedTuple
 from typing import NamedTuple
@@ -36,10 +40,20 @@ from typing import NamedTuple
 #
 # Use it without anchoring to match ignoring and comment leaders for example.
 copyrightYearRE = re.compile(
-    r'(?P<style>copyright.*)\s+(?P<year>\d{1,4})\s+(?P<suffix>.*)'
-    , re.IGNORECASE)
+    r'''(?P<style>copyright.*)\s+     # Match up to whitespace preceding year.
+        (?P<year>\d{1,4})\s+          # Match up to whitespace after year.
+        (?P<suffix>(.(?=.*\S.*))*\S?) # Match multiply any character followed
+                                      # by at least one non-whitespace. Then
+                                      # match one optional non-whitespace in
+                                      # case it's the end of the line.
+        \s*$                          # Match any whitespace at the end of the
+                                      # line.
+    '''
+    , re.IGNORECASE | re.VERBOSE
+)
 
 class CopyrightNotice(NamedTuple):
+    path: Path
     lineIndex: int
     match: re.Match
     style: str
@@ -55,15 +69,26 @@ class CopyrightNotice(NamedTuple):
         matchedIndex = None
         with path.open('r') as file:
             for index, line in enumerate(file):
-                match = copyrightYearRE.search(line.rstrip())
+                match = copyrightYearRE.search(line)
                 if match:
                     matchedIndex = index
                     break
         
-        if matchedIndex is None:
-            return cls(None, None, None, None, None)
-        
-        return cls(
-            matchedIndex, match
-            , match['style'], int(match['year']), match['suffix']
+        return cls(path, None, None, None, None, None
+        ) if matchedIndex is None else cls(
+            path, matchedIndex, match , match['style'], int(match['year']), match['suffix']
         )
+
+    def rewrite_year(self, toYear):
+        with NamedTemporaryFile(
+            mode='wt', delete=False,
+            prefix=self.path.stem + '_' , suffix=self.path.suffix
+        ) as editedFile, self.path.open('rt') as originalFile:
+            for index, line in enumerate(originalFile):
+                if index == self.lineIndex:
+                    editedFile.write(line[:self.match.start('year')])
+                    editedFile.write(str(toYear))
+                    editedFile.write(line[self.match.end('year'):])
+                else:
+                    editedFile.write(line)
+            return Path(editedFile.name)
