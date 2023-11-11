@@ -50,8 +50,7 @@ def git_ls_files(*switches):
             name = []
             while True:
                 readChar = gitOutput.read(1)
-                if readChar == "":
-                    return
+                if readChar == "": return
                 if readChar == "\x00":
                     yield Path(''.join(name))
                     name = []
