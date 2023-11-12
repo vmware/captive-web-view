@@ -13,15 +13,16 @@
 # https://docs.python.org/3/library/enum.html
 import enum
 #
-# Temporary file module.
-# https://docs.python.org/3/library/tempfile.html
-from tempfile import NamedTemporaryFile
+# Module for OO path handling.
+# https://docs.python.org/3/library/pathlib.html
+from pathlib import Path
 #
 # Local imports.
 #
 from noticeChecker.git_cli import git_ls_files
 from noticeChecker.noticed_file import NoticeState, NoticedFile, str_quote
 from noticeChecker.overwrite import Overwrite
+from noticeChecker.notice_editor import NoticeEditor
 
 # General TOTH
 # https://github.com/vmware-samples/workspace-ONE-SDK-integration-samples/blob/main/IntegrationGuideForAndroid/Apps/samers.py
@@ -49,18 +50,39 @@ class NoticeChecker:
                 break
 
     @property
-    def exemptNames(self):
-        return self._exemptNames
-    @exemptNames.setter
-    def exemptNames(self, exemptNames):
-        self._exemptNames = exemptNames
+    def exemptUpdateNames(self):
+        return self._exemptUpdateNames
+    @exemptUpdateNames.setter
+    def exemptUpdateNames(self, exemptUpdateNames):
+        self._exemptUpdateNames = exemptUpdateNames
 
     @property
-    def exemptSuffixes(self):
-        return self._exemptSuffixes
-    @exemptSuffixes.setter
-    def exemptSuffixes(self, exemptSuffixes):
-        self._exemptSuffixes = exemptSuffixes
+    def exemptUpdateSuffixes(self):
+        return self._exemptUpdateSuffixes
+    @exemptUpdateSuffixes.setter
+    def exemptUpdateSuffixes(self, exemptUpdateSuffixes):
+        self._exemptUpdateSuffixes = exemptUpdateSuffixes
+
+    @property
+    def exemptMissingSuffixes(self):
+        return self._exemptMissingSuffixes
+    @exemptMissingSuffixes.setter
+    def exemptMissingSuffixes(self, exemptMissingSuffixes):
+        self._exemptMissingSuffixes = exemptMissingSuffixes
+
+    @property
+    def gitlsParameters(self):
+        return self._gitlsParameters
+    @gitlsParameters.setter
+    def gitlsParameters(self, gitlsParameters):
+        self._gitlsParameters = tuple(gitlsParameters)
+
+    @property
+    def noticeTemplatePath(self):
+        return self._noticeTemplatePath
+    @noticeTemplatePath.setter
+    def noticeTemplatePath(self, noticeTemplatePath):
+        self._noticeTemplatePath = noticeTemplatePath
 
     @property
     def stopAfter(self):
@@ -86,23 +108,49 @@ class NoticeChecker:
     # End of CLI properties.
 
     def __init__(self):
+        # Set default values for CLI properties.
+        self._gitlsParameters = tuple()
+        self._exemptUpdateNames = (
+            'gradlew', 'gradlew.bat', 'CODE-OF-CONDUCT.md')
+        self._exemptUpdateSuffixes = ('.png', '.json', '.jar')
+        self._exemptMissingSuffixes = ('.md',)
+        # Markdown files have different copyright notices, longer and typically
+        # appended in a legal section. So if a Markdown file is missing a
+        # notice, it can't be added automatically.  
+        # If the notice is only incorrect then it can be corrected
+        # automatically.
+
+        path = Path(__file__).resolve().parent / "copyright.txt"
+        try:
+            self._noticeTemplatePath = path.relative_to(Path().resolve())
+        except ValueError:
+            self._noticeTemplatePath = path
+        # End of default CLI properties.
+
         self._noticedFiles = []
 
     def __call__(self):
         self._overwrite = Overwrite(self.edit.value)
+        self._editor = NoticeEditor.from_template(self.noticeTemplatePath)
+
         self.__scan_files()
         if self.__print_errors() > 0: return 1
         self.__print_summary()
-        if self.summariseFirst: self.__correct_dates()
+        if self.summariseFirst:
+            for noticed in self._noticedFiles:
+                self.__correct_one_date(noticed)
+            for noticed in self._noticedFiles:
+                self.__correct_one_missing()
         return 0
     
     def __scan_files(self):
-        if not self.verbose:
+        if self.verbose:
+            print("Scanning...")
+        else:
             print("Scan dots:")
-            for state in NoticeState:
-                print(state.value, state.name)
+            for state in NoticeState: print(state.value, state.name)
         stopCount = 0
-        for path in git_ls_files():
+        for path in git_ls_files('--', *self.gitlsParameters):
             stopCount += 1
             noticed = self.__scan_one_file(path)
             if self.verbose: print(noticed)
@@ -116,7 +164,8 @@ class NoticeChecker:
     
     def __scan_one_file(self, path):
         if (
-            path.suffix in self.exemptSuffixes or path.name in self.exemptNames
+            path.suffix in self.exemptUpdateSuffixes
+            or path.name in self.exemptUpdateNames
         ): return NoticedFile.from_exempt_path(path)
 
         while True:
@@ -126,11 +175,21 @@ class NoticeChecker:
                 or type(noticed.exception) is UnicodeDecodeError
             )): raise RuntimeError(path) from noticed.exception
 
-            if (not self.summariseFirst) and self.__correct_one_date(noticed):
-                # If the user chose to overwrite, go around again and refresh
-                # the file state.
-                continue
+            # If summarising first, don't do any corrections now.
+            if self.summariseFirst: break
             
+            # If any correction is made, go around again and refresh the file
+            # state.
+            if self.__correct_one_date(noticed): continue
+            try:
+                if self.__correct_one_missing(noticed): continue
+            except Exception as exception:
+                # A KeyError will be thrown if the file suffix isn't known to
+                # NoticeEditor.
+                return noticed.with_exception(exception)
+
+            # If the code gets here there were no corrections to make, or the
+            # user chose not to make them.
             return noticed
 
     def __print_errors(self):
@@ -140,9 +199,12 @@ class NoticeChecker:
             errorCount += 1
             print(noticed.path)
             print(f"Raised {type(noticed.exception).__name__}.")
-            if type(noticed.exception) is UnicodeDecodeError: print(
-                f"Should the suffix {noticed.path.suffix} be an exempt binary"
-                " format?")
+            if type(noticed.exception) is UnicodeDecodeError:
+                print(
+                    f'Should the suffix "{noticed.path.suffix}" be an exempt'
+                    " binary format?")
+            else:
+                print("\n".join(noticed.exception.args))
         return errorCount
 
     def __print_summary(self):
@@ -151,7 +213,7 @@ class NoticeChecker:
         for noticed in self._noticedFiles:
             fileFormat = (
                 noticed.path.name if (
-                    noticed.path.name in self.exemptNames
+                    noticed.path.name in self.exemptUpdateNames
                     or noticed.path.suffix == ""
                 ) else noticed.path.suffix
             )
@@ -169,23 +231,41 @@ class NoticeChecker:
             noticeSuffixes[noticeSuffix].append(noticed.path)
 
         indent = " " * 4
+        print("\nSummary by file format or exempt name and state:")
         for fileFormat in sorted(formats.keys()):
             print(fileFormat)
             states = formats[fileFormat]
             for state in sorted(states.keys()):
                 print(''.join((
                     indent, state, ": ", first_or_len(states[state]) )))
+        print("\nSummary by copyright:")
         for noticeSuffix in sorted(noticeSuffixes.keys()):
             print(
                 str_quote(None if noticeSuffix == ascii(None) else noticeSuffix)
                 , first_or_len(noticeSuffixes[noticeSuffix]))
 
-    def __correct_dates(self):
-        for noticed in self._noticedFiles:
-            self.__correct_one_date(noticed)
-
     def __correct_one_date(self, noticedFile):
         if noticedFile.state is not NoticeState.INCORRECT_DATE: return False
-        editedPath = noticedFile.notice.rewrite_year(
-            noticedFile.gitModifiedDate.year)
+
+        # The next line could instead say this.
+        #
+        #     editedPath = noticedFile.notice.rewrite_year(
+        #         noticedFile.gitModifiedDate.year)
+        #
+        # That seems theoretically correct. In practice however a change to the
+        # copyright year would also be a change to the file that has to be
+        # committed. That means the correct year is the current year. Omitting
+        # the parameter causes rewrite_year() to fill in the current year.
+        editedPath = noticedFile.notice.rewrite_year()
+            
         return self._overwrite.prompt(noticedFile.path, editedPath)
+
+    def __correct_one_missing(self, noticedFile):
+        if (
+            noticedFile.state is NoticeState.MISSING
+            and noticedFile.path.suffix not in self._exemptMissingSuffixes
+        ):
+            editedPath = self._editor(noticedFile.path)
+            return self._overwrite.prompt(noticedFile.path, editedPath)
+
+        return False

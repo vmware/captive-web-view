@@ -52,7 +52,7 @@ copyrightYearRE = re.compile(
     , re.IGNORECASE | re.VERBOSE
 )
 
-class CopyrightNotice(NamedTuple):
+class DiscoveredNotice(NamedTuple):
     path: Path
     lineIndex: int
     match: re.Match
@@ -79,7 +79,9 @@ class CopyrightNotice(NamedTuple):
             path, matchedIndex, match , match['style'], int(match['year']), match['suffix']
         )
 
-    def rewrite_year(self, toYear):
+    def rewrite_year(self, toYear=None):
+        if toYear is None:
+            toYear = datetime.datetime.now().year
         with NamedTemporaryFile(
             mode='wt', delete=False,
             prefix=self.path.stem + '_' , suffix=self.path.suffix

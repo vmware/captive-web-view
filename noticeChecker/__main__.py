@@ -36,6 +36,10 @@ gradlew.bat file."""
 # Reference: https://docs.python.org/3/library/argparse.html
 import argparse
 #
+# Module for OO path handling. Only used to declare a Path type CLI.
+# https://docs.python.org/3/library/pathlib.html
+from pathlib import Path
+#
 # Module for the operating system interface.
 # https://docs.python.org/3/library/sys.html
 from sys import argv, exit
@@ -49,10 +53,10 @@ import textwrap
 #
 from noticeChecker.notice_checker import NoticeChecker
 
-exemptNames = ('gradlew', 'gradlew.bat')
-exemptSuffixes = ('.png', '.json', '.jar')
-
 def main(commandLine):
+    # Instantiate here so that the default values can be printed in the usage.
+    noticeChecker = NoticeChecker()
+
     argumentParser = argparse.ArgumentParser(
         prog="python3 -m noticeChecker",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -68,24 +72,45 @@ def main(commandLine):
         "Finish the scan and print the summary before offering any edits."
         " Default is to offer edits as soon as editable files are scanned.")
     argumentParser.add_argument(
+        '--notice-template', metavar='FILE', type=Path
+        , dest='noticeTemplatePath', default=noticeChecker.noticeTemplatePath
+        , help=
+        'Copyright notice template file. Contents are treated as a date format.'
+        ' Put %%Y where the year should be inserted.'
+        f' Default is "{noticeChecker.noticeTemplatePath}".')
+    argumentParser.add_argument(
         '--stop-after', dest='stopAfter', type=int, default=0, help=
         'Stop after checking the specified number of files. Or specify zero'
         ' not to stop. This is a diagnostic option. Default is zero.')
     argumentParser.add_argument(
-        '--exempt-names', dest='exemptNames', default=exemptNames
-        , metavar='NAME.SUF', type=str, nargs='*', help=
-        'Files with any of these names are exempt from copyright checking.'
-        f' Default is {exemptNames}.')
+        '--exempt-update-names', dest='exemptUpdateNames', metavar='NAME.SUF'
+        , type=str, default=noticeChecker.exemptUpdateNames, nargs='*', help=
+        'Files with these names are exempt from copyright checking.'
+        f' Default is {noticeChecker.exemptUpdateNames}.')
     argumentParser.add_argument(
-        '--exempt-suffixes', dest='exemptSuffixes', default=exemptSuffixes
-        , metavar='.SUFFIX', type=str, nargs='*', help=
-        'Files with any of these suffixes are exempt from copyright checking.'
-        f' Default is {exemptSuffixes}.')
+        '--exempt-update-suffixes', dest='exemptUpdateSuffixes'
+        , metavar='.SUFFIX', type=str
+        , default=noticeChecker.exemptUpdateSuffixes, nargs='*', help=
+        'Files with these suffixes are exempt from copyright checking.'
+        f' Default is {noticeChecker.exemptUpdateSuffixes}.')
+    argumentParser.add_argument(
+        '--exempt-missing-suffixes', dest='exemptMissingSuffixes'
+        , metavar='.SUFFIX', type=str
+        , default=noticeChecker.exemptMissingSuffixes, nargs='*', help=
+        "Files with these suffixes won't have a notice inserted automatically"
+        " if there isn't a notice. However, if there is a notice then it will"
+        " be updated automatically."
+        f' Default is {noticeChecker.exemptMissingSuffixes}.')
     argumentParser.add_argument(
         '-v', '--verbose', action='store_true', help=
         "Print every file path and its notice state during the scan. Default is"
         " to print only a single state indicator character per file during the"
         " scan.")
-    return argumentParser.parse_args(commandLine[1:], NoticeChecker())()
+    argumentParser.add_argument(
+        'gitlsParameters', metavar="git ls PARAMETER", nargs="*", help=
+        "Append command line parameters for the initial git ls scan."
+        " For example, '*.storyboard' scans only .storyboard files anywhere in"
+        " the hierarchy.")
+    return argumentParser.parse_args(commandLine[1:], noticeChecker)()
 
 exit(main(argv))

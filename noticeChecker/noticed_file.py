@@ -24,7 +24,7 @@ from typing import NamedTuple
 #
 # Local imports.
 #
-from noticeChecker.copyright_notice import CopyrightNotice
+from noticeChecker.copyright_notice import DiscoveredNotice
 from noticeChecker.git_cli import git_ls_files, git_modified_date
 
 def str_quote(subject):
@@ -44,7 +44,7 @@ class NoticeState(enum.Enum):
 class NoticedFile(NamedTuple):
     path: Path
     gitModifiedDate: datetime
-    notice: CopyrightNotice
+    notice: DiscoveredNotice
     state: NoticeState
     exception: Exception
 
@@ -61,6 +61,10 @@ class NoticedFile(NamedTuple):
                     )
                 )
         return "\n".join((str(self.path), " ".join(summary)))
+    
+    def with_exception(self, exception):
+        return type(self)(
+            self.path, self.gitModifiedDate, self.notice, self.state, exception)
 
     @classmethod
     def from_path(cls, path):
@@ -69,7 +73,7 @@ class NoticedFile(NamedTuple):
     @classmethod
     def from_path_and_git_date(cls, path, gitModifiedDate):
         try:
-            notice = CopyrightNotice.from_path(path)
+            notice = DiscoveredNotice.from_path(path)
             return cls(
                 path, gitModifiedDate,
                 None if notice.style is None else notice,
@@ -85,8 +89,3 @@ class NoticedFile(NamedTuple):
     @classmethod
     def from_exempt_path(cls, path):
         return cls(path, None, None, NoticeState.EXEMPT, None)
-
-    @classmethod
-    def from_directory(cls):
-        for path in git_ls_files():
-            yield cls.from_path(path)
