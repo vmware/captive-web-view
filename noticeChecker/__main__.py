@@ -16,7 +16,7 @@ Each file then has one of these states.
 -   CORRECT, otherwise.
 
 The script will, with user confirmation, edit in a corrected date to each file
-with INCORRECT_DATE status.
+with INCORRECT_DATE or MISSING status.
 
 A summary of file statuses is printed.
 
@@ -52,6 +52,12 @@ import textwrap
 # Local imports.
 #
 from noticeChecker.notice_checker import NoticeChecker
+from noticeChecker.test_path_matcher import path_matcher_tests
+
+class TestAction(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        path_matcher_tests()
+        parser.error("Ran path matcher tests.")
 
 def main(commandLine):
     # Instantiate here so that the default values can be printed in the usage.
@@ -63,7 +69,9 @@ def main(commandLine):
         description=textwrap.dedent(__doc__))
     argumentParser.add_argument(
         '-e', '--edit', choices=['yes', 'y', 'no', 'n', 'prompt']
-        , default='prompt', help=
+        # TOTH case insensitive choice matching.
+        # https://stackoverflow.com/a/27616814/7657675
+        , type=str.lower, default='prompt', help=
         "yes or y to edit without user confirmation; no or n to edit nothing."
         " Default is to prompt for each file.")
     argumentParser.add_argument(
@@ -82,6 +90,12 @@ def main(commandLine):
         '--stop-after', dest='stopAfter', type=int, default=0, help=
         'Stop after checking the specified number of files. Or specify zero'
         ' not to stop. This is a diagnostic option. Default is zero.')
+    argumentParser.add_argument(
+        '--ignore-from', metavar='FILE', type=Path
+        , dest='noticesIgnorePath', default=noticeChecker.noticesIgnorePath
+        , help=
+        'File for paths to ignore. Format is like .gitignore files.'
+        f' Default is "{noticeChecker.noticesIgnorePath}".')
     argumentParser.add_argument(
         '--exempt-update-names', dest='exemptUpdateNames', metavar='NAME.SUF'
         , type=str, default=noticeChecker.exemptUpdateNames, nargs='*', help=
@@ -107,10 +121,14 @@ def main(commandLine):
         " to print only a single state indicator character per file during the"
         " scan.")
     argumentParser.add_argument(
-        'gitlsParameters', metavar="git ls PARAMETER", nargs="*", help=
-        "Append command line parameters for the initial git ls scan."
-        " For example, '*.storyboard' scans only .storyboard files anywhere in"
-        " the hierarchy.")
+        '--tests', action=TestAction, nargs='?', help=
+        "Run a test suite instead of checking notices.")
+    argumentParser.add_argument(
+        'gitPathSpecifiers', metavar="PATHSPEC", nargs="*", help="""
+Append git path specifiers to the initial git ls scan. For example,
+'*.storyboard' scans only .storyboard files anywhere in the hierarchy. Any Git
+path specifier can be used. Look for 'pathspec' in the man page for gitglossary
+for details.""")
     return argumentParser.parse_args(commandLine[1:], noticeChecker)()
 
 exit(main(argv))

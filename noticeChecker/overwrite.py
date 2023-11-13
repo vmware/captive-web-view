@@ -34,6 +34,8 @@ class Overwrite:
             ))
 
         print()
+        if diff.strip() == "": #return False
+            raise RuntimeError("Editor made no changes.", originalPath)
         print(diff)
 
         while True:
@@ -55,6 +57,7 @@ class Overwrite:
                 print("y to overwrite, the default.")
                 print("n to keep and not overwrite.")
                 print("Append * to make that response to all future prompts.")
+                print("Ctrl-c to quit.")
                 print()
             else:
                 print(

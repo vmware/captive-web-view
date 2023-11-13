@@ -25,7 +25,8 @@ from typing import NamedTuple
 # Local imports.
 #
 from noticeChecker.copyright_notice import DiscoveredNotice
-from noticeChecker.git_cli import git_ls_files, git_modified_date
+from noticeChecker.git_cli import (
+    git_ls_files, git_modified_date, git_is_different)
 
 def str_quote(subject):
     return (
@@ -43,15 +44,15 @@ class NoticeState(enum.Enum):
 
 class NoticedFile(NamedTuple):
     path: Path
-    gitModifiedDate: datetime
+    modifiedDate: datetime
     notice: DiscoveredNotice
     state: NoticeState
     exception: Exception
 
     def __str__(self):
         summary = [self.state.name,]
-        if self.gitModifiedDate is not None or self.notice is not None:
-            summary.append(str(self.gitModifiedDate))
+        if self.modifiedDate is not None or self.notice is not None:
+            summary.append(str(self.modifiedDate))
             if self.notice is None:
                 summary.append(str(None))
             else:
@@ -64,27 +65,37 @@ class NoticedFile(NamedTuple):
     
     def with_exception(self, exception):
         return type(self)(
-            self.path, self.gitModifiedDate, self.notice, self.state, exception)
+            self.path, self.modifiedDate, self.notice, self.state, exception)
 
     @classmethod
     def from_path(cls, path):
-        return cls.from_path_and_git_date(path, git_modified_date(path))
-    
-    @classmethod
-    def from_path_and_git_date(cls, path, gitModifiedDate):
         try:
-            notice = DiscoveredNotice.from_path(path)
-            return cls(
-                path, gitModifiedDate,
-                None if notice.style is None else notice,
-                NoticeState.MISSING if notice.style is None else
-                NoticeState.INCORRECT_DATE
-                if notice.year != gitModifiedDate.year
-                else NoticeState.CORRECT
-                , None
-            )
+            return cls.from_notice(DiscoveredNotice.from_path(path))
         except UnicodeDecodeError as exception:
             return cls(path, None, None, NoticeState.ERROR, exception)
+
+    @classmethod
+    def from_notice(cls, notice):
+        # If the file on disk is different to how it is in the repository, take
+        # its stat modified time.  
+        # Otherwise take its last modified time from git log.
+        statDate = datetime.date.fromtimestamp(notice.path.stat().st_mtime)
+        if git_is_different(notice.path):
+            modifiedDate = statDate
+        else:
+            try:
+                modifiedDate = git_modified_date(notice.path)
+            except Exception as exception:
+                modifiedDate = statDate
+        return cls(
+            notice.path, modifiedDate,
+            None if notice.style is None else notice,
+            NoticeState.MISSING if notice.style is None else
+            NoticeState.INCORRECT_DATE
+            if notice.year != modifiedDate.year
+            else NoticeState.CORRECT
+            , None
+        )
 
     @classmethod
     def from_exempt_path(cls, path):

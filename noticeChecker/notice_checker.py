@@ -23,6 +23,7 @@ from noticeChecker.git_cli import git_ls_files
 from noticeChecker.noticed_file import NoticeState, NoticedFile, str_quote
 from noticeChecker.overwrite import Overwrite
 from noticeChecker.notice_editor import NoticeEditor
+from noticeChecker.path_matcher import PathMatcher
 
 # General TOTH
 # https://github.com/vmware-samples/workspace-ONE-SDK-integration-samples/blob/main/IntegrationGuideForAndroid/Apps/samers.py
@@ -71,18 +72,25 @@ class NoticeChecker:
         self._exemptMissingSuffixes = exemptMissingSuffixes
 
     @property
-    def gitlsParameters(self):
-        return self._gitlsParameters
-    @gitlsParameters.setter
-    def gitlsParameters(self, gitlsParameters):
-        self._gitlsParameters = tuple(gitlsParameters)
+    def gitPathSpecifiers(self):
+        return self._gitPathSpecifiers
+    @gitPathSpecifiers.setter
+    def gitPathSpecifiers(self, gitPathSpecifiers):
+        self._gitPathSpecifiers = tuple(gitPathSpecifiers)
+
+    @property
+    def noticesIgnorePath(self):
+        return self._noticesIgnorePath
+    @noticesIgnorePath.setter
+    def noticesIgnorePath(self, noticesIgnorePath):
+        self._noticesIgnorePath = Path(noticesIgnorePath)
 
     @property
     def noticeTemplatePath(self):
         return self._noticeTemplatePath
     @noticeTemplatePath.setter
     def noticeTemplatePath(self, noticeTemplatePath):
-        self._noticeTemplatePath = noticeTemplatePath
+        self._noticeTemplatePath = Path(noticeTemplatePath)
 
     @property
     def stopAfter(self):
@@ -109,22 +117,30 @@ class NoticeChecker:
 
     def __init__(self):
         # Set default values for CLI properties.
-        self._gitlsParameters = tuple()
+        self._gitPathSpecifiers = tuple()
         self._exemptUpdateNames = (
-            'gradlew', 'gradlew.bat', 'CODE-OF-CONDUCT.md')
+            'gradlew', 'gradlew.bat', 'gradle-wrapper.properties'
+            , 'CODE-OF-CONDUCT.md')
         self._exemptUpdateSuffixes = ('.png', '.json', '.jar')
-        self._exemptMissingSuffixes = ('.md',)
-        # Markdown files have different copyright notices, longer and typically
-        # appended in a legal section. So if a Markdown file is missing a
+        self._exemptMissingSuffixes = ('.md', '.txt')
+        # Markdown and txt files have different copyright notices, longer and
+        # typically appended in a legal section. So if a text file is missing a
         # notice, it can't be added automatically.  
-        # If the notice is only incorrect then it can be corrected
+        # If the notice is only incorrect for its date then it can be corrected
         # automatically.
 
-        path = Path(__file__).resolve().parent / "copyright.txt"
+        templatePath = Path(__file__).resolve().parent / "copyright.txt"
         try:
-            self._noticeTemplatePath = path.relative_to(Path().resolve())
+            self._noticeTemplatePath = templatePath.relative_to(
+                Path().resolve())
         except ValueError:
-            self._noticeTemplatePath = path
+            self._noticeTemplatePath = templatePath
+
+        ignorePath = Path('notices.ignore').resolve()
+        try:
+            self._noticesIgnorePath = ignorePath.relative_to(Path().resolve())
+        except ValueError:
+            self._noticesIgnorePath = ignorePath
         # End of default CLI properties.
 
         self._noticedFiles = []
@@ -132,7 +148,9 @@ class NoticeChecker:
     def __call__(self):
         self._overwrite = Overwrite(self.edit.value)
         self._editor = NoticeEditor.from_template(self.noticeTemplatePath)
-
+        self._ignoreMatcher = PathMatcher.from_ignore_file(
+            self.noticesIgnorePath)
+        
         self.__scan_files()
         if self.__print_errors() > 0: return 1
         self.__print_summary()
@@ -140,27 +158,37 @@ class NoticeChecker:
             for noticed in self._noticedFiles:
                 self.__correct_one_date(noticed)
             for noticed in self._noticedFiles:
-                self.__correct_one_missing()
+                self.__correct_one_missing(noticed)
         return 0
     
     def __scan_files(self):
         if self.verbose:
             print("Scanning...")
+            print(f"Ignoring patterns {self._ignoreMatcher.patterns}")
         else:
             print("Scan dots:")
             for state in NoticeState: print(state.value, state.name)
         stopCount = 0
-        for path in git_ls_files('--', *self.gitlsParameters):
-            stopCount += 1
-            noticed = self.__scan_one_file(path)
-            if self.verbose: print(noticed)
-            else: print(noticed.state.value, end='', flush=True)
-            self._noticedFiles.append(noticed)
+        ignoreCount = 0
+        for path in git_ls_files(self.gitPathSpecifiers):
+            ignorePattern = self._ignoreMatcher(path)
+            if ignorePattern is None:
+                stopCount += 1
+                noticed = self.__scan_one_file(path)
+                if self.verbose: print(noticed, flush=True)
+                else: print(noticed.state.value, end='', flush=True)
+                self._noticedFiles.append(noticed)
+            else:
+                ignoreCount += 1
+                if self.verbose: print(
+                    f'{path}\nIgnored by pattern "{ignorePattern}"'
+                    , flush=True)
 
             if self.stopAfter > 0 and stopCount >= self.stopAfter: break
 
         if not self.verbose: print()
         print(f"Path count: {stopCount}.")
+        print(f"Ignore count: {ignoreCount}.")
     
     def __scan_one_file(self, path):
         if (
@@ -176,7 +204,7 @@ class NoticeChecker:
             )): raise RuntimeError(path) from noticed.exception
 
             # If summarising first, don't do any corrections now.
-            if self.summariseFirst: break
+            if self.summariseFirst: return noticed
             
             # If any correction is made, go around again and refresh the file
             # state.
@@ -250,7 +278,7 @@ class NoticeChecker:
         # The next line could instead say this.
         #
         #     editedPath = noticedFile.notice.rewrite_year(
-        #         noticedFile.gitModifiedDate.year)
+        #         noticedFile.modifiedDate.year)
         #
         # That seems theoretically correct. In practice however a change to the
         # copyright year would also be a change to the file that has to be

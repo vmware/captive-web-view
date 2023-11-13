@@ -25,8 +25,8 @@ def git_modified_date(path):
     # Get the date of the last commit.
     with subprocess.Popen(
         (
-            'git', 'log', '--max-count=1', '--pretty=format:%cd'
-            , '--date=format:%Y %m %d', str(path)
+            'git', 'log', '--max-count=1', r'--pretty=format:%cd'
+            , r'--date=format:%Y %m %d', str(path)
         ), stdout=subprocess.PIPE, text=True
     ) as gitProcess:
         with gitProcess.stdout as gitOutput:
@@ -38,12 +38,12 @@ def git_modified_date(path):
         gitProcess.wait()
         return datetime.date(*components)
 
-def git_ls_files(*switches):
+def git_ls_files(paths=None):
     # See: https://git-scm.com/docs/git-ls-files  
     # -z switch specifies null-terminators instead of newlines, and verbatim
     # file names for unprintable values.
     with subprocess.Popen(
-        ('git', 'ls-files', '-z', *switches)
+        ('git', 'ls-files', '-z', '--', *paths)
         , stdout=subprocess.PIPE, text=True
     ) as gitProcess:
         with gitProcess.stdout as gitOutput:
@@ -56,3 +56,50 @@ def git_ls_files(*switches):
                     name = []
                 else:
                     name.append(readChar)
+
+def git_is_different(path):
+    run = subprocess.run(
+        ('git', 'diff', '--name-only', '--exit-code', path)
+        , stdout=subprocess.DEVNULL, text=True
+    )
+    return run.returncode != 0
+
+# The git_pathspec() function, below, was intended to generate a Git path
+# specification from a list of paths and a list of patterns to ignore. Jim
+# couldn't get it to work reliably. For example, this command produced no
+# output.
+#
+#     git ls-files \
+#          forAndroid/CaptiveCrypto/src/main/res/values \
+#          ':!:forAndroid/**/ic_launcher*.xml'
+#
+# So ignore patterns are instead handled down stream from the git ls-files, in
+# the NoticeChecker scanning function.
+#
+#
+# Module for operating system interfaces. Only used to get the path separator.
+# https://docs.python.org/3/library/os.html#os.sep
+# from os import sep, altsep
+#
+# def git_pathspec(paths=None, ignoringPatterns=None):
+#     # Create tuples for the parameters to support generators.
+#     paths = tuple() if paths is None else tuple(paths)
+#     ignoringPatterns = (
+#         tuple() if ignoringPatterns is None else tuple(ignoringPatterns))
+#     if len(ignoringPatterns) > 0:
+#         if len(paths) == 0:
+#             # If only ignore patterns have been specified, set paths to be a
+#             # single-element tuple that specifies the current directory.
+#             paths = ('.',)
+#         for pattern in ignoringPatterns:
+#             # TOTH applying multiple exclude patterns to a Git pathspec.
+#             # https://stackoverflow.com/questions/36753573/how-do-i-exclude-files-from-git-ls-files#comment93098741_53083343
+#             # Git pathspec with a trailing / seems to prevent ignore patterns
+#             # from matching. Strip the trailing separator here. To be on the
+#             # safe side, use sep and altsep from the os module. The sep value is
+#             # never None but altsep can be, on macOS for example.
+#             for path in paths:
+#                 yield path.rstrip(sep if altsep is None else sep + altsep)
+#             yield ':!:' + pattern
+#     else:
+#         yield from paths
