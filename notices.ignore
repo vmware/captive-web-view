@@ -1,0 +1,6 @@
+# Specifies files for the copyright notice checker to ignore in this
+# repository. Same format as .gitignore files.
+
+# Files from an Android Studio project template that haven't been edited.
+**/proguard-rules.pro
+forAndroid/**/ic_launcher*.xml
