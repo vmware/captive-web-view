@@ -62,6 +62,8 @@ def git_is_different(path):
         ('git', 'diff', '--name-only', '--exit-code', path)
         , stdout=subprocess.DEVNULL, text=True
     )
+    # TOTH those command line options.
+    # https://stackoverflow.com/a/50117376/7657675
     return run.returncode != 0
 
 # The git_pathspec() function, below, was intended to generate a Git path
