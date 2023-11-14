@@ -34,7 +34,13 @@ def comment_leader(path):
 
 def editing_file(path):
     return  NamedTemporaryFile(
-        mode='wt', delete=False, prefix=path.stem + '_' , suffix=path.suffix)
+        mode='w', delete=False, prefix=path.stem + '_' , suffix=path.suffix)
+
+def starts_with(path, start):
+    mode = 'b' if type(start) is bytes else ''
+    with Path(path).open('r' + mode) as file:
+        actual = file.read(len(start))
+        return actual == start
 
 class NoticeEditor:
     def __init__(self, noticeLines):
@@ -49,8 +55,12 @@ class NoticeEditor:
         ))
 
     def __call__(self, path):
-        if path.suffix in xmlSuffixes:
+        if path.suffix in xmlSuffixes or starts_with(path, b'<?xml'):
             return self.xml_editor(path)
+
+        if starts_with(path, b'// !$*UTF8*$!'):
+            return self.pbxproj_editor(path)
+
         return self.comment_leader_editor(path)
         # Previous line will raise KeyError if there's no known leader for the
         # suffix.
@@ -66,7 +76,7 @@ class NoticeEditor:
             commentLeader = comment_leader(path)
         if commentLeader is None: return None # No comment leader configured.
 
-        with editing_file(path) as editedFile, path.open('rt') as originalFile:
+        with editing_file(path) as editedFile, path.open('r') as originalFile:
             for line in self._noticeLines:
                 editedFile.write(commentLeader)
                 editedFile.write(" ")
@@ -95,7 +105,7 @@ class NoticeEditor:
         noticesXML = "\n".join((
             "<!--", *["    " + line for line in self._noticeLines], "-->\n"))
 
-        with editing_file(path) as editedFile, path.open('rt') as originalFile:
+        with editing_file(path) as editedFile, path.open('r') as originalFile:
             line = originalFile.readline()
             if line.startswith("<?xml") or line.startswith('<!DOCTYPE '):
                 editedFile.write(line)
@@ -132,3 +142,27 @@ class NoticeEditor:
         #         editedFile.write(partition[2])
         #     line = originalFile.readline()
 
+    # Custom editor for .pbxproj files.
+    #
+    # Copy the first line to the edited file.
+    #
+    # Insert the copyright notice lines like this.
+    #
+    #     /* Notice line 1.
+    #      * Notice line 2.
+    #      * Notice line 3.
+    #      */
+    #
+    # Copy the rest of the file to the edited file.
+    def pbxproj_editor(self, path):
+        with editing_file(path) as editedFile, path.open('r') as originalFile:
+            line = originalFile.readline()
+            editedFile.write(line)
+            editedFile.write('/* ')
+            editedFile.write("\n * ".join(self._noticeLines))
+            editedFile.write('\n */\n')
+            line = originalFile.readline()
+            while line != '':
+                editedFile.write(line)
+                line = originalFile.readline()
+            return Path(editedFile.name)
