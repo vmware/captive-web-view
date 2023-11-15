@@ -50,3 +50,15 @@ public extension OSStatus {
     }
 }
 
+func check(
+    _ itemRef:CFTypeRef?, from source:String, isTypeID typeID:CFTypeID) throws
+{
+    guard CFGetTypeID(itemRef) == typeID else {
+        let description
+        = CFCopyTypeIDDescription(CFGetTypeID(itemRef)) as String
+        let expected = CFCopyTypeIDDescription(typeID) as String
+        throw StoredKeyError(
+            "Unexpected type \(description) from \(source).",
+            " Expected type is \(expected).")
+    }
+}

@@ -22,8 +22,8 @@ class StoredKey {
     }
     
     // Key pair constructor. The SecKey will be the private key. The
-    // corresponding private key will be generated if needed in the
-    // encipherBasedOnPrivateKey() method, below.
+    // corresponding public key will be generated as needed in either of the
+    // encipher or decipher methods.
     init(_ secKey:SecKey) {
         _storage = .key
         self.secKey = secKey

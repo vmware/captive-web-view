@@ -11,18 +11,16 @@ extension StoredKey {
         let type:String
         let attributes:[String:AnyEncodable]
         
-        init(_ storage:Storage, _ attributes:CFDictionary) {
+        init(_ storage:Storage, _ attributes:NSDictionary) {
             self.storage = storage.rawValue
             
             // Create a dictionary of normalised values. Some of the normalised
             // values are also used in the rest of the constructor.
-            self.attributes = Description.normalise(cfAttributes: attributes)
+            self.attributes = Description.normalise(nsAttributes: attributes)
             
             // `name` will be the kSecAttrLabel if it can be a String, or the
             // empty string otherwise.
-            self.name =
-                (attributes as NSDictionary)[kSecAttrLabel as String] as? String
-                ?? ""
+            self.name = attributes[kSecAttrLabel as String] as? String ?? ""
 
             // `type` will be a string derived by the KeyType.Description
             // constructor.
@@ -50,7 +48,9 @@ extension StoredKey {
                 ?? (rawValue as? Encodable ?? "\(rawValue)")
         }
         
-        static func normalise(cfAttributes:CFDictionary) -> [String:AnyEncodable] {
+        static func normalise(
+            nsAttributes:NSDictionary) -> [String:AnyEncodable]
+        {
             // Keys in the attribute dictionary will sometimes be the short
             // names that are the underlying values of the various kSecAttr
             // constants. You can see a list of all the short names and
@@ -59,7 +59,7 @@ extension StoredKey {
             // https://opensource.apple.com/source/Security/Security-55471/sec/Security/SecItemConstants.c.auto.html
             
             var returning: [String:AnyEncodable] = [:]
-            for (rawKey, rawValue) in cfAttributes as NSDictionary {
+            for (rawKey, rawValue) in nsAttributes  {
                 let value:Encodable
                     
                 if let key = rawKey as? String {
@@ -82,7 +82,7 @@ extension StoredKey {
                     else if let nsDictionary = rawValue as? NSDictionary {
                         // Recursive call to preserve hierarchy, for example if
                         // this is an attribute dictionary for a key pair.
-                        value = normalise(cfAttributes: nsDictionary)
+                        value = normalise(nsAttributes: nsDictionary)
                     }
                     else {
                         value = fallbackValue(rawValue)
@@ -128,8 +128,8 @@ extension StoredKey {
             // Gets a CFData instance for each key. From the reference documentation
             // it looks like the data should be a PKCS#1 representation.
             
-            var itemRef: CFTypeRef?
-            let status = SecItemCopyMatching(query as CFDictionary, &itemRef)
+            var result: CFTypeRef?
+            let status = SecItemCopyMatching(query as CFDictionary, &result)
             
             // If SecItemCopyMatching failed, status will be a numeric error
             // code. To find out what a particular number means, you can look it
@@ -143,18 +143,32 @@ extension StoredKey {
             //
             // This is how Jim found out that -25300 is errSecItemNotFound.
             
-            guard status == errSecSuccess || status == errSecItemNotFound else {
-                throw StoredKeyError(status)
-            }
-
             // Set items to an NSArray of the return value, or an empty NSArray
             // in case of errSecItemNotFound.
-            let items = status == errSecSuccess
-                ? (itemRef as! CFArray) as NSArray
-                : NSArray()
-            
-            return items.map { item -> Description in
-                Description(storage, item as! CFDictionary)
+            let items:NSArray
+            if status == errSecSuccess {
+                guard let nsArray = result as? NSArray else {
+                    throw StoredKeyError(
+                        "Couldn't cast result \(String(describing: result)) to",
+                        " NSArray. Result was returned by",
+                        "SecItemCopyMatching(\(query),)."
+                    )
+                }
+                items = nsArray
+            }
+            else if status == errSecItemNotFound { items = NSArray() }
+            else { throw StoredKeyError(
+                status, " Returned by SecItemCopyMatching(\(query),).") }
+
+            return try items.map { item -> Description in
+                guard let nsDictionary = item as? NSDictionary else {
+                    throw StoredKeyError(
+                        "Couldn't cast item \(String(describing: item)) to",
+                        " NSDictionary. Item was returned by",
+                        "SecItemCopyMatching(\(query),)."
+                    )
+                }
+                return Description(storage, nsDictionary)
             }
         }
     }

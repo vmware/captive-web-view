@@ -28,10 +28,11 @@ extension StoredKey {
     private func encipherWithSymmetricKey(
         _ message:String) throws -> Enciphered
     {
+        guard let key = symmetricKey else { throw StoredKeyError(
+            "StoredKey instance isn't a symmetric key.")
+        }
         guard let box = try
-            AES.GCM.seal(
-                Data(message.utf8) as NSData, using: symmetricKey!
-            ).combined else
+            AES.GCM.seal(Data(message.utf8) as NSData, using: key).combined else
         {
             throw StoredKeyError("Combined nil.")
         }
@@ -47,7 +48,10 @@ extension StoredKey {
     private func encipherBasedOnPrivateKey(
         _ message:String) throws -> Enciphered
     {
-        guard let publicKey = SecKeyCopyPublicKey(secKey!) else {
+        guard let privateKey = secKey else { throw StoredKeyError(
+            "StoredKey instance isn't a key pair.")
+        }
+        guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
             throw StoredKeyError("No public key.")
         }
 
@@ -61,7 +65,10 @@ extension StoredKey {
         var error: Unmanaged<CFError>?
         guard let encipheredBytes = SecKeyCreateEncryptedData(
             publicKey, algorithm, Data(message.utf8) as CFData, &error) else {
-            throw error!.takeRetainedValue() as Error
+            throw error?.takeRetainedValue() as? Error ?? StoredKeyError(
+                "SecKeyCreateEncryptedData(\(publicKey),",
+                " \(algorithm), \(message),)",
+                " returned null and set error \(String(describing: error)).")
         }
         return Enciphered(message: encipheredBytes as Data, algorithm:algorithm)
     }
