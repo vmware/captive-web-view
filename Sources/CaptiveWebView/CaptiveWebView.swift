@@ -3,47 +3,24 @@
 
 import Foundation
 import WebKit
-import os.log
+
+private enum Key:String { case local, messageBridge }
 
 // This struct is really a namespace. TOTH:
 // https://stackoverflow.com/questions/24002821/how-to-use-namespaces-in-swift#24293236
 //
 // Actual class code is in extensions in the other .swift files, where possible.
 // Some examples of where it isn't possible are:
-// 
+//
 // -   Property declarations, which aren't allowed in extensions.
 // -   Open methods.
 // -   Protocol declarations.
-
-private enum Key:String { case local, messageBridge }
-
 public struct CaptiveWebView {
 
     public static let scheme = Key.local.rawValue
 
     public class WebResource {}
-
-#if os(macOS)
-    
-    // macOS version, takes two NSView parameters.
-    public static func constrain(
-        view left: NSView, to right: NSView, leftSide:Bool = false
-    ) {
-        left.translatesAutoresizingMaskIntoConstraints = false
-        left.topAnchor.constraint(
-            equalTo: right.topAnchor).isActive = true
-        left.bottomAnchor.constraint(
-            equalTo: right.bottomAnchor).isActive = true
-        left.leftAnchor.constraint(
-            equalTo: right.leftAnchor).isActive = true
-        left.rightAnchor.constraint(
-            equalTo: leftSide ? right.centerXAnchor : right.rightAnchor
-        ).isActive = true
-    }
-    // TOTH:
-    //    https://github.com/dasher-project/redash/blob/master/Keyboard/foriOS/DasherApp/Keyboard/KeyboardViewController.swift#L129
-
-#else
+    public class BuiltInHandlers {}
     
 
     // Swift seems to have made it rather difficult to create a throw-able that
@@ -79,48 +56,7 @@ public struct CaptiveWebView {
         }
     }
     
-    // iOS version, takes either of the following:
-    //
-    // -   Two UIView parameters.
-    // -   One UIView and one UILayoutGuide.
-    //
-    // The UIView.safeAreaLayoutGuide property is a UILayoutGuide.
-    public static func constrain(
-        view left: UIView, to right: UIView, leftHalf:Bool = false
-    ) {
-        setAnchors(of: left,
-                   top: right.topAnchor,
-                   left: right.leftAnchor,
-                   bottom: right.bottomAnchor,
-                   right: leftHalf ? right.centerXAnchor : right.rightAnchor)
-    }
-    
-    public static func constrain(
-        view: UIView, to guide: UILayoutGuide, leftHalf:Bool = false
-    ) {
-        setAnchors(of: view,
-                   top: guide.topAnchor,
-                   left: guide.leftAnchor,
-                   bottom: guide.bottomAnchor,
-                   right: leftHalf ? guide.centerXAnchor : guide.rightAnchor)
-    }
-
-    public static func setAnchors(
-        of view: UIView,
-        top: NSLayoutYAxisAnchor,
-        left:NSLayoutXAxisAnchor,
-        bottom: NSLayoutYAxisAnchor,
-        right: NSLayoutXAxisAnchor
-    ) {
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.topAnchor.constraint(equalTo: top).isActive = true
-        view.leftAnchor.constraint(equalTo: left).isActive = true
-        view.bottomAnchor.constraint(equalTo: bottom).isActive = true
-        view.rightAnchor.constraint(equalTo: right).isActive = true
-    }
-    //   TOTH:
-    //    https://github.com/dasher-project/redash/blob/master/Keyboard/foriOS/DasherApp/Keyboard/KeyboardViewController.swift#L129
-
+#if !os(macOS)
     
     // The next classes don't have an equivalent in the macOS library. They
     // facilitate programmatic creation of the user interface, which would be a
@@ -297,23 +233,6 @@ public struct CaptiveWebView {
         }
     }
 
-}
-
-// Protocol declarations cannot be nested though.
-public protocol CaptiveWebViewCommandHandler {
-    func handleCommand(_ command:Dictionary<String, Any>)
-        -> Dictionary<String, Any>
-    func logCaptiveWebViewCommandHandler(_ message:String)
-}
-
-extension CaptiveWebViewCommandHandler {
-    public func logCaptiveWebViewCommandHandler(_ message:String) {
-        if #available(macOS 10.12, *) {
-            os_log("%@", message)
-        } else {
-            NSLog("%@", message)
-        }
-    }
 }
 
 class URLSchemeTaskError: Error {

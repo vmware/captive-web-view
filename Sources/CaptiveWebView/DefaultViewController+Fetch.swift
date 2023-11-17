@@ -9,20 +9,11 @@ private enum KEY: String {
     // Common keys.
     case parameters
     
-    // Keys used by the `close` command.
-    case closed
-    
     // Keys used by `fetch` command.
     case resource, options, method, body, bodyObject, headers,
-         status, statusText, message, json, ok,
+         status, statusText, message, text, json, ok,
          peerCertificate, DER, length, httpReturn
     case keys, type, value
-
-    // Keys used by `load` command.
-    case page, loaded, dispatched
-    
-    // Keys used by `write` command.
-    case base64decode, text, filename, wrote
 }
 
 // Convenience extension to facilitate use of the KEY enumeration as keys in a
@@ -43,15 +34,15 @@ extension Dictionary where Key == String {
 
 }
 
-
-public extension CaptiveWebView.DefaultViewController {
+public extension CaptiveWebViewCommandHandler {
     static func builtInFetch(
         _ commandDictionary: [String:Any]
     ) throws -> [String:Any?]
     {
         return try builtInFetch(commandDictionary, nil)
     }
-
+    
+    // Utility function that can be called directly, even from macOS.
     static func builtInFetch(
         _ commandDictionary: [String:Any], _ cause:((NSError) -> Void)?
     ) throws -> [String:Any?]
@@ -74,7 +65,7 @@ public extension CaptiveWebView.DefaultViewController {
             if let nsError = fetchError.cause { cause?(nsError) }
             return fetchError.jsonAble(0)
         }
-
+        
         let fetchedData:Data?
         var details:[String:Any]
         do {
@@ -84,7 +75,7 @@ public extension CaptiveWebView.DefaultViewController {
             if let nsError = fetchError.cause { cause?(nsError) }
             return fetchError.jsonAble(2)
         }
-
+        
         // -   If the HTTP request was OK but the JSON parsing failed,
         //     return the JSON exception.
         // -   If the HTTP request wasn't OK but the JSON parsing succeeded,
@@ -103,7 +94,7 @@ public extension CaptiveWebView.DefaultViewController {
             if let nsError = fetchError.cause { cause?(nsError) }
             jsonException = fetchError
         }
-
+        
         if details[.ok] as? Bool ?? false {
             if let jsonException = jsonException {
                 // If JSON parsing failed, boost some details properties to
@@ -121,7 +112,6 @@ public extension CaptiveWebView.DefaultViewController {
         }
         return details
     }
-    
 }
 
 private func parseFetchParameters(
