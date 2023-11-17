@@ -147,5 +147,4 @@ extension CaptiveWebView.DefaultViewController {
 
 }
 
-
 #endif
