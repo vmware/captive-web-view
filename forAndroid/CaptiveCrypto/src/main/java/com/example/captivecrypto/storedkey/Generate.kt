@@ -138,7 +138,7 @@ private enum class GenerationSentinelResult {
 private fun generationSentinel(keyAlias: String): GenerationSentinelResult
 {
     val sentinel = "InMemorySentinel"
-    val encrypted = encipherWithStoredKey(sentinel, keyAlias)
-    val decrypted = decipherWithStoredKey(encrypted, keyAlias)
-    return GenerationSentinelResult.comparing(sentinel, decrypted)
+    val enciphered = encipherWithStoredKey(sentinel, keyAlias)
+    val deciphered = decipherWithStoredKey(enciphered, keyAlias)
+    return GenerationSentinelResult.comparing(sentinel, deciphered)
 }

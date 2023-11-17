@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
@@ -72,7 +72,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     // Implicit raw values, see:
     // https://docs.swift.org/swift-book/LanguageGuide/Enumerations.html#ID535
     private enum Command: String {
-        case capabilities, deleteAll, encrypt, summariseStore,
+        case capabilities, deleteAll, encipher, summariseStore,
              generateKey, generatePair
     }
     
@@ -82,27 +82,15 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             // Keys for capabilities command:
             secureEnclave, date,
             
-            // Keys for encrypt command, which is a test.
+            // Keys for encipher command, which is a test.
             parameters, alias, sentinel, results, failed, reason, count, storage,
-            encryptedSentinel, algorithm, decryptedSentinel, passed, type
+            encipheredSentinel, algorithm, decipheredSentinel, passed, type
         
         // There are no extra keys for the summariseStore, generateKey, and
         // generateKeyPair commands. This is because their return values are
         // Encodable.
     }
     
-    private struct AnyEncodable:Encodable {
-        let encodable:Encodable
-        
-        init(_ encodable:Encodable) {
-            self.encodable = encodable
-        }
-
-        func encode(to encoder: Encoder) throws {
-            try encodable.encode(to: encoder)
-        }
-    }
-
     // Utility function to attempt to generate a generic object from an
     // Encodable, via the JSON encoder, and put it in a `results` mapping.
     private func result(of encodable:Encodable) throws -> [String: Any] {
@@ -123,68 +111,77 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         in commandDictionary: Dictionary<String, Any>
     ) throws -> [String: Any]
     {
-        switch Command(rawValue: command) {
-        
-        case .capabilities:
-            return [
-                KEY.results: summariseCapabilities().withStringKeys()
-            ].withStringKeys()
-            
-        case .deleteAll: return try result(of: StoredKey.deleteAll())
-            
-        case .encrypt:
-            guard let parameters = commandDictionary[KEY.parameters]
-                    as? Dictionary<String, Any> else
-            {
-                throw CaptiveWebView.ErrorMessage(
-                    "Command `", Command.encrypt.rawValue, "` requires `"
-                    , KEY.parameters.rawValue, "`.")
+        do {
+            switch Command(rawValue: command) {
+                
+            case .capabilities:
+                return [
+                    KEY.results: summariseCapabilities().withStringKeys()
+                ].withStringKeys()
+                
+            case .deleteAll: return try result(of: StoredKey.deleteAll())
+                
+            case .encipher:
+                guard let parameters = commandDictionary[KEY.parameters]
+                        as? Dictionary<String, Any> else
+                {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Command `", Command.encipher.rawValue, "` requires `"
+                        , KEY.parameters.rawValue, "`.")
+                }
+                guard let alias = parameters[KEY.alias] as? String else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Command `", Command.encipher.rawValue, "` requires `"
+                        , KEY.parameters.rawValue, "` with `"
+                        , KEY.alias.rawValue, "`.")
+                }
+                guard let sentinel = parameters[KEY.sentinel] as? String else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Command `", Command.encipher.rawValue, "` requires `"
+                        , KEY.parameters.rawValue, "` with `",
+                        KEY.sentinel.rawValue, "`.")
+                }
+                return try [
+                    KEY.results: testKey(alias: alias, sentinel: sentinel)
+                ].withStringKeys()
+                
+            case .summariseStore: return try result(of: StoredKey.describeAll())
+                
+            case .generateKey:
+                guard
+                    let parameters = commandDictionary[KEY.parameters]
+                        as? Dictionary<String, Any>,
+                    let alias = parameters[KEY.alias] as? String
+                else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Key `", KEY.alias.rawValue,
+                        "` must be specified in `", KEY.parameters.rawValue,
+                        "`.")
+                }
+                
+                return try result(of: StoredKey.generateKey(withName: alias))
+                
+            case .generatePair:
+                guard
+                    let parameters = commandDictionary[KEY.parameters]
+                        as? Dictionary<String, Any>,
+                    let alias = parameters[KEY.alias] as? String
+                else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Key `", KEY.alias.rawValue,
+                        "` must be specified in `", KEY.parameters.rawValue,
+                        "`.")
+                }
+                return try result(
+                    of: StoredKey.generateKeyPair(withName: alias))
+                
+            default:
+                return try super.response(to: command, in: commandDictionary)
             }
-            guard let alias = parameters[KEY.alias] as? String else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Command `", Command.encrypt.rawValue, "` requires `"
-                    , KEY.parameters.rawValue, "` with `", KEY.alias.rawValue
-                    , "`.")
-            }
-            guard let sentinel = parameters[KEY.sentinel] as? String else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Command `", Command.encrypt.rawValue, "` requires `"
-                    , KEY.parameters.rawValue, "` with `", KEY.sentinel.rawValue
-                    , "`.")
-            }
-            return try [
-                KEY.results: testKey(alias: alias, sentinel: sentinel)
-            ].withStringKeys()
-
-        case .summariseStore: return try result(of: StoredKey.describeAll())
-            
-        case .generateKey:
-            guard
-                let parameters = commandDictionary[KEY.parameters]
-                    as? Dictionary<String, Any>,
-                let alias = parameters[KEY.alias] as? String
-            else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Key `", KEY.alias.rawValue,
-                    "` must be specified in `", KEY.parameters.rawValue, "`.")
-            }
-            
-            return try result(of: StoredKey.generateKey(withName: alias))
-
-        case .generatePair:
-            guard
-                let parameters = commandDictionary[KEY.parameters]
-                    as? Dictionary<String, Any>,
-                let alias = parameters[KEY.alias] as? String
-            else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Key `", KEY.alias.rawValue,
-                    "` must be specified in `", KEY.parameters.rawValue, "`.")
-            }
-            return try result(of: StoredKey.generateKeyPair(withName: alias))
-
-        default:
-            return try super.response(to: command, in: commandDictionary)
+        } catch let error as StoredKeyError {
+            // Seems like the error has to be re-thrown with a specific type so
+            // that the error message is available to the catcher.
+            throw CaptiveWebView.ErrorMessage(error.localizedDescription)
         }
     }
     
@@ -228,13 +225,13 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             KEY.alias.rawValue: alias
         ])
         
-        let encrypted:StoredKey.Encrypted
+        let enciphered:StoredKey.Enciphered
         do {
-            encrypted = try StoredKey.encrypt(
+            enciphered = try StoredKey.encipher(
                 sentinel, withFirstKeyNamed: alias)
             results.append([
-                KEY.encryptedSentinel: String(describing: encrypted.message),
-                KEY.algorithm: encrypted.algorithm?.rawValue as Any
+                KEY.encipheredSentinel: String(describing: enciphered.message),
+                KEY.algorithm: enciphered.algorithm?.rawValue as Any
             ].withStringKeys())
         }
         catch let error as StoredKeyError {
@@ -246,13 +243,13 @@ class MainViewController: CaptiveWebView.DefaultViewController {
             return results
         }
 
-        let decrypted:String
+        let deciphered:String
         do {
-            decrypted = try StoredKey.decrypt(
-                encrypted, withFirstKeyNamed: alias)
+            deciphered = try StoredKey.decipher(
+                enciphered, withFirstKeyNamed: alias)
             results.append([
-                KEY.decryptedSentinel: decrypted,
-                KEY.passed: decrypted == sentinel,
+                KEY.decipheredSentinel: deciphered,
+                KEY.passed: deciphered == sentinel,
             ].withStringKeys())
         }
         catch let error as StoredKeyError {
