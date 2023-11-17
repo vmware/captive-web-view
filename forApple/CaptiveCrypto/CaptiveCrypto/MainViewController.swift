@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
@@ -111,68 +111,77 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         in commandDictionary: Dictionary<String, Any>
     ) throws -> [String: Any]
     {
-        switch Command(rawValue: command) {
-        
-        case .capabilities:
-            return [
-                KEY.results: summariseCapabilities().withStringKeys()
-            ].withStringKeys()
-            
-        case .deleteAll: return try result(of: StoredKey.deleteAll())
-            
-        case .encipher:
-            guard let parameters = commandDictionary[KEY.parameters]
-                    as? Dictionary<String, Any> else
-            {
-                throw CaptiveWebView.ErrorMessage(
-                    "Command `", Command.encipher.rawValue, "` requires `"
-                    , KEY.parameters.rawValue, "`.")
+        do {
+            switch Command(rawValue: command) {
+                
+            case .capabilities:
+                return [
+                    KEY.results: summariseCapabilities().withStringKeys()
+                ].withStringKeys()
+                
+            case .deleteAll: return try result(of: StoredKey.deleteAll())
+                
+            case .encipher:
+                guard let parameters = commandDictionary[KEY.parameters]
+                        as? Dictionary<String, Any> else
+                {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Command `", Command.encipher.rawValue, "` requires `"
+                        , KEY.parameters.rawValue, "`.")
+                }
+                guard let alias = parameters[KEY.alias] as? String else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Command `", Command.encipher.rawValue, "` requires `"
+                        , KEY.parameters.rawValue, "` with `"
+                        , KEY.alias.rawValue, "`.")
+                }
+                guard let sentinel = parameters[KEY.sentinel] as? String else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Command `", Command.encipher.rawValue, "` requires `"
+                        , KEY.parameters.rawValue, "` with `",
+                        KEY.sentinel.rawValue, "`.")
+                }
+                return try [
+                    KEY.results: testKey(alias: alias, sentinel: sentinel)
+                ].withStringKeys()
+                
+            case .summariseStore: return try result(of: StoredKey.describeAll())
+                
+            case .generateKey:
+                guard
+                    let parameters = commandDictionary[KEY.parameters]
+                        as? Dictionary<String, Any>,
+                    let alias = parameters[KEY.alias] as? String
+                else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Key `", KEY.alias.rawValue,
+                        "` must be specified in `", KEY.parameters.rawValue,
+                        "`.")
+                }
+                
+                return try result(of: StoredKey.generateKey(withName: alias))
+                
+            case .generatePair:
+                guard
+                    let parameters = commandDictionary[KEY.parameters]
+                        as? Dictionary<String, Any>,
+                    let alias = parameters[KEY.alias] as? String
+                else {
+                    throw CaptiveWebView.ErrorMessage(
+                        "Key `", KEY.alias.rawValue,
+                        "` must be specified in `", KEY.parameters.rawValue,
+                        "`.")
+                }
+                return try result(
+                    of: StoredKey.generateKeyPair(withName: alias))
+                
+            default:
+                return try super.response(to: command, in: commandDictionary)
             }
-            guard let alias = parameters[KEY.alias] as? String else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Command `", Command.encipher.rawValue, "` requires `"
-                    , KEY.parameters.rawValue, "` with `", KEY.alias.rawValue
-                    , "`.")
-            }
-            guard let sentinel = parameters[KEY.sentinel] as? String else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Command `", Command.encipher.rawValue, "` requires `"
-                    , KEY.parameters.rawValue, "` with `", KEY.sentinel.rawValue
-                    , "`.")
-            }
-            return try [
-                KEY.results: testKey(alias: alias, sentinel: sentinel)
-            ].withStringKeys()
-
-        case .summariseStore: return try result(of: StoredKey.describeAll())
-            
-        case .generateKey:
-            guard
-                let parameters = commandDictionary[KEY.parameters]
-                    as? Dictionary<String, Any>,
-                let alias = parameters[KEY.alias] as? String
-            else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Key `", KEY.alias.rawValue,
-                    "` must be specified in `", KEY.parameters.rawValue, "`.")
-            }
-            
-            return try result(of: StoredKey.generateKey(withName: alias))
-
-        case .generatePair:
-            guard
-                let parameters = commandDictionary[KEY.parameters]
-                    as? Dictionary<String, Any>,
-                let alias = parameters[KEY.alias] as? String
-            else {
-                throw CaptiveWebView.ErrorMessage(
-                    "Key `", KEY.alias.rawValue,
-                    "` must be specified in `", KEY.parameters.rawValue, "`.")
-            }
-            return try result(of: StoredKey.generateKeyPair(withName: alias))
-
-        default:
-            return try super.response(to: command, in: commandDictionary)
+        } catch let error as StoredKeyError {
+            // Seems like the error has to be re-thrown with a specific type so
+            // that the error message is available to the catcher.
+            throw CaptiveWebView.ErrorMessage(error.localizedDescription)
         }
     }
     

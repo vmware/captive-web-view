@@ -20,14 +20,20 @@ extension StoredKey {
     
     private func decipherWithSymmetricKey(_ enciphered:Data) throws -> String {
         let sealed = try AES.GCM.SealedBox(combined: enciphered)
-        let decipheredData = try AES.GCM.open(sealed, using: symmetricKey!)
+        guard let key = symmetricKey else { throw StoredKeyError(
+            "StoredKey instance isn't a symmetric key.")
+        }
+        let decipheredData = try AES.GCM.open(sealed, using: key)
         let message =
             String(data: decipheredData, encoding: .utf8) ?? "\(decipheredData)"
         return message
     }
 
     private func decipherWithPrivateKey(_ enciphered:CFData) throws -> String {
-        guard let publicKey = SecKeyCopyPublicKey(secKey!) else {
+        guard let privateKey = secKey else { throw StoredKeyError(
+            "StoredKey instance isn't a key pair.")
+        }
+        guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
             throw StoredKeyError("No public key.")
         }
         guard let algorithm = StoredKey.algorithms.first(
@@ -39,8 +45,11 @@ extension StoredKey {
 
         var error: Unmanaged<CFError>?
         guard let decipheredBytes = SecKeyCreateDecryptedData(
-            secKey!, algorithm, enciphered, &error) else {
-            throw error!.takeRetainedValue() as Error
+            privateKey, algorithm, enciphered, &error) else {
+            throw error?.takeRetainedValue() as? Error ?? StoredKeyError(
+                "SecKeyCreateDecryptedData(\(privateKey),",
+                " \(algorithm), \(enciphered),)",
+                " returned null and set error \(String(describing: error)).")
         }
         
         let message = String(
@@ -51,8 +60,9 @@ extension StoredKey {
 
     // Static methods that work with a key alias instead of a StoredKey
     // instance.
-    static func decipher(_ enciphered:Enciphered, withFirstKeyNamed alias:String)
-    throws -> String
+    static func decipher(
+        _ enciphered:Enciphered, withFirstKeyNamed alias:String
+    ) throws -> String
     {
         guard let key = try keysWithName(alias).first else {
             throw StoredKeyError(errSecItemNotFound)

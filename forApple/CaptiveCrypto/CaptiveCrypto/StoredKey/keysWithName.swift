@@ -8,37 +8,47 @@ extension StoredKey {
      
     static func keysWithName(_ alias:String) throws -> [StoredKey] {
         return try Storage.allCases.flatMap {storage -> [StoredKey] in
-            var query: [CFString: Any] = [
+            let query = [
                 kSecClass: storage.secClass,
                 kSecAttrLabel: alias,
-                kSecMatchLimit: kSecMatchLimitAll
-            ]
+                kSecMatchLimit: kSecMatchLimitAll,
+                storage.kSecReturn: true
+            ] as CFDictionary
             
-            switch(storage) {
-            case .generic:
-                query[kSecReturnData] = true
-            case .key:
-                query[kSecReturnRef] = true
+            var result: CFTypeRef?
+            let status = SecItemCopyMatching(query, &result)
+
+            // Set items to an NSArray of the return value, or an empty NSArray
+            // in case of errSecItemNotFound.
+            let items:NSArray
+            if status == errSecSuccess {
+                guard let nsArray = result as? NSArray else {
+                    throw StoredKeyError(
+                        "Couldn't cast result \(String(describing: result)) to",
+                        " NSArray. Result was returned by",
+                        "SecItemCopyMatching(\(query),)."
+                    )
+                }
+                items = nsArray
             }
+            else if status == errSecItemNotFound { items = NSArray() }
+            else { throw StoredKeyError(
+                status, " Returned by SecItemCopyMatching(\(query),).") }
             
-            var itemRef: CFTypeRef?
-            let status = SecItemCopyMatching(query as CFDictionary, &itemRef)
-            
-            guard status == errSecSuccess || status == errSecItemNotFound else {
-                throw StoredKeyError(status, "Query \(query).")
-            }
-            
-            // Set items to an NSArray of the return value, or an empty NSArray.
-            let items = status == errSecSuccess
-                ? (itemRef as! CFArray) as NSArray
-                : NSArray()
-            
-            return items.map({item in
+            return try items.map({item in
                 switch(storage) {
                 case .generic:
-                    return StoredKey(SymmetricKey(data: item as! Data))
-                case .key:
-                    return StoredKey(item as! SecKey)
+                    guard let data = item as? Data else { throw StoredKeyError(
+                        "Couldn't initialise StoredKey SymmetricKey with name",
+                        " \"\(alias)\".",
+                        " Couldn't cast \(String(describing: item)) to Data.",
+                        " Item was returned in SecItemCopyMatching(\(query),)",
+                        " array."
+                    ) }
+                    return StoredKey(SymmetricKey(data: data))
+
+                case .key: return StoredKey(item as! SecKey)
+                // Jim couldn't find a way to do that other than as! cast.
                 }
             })
         }

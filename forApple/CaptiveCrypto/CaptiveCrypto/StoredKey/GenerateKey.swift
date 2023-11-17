@@ -44,6 +44,14 @@ extension StoredKey {
             throw StoredKeyError(added, "Failed SecItemAdd(\(addQuery),)")
         }
         
+        guard let nsDictionary = result as? NSDictionary else {
+            throw StoredKeyError(
+                "Couldn't cast result \(String(describing: result)) to",
+                " NSDictionary. Result was returned by",
+                "SecItemCopyMatching(\(addQuery),)."
+            )
+        }
+        
         // The KeyGeneration here is a little different to the generateKeyPair
         // return value. That's because this key is created in memory and then
         // put in the keychain with a query, as two steps. Key pair generation
@@ -52,8 +60,7 @@ extension StoredKey {
             deletedFirst: deleted == errSecSuccess,
             sentinelCheck: try generationSentinel(key, alias).rawValue,
             summary: [String(describing:key)],
-            attributes:
-                Description.normalise(cfAttributes: result as! CFDictionary)
+            attributes: Description.normalise(nsAttributes: nsDictionary)
         )
     }
 }

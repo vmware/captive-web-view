@@ -11,15 +11,14 @@ extension StoredKey {
     internal enum Storage: String, CaseIterable {
         case generic, key
 
-        var secClass:CFString {
-            switch self {
-            case .generic:
-                return kSecClassGenericPassword
-            case .key:
-                return kSecClassKey
-            }
-        }
+        var secClass:CFString { switch self {
+        case .generic: return kSecClassGenericPassword
+        case .key: return kSecClassKey
+        } }
+        
+        var kSecReturn:CFString { switch self {
+        case .generic: return kSecReturnData
+        case .key: return kSecReturnRef
+        } }
     }
-    
-
 }

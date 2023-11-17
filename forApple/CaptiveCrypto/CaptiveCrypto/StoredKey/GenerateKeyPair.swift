@@ -9,8 +9,13 @@ extension StoredKey {
         // Official code snippets are here:
         // https://developer.apple.com/documentation/security/certificate_key_and_trust_services/keys/generating_new_cryptographic_keys
         
-        let tagSD = StoredKey.tag(forAlias: alias)
-        let attributes: [CFString: Any] = [
+        let tagSD = try StoredKey.tag(forAlias: alias)
+        let privateKeyAttributes:[CFString:Any] = [
+            kSecAttrIsPermanent: true,
+            kSecAttrLabel: alias,
+            kSecAttrApplicationTag: tagSD.1
+        ]
+        let attributes = [
             // Next two lines are OK to create an RSA key.
             kSecAttrKeyType: kSecAttrKeyTypeRSA,
             kSecAttrKeySizeInBits: 2048,
@@ -23,25 +28,20 @@ extension StoredKey {
             // get an OSstatus -50, which indicates that a parameter has an
             // invalid value.
             
-            kSecPrivateKeyAttrs: [
-                kSecAttrIsPermanent: true,
-                kSecAttrLabel: alias,
-                kSecAttrApplicationTag: tagSD.1
-            ]
-        ]
+            kSecPrivateKeyAttrs: privateKeyAttributes as CFDictionary
+        ] as CFDictionary
         
         var error: Unmanaged<CFError>?
-        guard let secKey = SecKeyCreateRandomKey(
-            attributes as CFDictionary, &error) else
-        {
-            throw error!.takeRetainedValue() as Error
+        guard let secKey = SecKeyCreateRandomKey(attributes, &error) else {
+            throw error?.takeRetainedValue() as? Error ?? StoredKeyError(
+                "SecKeyCreateRandomKey(\(attributes)",
+                " returned null and set error \(String(describing: error)).")
         }
 
         // Make a copy of the attributes dictionary except with a String for the
-        // tag, instead of data, and with String keys instead of CFString.
-        var returning = attributes
-        returning[kSecPrivateKeyAttrs] = (
-            attributes[kSecPrivateKeyAttrs] as! [CFString:Any])
+        // tag, instead of data.
+        let returning = NSMutableDictionary(dictionary: attributes)
+        returning[kSecPrivateKeyAttrs] = privateKeyAttributes
             .merging([kSecAttrApplicationTag: tagSD.0]) {(_, new) in new}
 
         let summary = String(describing:secKey).split(separator: ",").map{
@@ -67,14 +67,18 @@ extension StoredKey {
             deletedFirst: false,
             sentinelCheck: try generationSentinel(secKey, alias).rawValue,
             summary: summary,
-            attributes:
-                Description.normalise(cfAttributes: returning as CFDictionary)
+            attributes: Description.normalise(nsAttributes: returning)
         )
     }
     
-    private static func tag(forAlias alias: String) -> (String, Data) {
+    private static func tag(forAlias alias: String) throws -> (String, Data) {
         let tagString = "com.example.keys.\(alias)"
-        return (tagString, tagString.data(using: .utf8)!)
+        guard let tagData = tagString.data(using: String.Encoding.utf8) else {
+            throw StoredKeyError(
+                "Couldn't convert tag string \"\(tagString)\" to Data using",
+                " utf8.")
+        }
+        return (tagString, tagData)
     }
 
 }

@@ -1,9 +1,5 @@
-//
-//  File.swift
-//  
-//
-//  Created by Jim Hawkins on 19/02/2023.
-//
+// Copyright 2023 VMware, Inc.  
+// SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
 
