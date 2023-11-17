@@ -5,7 +5,7 @@
 
 1.  Scans the current directory for files under revision control by running git
     ls-files.
-2.  Runs git log to determine the last modified date for each file.
+2.  Runs git diff and git log to determine the last modified date for each file.
 3.  Reads each file to discover any embedded copyright notice.
 
 Each file then has one of these states.
