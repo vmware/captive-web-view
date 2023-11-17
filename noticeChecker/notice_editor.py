@@ -19,7 +19,7 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 leaderSuffixesMap = {
-     "#": ('.gitignore', '.pro', '.properties', '.py'),
+     "#": ('.gitignore', '.ignore', '.pro', '.properties', '.py'),
     "//": ('.gradle', '.java', '.kt', '.swift')
 }
 
