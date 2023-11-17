@@ -25,8 +25,10 @@ def git_modified_date(path):
     # Get the date of the last commit.
     with subprocess.Popen(
         (
-            'git', 'log', '--max-count=1', r'--pretty=format:%cd'
-            , r'--date=format:%Y %m %d', str(path)
+            'git', 'log', '--follow', '--diff-filter=r', '--max-count=1'
+            , r'--pretty=format:%cd', r'--date=format:%Y %m %d', str(path)
+            # TOTH --follow and --diff-filter.
+            # https://stackoverflow.com/a/76093515/7657675
         ), stdout=subprocess.PIPE, text=True
     ) as gitProcess:
         with gitProcess.stdout as gitOutput:
