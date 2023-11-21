@@ -12,7 +12,7 @@ class SpinnerViewController: CaptiveWebView.DefaultViewController {
     override func response(
         to command: String,
         in commandDictionary: Dictionary<String, Any>
-        ) throws -> Dictionary<String, Any>
+        ) throws -> Dictionary<String, Any?>
     {
         switch command {
         case "getStatus":

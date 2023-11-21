@@ -109,7 +109,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     override func response(
         to command: String,
         in commandDictionary: Dictionary<String, Any>
-    ) throws -> [String: Any]
+    ) throws -> [String: Any?]
     {
         do {
             switch Command(rawValue: command) {
@@ -125,18 +125,18 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                 guard let parameters = commandDictionary[KEY.parameters]
                         as? Dictionary<String, Any> else
                 {
-                    throw CaptiveWebView.ErrorMessage(
+                    throw CaptiveWebViewError(
                         "Command `", Command.encipher.rawValue, "` requires `"
                         , KEY.parameters.rawValue, "`.")
                 }
                 guard let alias = parameters[KEY.alias] as? String else {
-                    throw CaptiveWebView.ErrorMessage(
+                    throw CaptiveWebViewError(
                         "Command `", Command.encipher.rawValue, "` requires `"
                         , KEY.parameters.rawValue, "` with `"
                         , KEY.alias.rawValue, "`.")
                 }
                 guard let sentinel = parameters[KEY.sentinel] as? String else {
-                    throw CaptiveWebView.ErrorMessage(
+                    throw CaptiveWebViewError(
                         "Command `", Command.encipher.rawValue, "` requires `"
                         , KEY.parameters.rawValue, "` with `",
                         KEY.sentinel.rawValue, "`.")
@@ -153,7 +153,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                         as? Dictionary<String, Any>,
                     let alias = parameters[KEY.alias] as? String
                 else {
-                    throw CaptiveWebView.ErrorMessage(
+                    throw CaptiveWebViewError(
                         "Key `", KEY.alias.rawValue,
                         "` must be specified in `", KEY.parameters.rawValue,
                         "`.")
@@ -167,7 +167,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
                         as? Dictionary<String, Any>,
                     let alias = parameters[KEY.alias] as? String
                 else {
-                    throw CaptiveWebView.ErrorMessage(
+                    throw CaptiveWebViewError(
                         "Key `", KEY.alias.rawValue,
                         "` must be specified in `", KEY.parameters.rawValue,
                         "`.")
@@ -181,7 +181,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
         } catch let error as StoredKeyError {
             // Seems like the error has to be re-thrown with a specific type so
             // that the error message is available to the catcher.
-            throw CaptiveWebView.ErrorMessage(error.localizedDescription)
+            throw CaptiveWebViewError(error.localizedDescription)
         }
     }
     

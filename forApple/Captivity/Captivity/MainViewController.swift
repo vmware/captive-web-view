@@ -15,7 +15,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     override func response(
         to command: String,
         in commandDictionary: Dictionary<String, Any>
-        ) throws -> Dictionary<String, Any>
+        ) throws -> Dictionary<String, Any?>
     {
         switch Command(rawValue: command) {
         case .ready:
