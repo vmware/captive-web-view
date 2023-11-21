@@ -1,3 +1,5 @@
+// Copyright 2023 VMware, Inc.
+// SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
 import os.log
@@ -6,7 +8,7 @@ import os.log
 
 public protocol CaptiveWebViewCommandHandler {
     func handleCommand(_ command:Dictionary<String, Any>)
-        -> Dictionary<String, Any>
+        -> Dictionary<String, Any?>
     func logCaptiveWebViewCommandHandler(_ message:String)
 }
 
