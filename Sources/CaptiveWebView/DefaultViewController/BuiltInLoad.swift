@@ -1,8 +1,12 @@
 
-#if os(iOS)
 
 import Foundation
+
+#if os(macOS)
+import AppKit
+#else
 import UIKit
+#endif
 
 private enum KEY: String {
     typealias RawValue = String
@@ -31,10 +35,11 @@ extension Dictionary where Key == String {
     }
 }
 
-public extension CaptiveWebView.DefaultViewController {
+public extension CaptiveWebView.BuiltInCommand {
     
     static func builtInLoad(
-        _ viewController: CaptiveWebView.DefaultViewController,
+        _ viewController: WebViewController,
+        _ viewControllerMap: Dictionary<String, WebViewController.Type>,
         _ commandDictionary: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>
     {
@@ -63,10 +68,20 @@ public extension CaptiveWebView.DefaultViewController {
                 "Page \"\(page)\" isn't in viewControllerMap")
         }
         let loadedController = controllerClass.init()
+#if os(macOS)
+        // This code hasn't been tried, sorry.
+        viewController.present(
+            loadedController,
+            asPopoverRelativeTo: viewController.view.bounds,
+            of: viewController.view,
+            preferredEdge: .maxX, behavior: .semitransient
+        )
+#else
         // TOTH: https://zonneveld.dev/ios-13-viewcontroller-presentation-style-modalpresentationstyle/
         loadedController.modalPresentationStyle = .fullScreen
         
         loadedController.modalTransitionStyle = .coverVertical
+
         // During the vertical cover animation, the web view hasn't been
         // loaded and so is a blank rectangle of the system background
         // colour. The contents of the current view disappear but there's no
@@ -80,9 +95,8 @@ public extension CaptiveWebView.DefaultViewController {
         viewController.present(loadedController, animated: true) {
             loadedController.view.layer.borderWidth = 0
         }
+#endif
         return [KEY.loaded.rawValue: page]
     }
     
 }
-
-#endif
