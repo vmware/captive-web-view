@@ -26,7 +26,7 @@ private extension Dictionary where Key == String {
 
 }
 
-extension CaptiveWebViewCommandHandler {
+extension CaptiveWebView.BuiltInCommand {
     public static func builtInWrite(
         _ commandDictionary: Dictionary<String, Any>
     ) throws -> Dictionary<String, Any>

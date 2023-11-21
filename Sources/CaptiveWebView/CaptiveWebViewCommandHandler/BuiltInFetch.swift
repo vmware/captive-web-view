@@ -34,7 +34,7 @@ extension Dictionary where Key == String {
 
 }
 
-public extension CaptiveWebViewCommandHandler {
+public extension CaptiveWebView.BuiltInCommand {
     static func builtInFetch(
         _ commandDictionary: [String:Any]
     ) throws -> [String:Any?]
