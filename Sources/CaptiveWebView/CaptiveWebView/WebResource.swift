@@ -199,7 +199,7 @@ public extension CaptiveWebView.WebResource {
         // https://stackoverflow.com/questions/31243371/path-extension-and-mime-type-of-file-in-swift#comment80791976_40003309
         
         guard let fileExtension:CFString = fileURL.pathExtension as CFString? else {
-            throw URLSchemeTaskError("No file extension in " +
+            throw CaptiveWebViewError("No file extension in " +
                 String(describing: fileURL))
         }
         
@@ -207,7 +207,7 @@ public extension CaptiveWebView.WebResource {
             kUTTagClassFilenameExtension, fileExtension, nil)?
             .takeRetainedValue() else
         {
-            throw URLSchemeTaskError("Null type identifier")
+            throw CaptiveWebViewError("Null type identifier")
         }
         
         // Following code to get the UTI seems nicer but relies on there being a
@@ -216,13 +216,13 @@ public extension CaptiveWebView.WebResource {
         //
         //     let values = try fileURL.resourceValues(forKeys:[.typeIdentifierKey])
         //     guard let utiString:String = values.typeIdentifier else {
-        //         throw URLSchemeTaskError("null type identifier")
+        //         throw CaptiveWebViewError("null type identifier")
         //     }
 
         guard let mimeType = UTTypeCopyPreferredTagWithClass(
             utiString, kUTTagClassMIMEType)?.takeRetainedValue() else
         {
-            throw URLSchemeTaskError("Null MIME type")
+            throw CaptiveWebViewError("Null MIME type")
         }
         
         return mimeType as String

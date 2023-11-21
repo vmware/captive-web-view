@@ -69,7 +69,7 @@ extension CaptiveWebView.BuiltInCommand {
 #if !os(macOS)
         case .close:
             guard let controller = viewController else {
-                throw CaptiveWebView.ErrorMessage(
+                throw CaptiveWebViewError(
                     "Command requires View Controller \(commandDictionary).",
                     " Controller:\(String(describing: viewController))."
                 )
@@ -79,7 +79,7 @@ extension CaptiveWebView.BuiltInCommand {
         
         case .focus:
             guard let controller = viewController else {
-                throw CaptiveWebView.ErrorMessage(
+                throw CaptiveWebViewError(
                     "Command requires View Controller \(commandDictionary).",
                     " Controller:\(String(describing: viewController))."
                 )
@@ -133,7 +133,7 @@ extension CaptiveWebView.BuiltInCommand {
             guard let controller = viewController,
                   let controllerMap = viewControllerMap else
             {
-                throw CaptiveWebView.ErrorMessage(
+                throw CaptiveWebViewError(
                     "Command requires View Controller and",
                     " map \(commandDictionary).",
                     " Controller:\(String(describing: viewController)).",
@@ -146,7 +146,7 @@ extension CaptiveWebView.BuiltInCommand {
             return try builtInWrite(commandDictionary)
             
         default:
-            throw CaptiveWebView.ErrorMessage(
+            throw CaptiveWebViewError(
                 "Unknown command \"\(command)\" in",
                 " \(String(describing: commandDictionary))")
         }

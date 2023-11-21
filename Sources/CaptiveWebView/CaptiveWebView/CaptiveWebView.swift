@@ -12,7 +12,7 @@ import UIKit
 public typealias WebViewController = UIViewController
 #endif
 
-private enum Key:String { case local, messageBridge }
+private enum Key:String { case local }
 
 // This struct is really a namespace. TOTH:
 // https://stackoverflow.com/questions/24002821/how-to-use-namespaces-in-swift#24293236
@@ -29,39 +29,6 @@ public struct CaptiveWebView {
 
     public class WebResource {}
     public class BuiltInCommand {}
-
-    // Swift seems to have made it rather difficult to create a throw-able that
-    // has a message that can be retrieved in the catch. So, Captive Web View
-    // has its own custom class here.
-    //
-    // Having created a custom class anyway, it seemed like a code-saver to pack
-    // it with convenience initialisers for an array of strings, variadic
-    // strings, and CFString.
-
-    public class ErrorMessage: Error {
-        let message:String
-        
-        public init(_ message:String) {
-            self.message = message
-        }
-        public convenience init(_ message:[String]) {
-            self.init(message.joined())
-        }
-        public convenience init(_ message:String...) {
-            self.init(message)
-        }
-        public convenience init(_ message:CFString) {
-            self.init(NSString(string: message) as String)
-        }
-        
-        var localizedDescription: String {
-            return self.message
-        }
-        
-        var description: String {
-            return self.message
-        }
-    }
     
     open class ViewController:
         WebViewController, CaptiveWebViewCommandHandler, WKNavigationDelegate
@@ -145,123 +112,4 @@ public struct CaptiveWebView {
     }
 #endif
 
-    @available(OSX 10.13, *)
-    public static func makeWebView(frame:CGRect,
-                            commandHandler:CaptiveWebViewCommandHandler?
-        ) -> WKWebView
-    {
-        
-        /*
-         To add other URL schemes, register handlers here with code like the
-         following:
-         
-         webView.configuration.setURLSchemeHandler(self, forURLScheme: "mailto")
-         webView.configuration.setURLSchemeHandler(self, forURLScheme: "hucaj")
-         
-         Registration has to be here and not in the subclass because changes to
-         the WKWebViewConfiguration made after the WKWebView has been
-         instantiated are ignored.
-         */
-        return WKWebView(
-            frame: frame,
-            configuration: CaptiveWebView.makeWebViewConfiguration(
-                commandHandler: commandHandler)
-        )
-    }
-    
-    @available(OSX 10.13, *)
-    public static func makeWebViewConfiguration(
-        commandHandler:CaptiveWebViewCommandHandler?
-    ) -> WKWebViewConfiguration
-    {
-        let handler = CaptiveURLHandler()
-        
-        let configuration = WKWebViewConfiguration()
-        configuration.setURLSchemeHandler(handler, forURLScheme: scheme)
-        configuration.userContentController.add(
-            handler, name: Key.messageBridge.rawValue)
-        handler.bridge = commandHandler
-        return configuration
-    }
-    
-    public static func setCommandHandler(
-        of webView:WKWebView,
-        to commandHandler:CaptiveWebViewCommandHandler?
-    ) {
-        if let handler = webView.configuration.urlSchemeHandler(
-            forURLScheme: scheme
-        ) as? CaptiveURLHandler {
-            handler.bridge = commandHandler
-        }
-    }
-    
-    public static func load(in webView:WKWebView,
-                            scheme loadScheme:String = scheme,
-                            file:String = "index.html") -> URL
-    {
-        var builder = URLComponents()
-        builder.scheme = loadScheme
-
-        // We have to get a slash from somewhere. Could just put in a "/" but
-        // that seems unsafe. Instead, rely on the first component of the path
-        // always being slash.
-
-        if
-            let fileURL = CaptiveWebView.WebResource.findFile(
-                under: Bundle.main.resourceURL ?? Bundle.main.bundleURL,
-                tailComponents: [file]),
-            let leadingSlash = fileURL.pathComponents.first
-        {
-            builder.path = leadingSlash + fileURL.relativePath
-        }
-        else {
-            // This can be expected to fail later, in an orderly fashion, and
-            // gets us out of having to throw here.
-            builder.path = file
-        }
-
-        webView.load(URLRequest(url:builder.url!))
-        return builder.url!
-    }
-
-    public static func sendObject(
-        to webView:WKWebView,
-        _ command:Dictionary<String, Any>,
-        _ completionHandler:((Any?, Error?) -> Void)? = nil)
-    {
-        do {
-            let jsonData:Data = try JSONSerialization.data(
-                withJSONObject:command)
-            // The UTF-8 encoding can fail and return nil. Throwing errors is
-            // too hard to code in Swift so a JavaScript syntax error with a
-            // telltale is introduced instead.
-            let jsonString:String =
-                String(data:jsonData, encoding:String.Encoding.utf8)
-                    ?? "Couldn't encode \(#file) \(#line)"
-            webView.evaluateJavaScript(
-                "commandBridge.receiveObject(\(jsonString))",
-                completionHandler: completionHandler
-            )
-        }
-        catch {
-            completionHandler?(nil, error)
-        }
-    }
-
-}
-
-class URLSchemeTaskError: Error {
-    let message:String
-    
-    init(_ message:String) {
-        self.message = message
-    }
-    
-    var localizedDescription: String {
-        return self.message
-    }
-    
-    var description: String {
-        return self.message
-    }
 }

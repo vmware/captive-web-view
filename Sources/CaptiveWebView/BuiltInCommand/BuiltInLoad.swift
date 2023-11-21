@@ -47,7 +47,7 @@ public extension CaptiveWebView.BuiltInCommand {
         as? Dictionary<String, Any> ?? [:]
         
         guard let page = parameters[.page] as? String else {
-            throw CaptiveWebView.ErrorMessage("No page specified.")
+            throw CaptiveWebViewError("No page specified.")
         }
         
         // The Captive Web View for Android has a map of page to Activity
@@ -64,7 +64,7 @@ public extension CaptiveWebView.BuiltInCommand {
         // }
         
         guard let controllerClass = viewControllerMap[page] else {
-            throw CaptiveWebView.ErrorMessage(
+            throw CaptiveWebViewError(
                 "Page \"\(page)\" isn't in viewControllerMap")
         }
         let loadedController = controllerClass.init()

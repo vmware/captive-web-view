@@ -36,11 +36,11 @@ extension CaptiveWebView.BuiltInCommand {
         
         // Get the parameters.
         guard let text = parameters[.text] as? String else {
-            throw CaptiveWebView.ErrorMessage(
+            throw CaptiveWebViewError(
                 "No text in parameters for write command: \(parameters)")
         }
         guard let filename = parameters[.filename] as? String else {
-            throw CaptiveWebView.ErrorMessage(
+            throw CaptiveWebViewError(
                 "No filename in parameters for write command: \(parameters)")
         }
         let asciiToBinary = parameters[.base64decode] as? Bool ?? false

@@ -42,7 +42,7 @@ extension CaptiveWebView.ViewController {
         do {
             let commandAny:Any = command[.command] ?? ""
             guard let commandString = commandAny as? String else {
-                throw CaptiveWebView.ErrorMessage(
+                throw CaptiveWebViewError(
                     "Command isn't String: " + String(describing: commandAny))
             }
 
@@ -55,7 +55,7 @@ extension CaptiveWebView.ViewController {
                 String(describing: type(of: viewController)) + " bridge OK."
             returning[.secure] = viewController.webView.hasOnlySecureContent
         }
-        catch let error as CaptiveWebView.ErrorMessage {
+        catch let error as CaptiveWebViewError {
             returning[.failed] = error.localizedDescription
         }
         catch {
