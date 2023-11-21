@@ -1,8 +1,16 @@
-// Copyright 2022 VMware, Inc.  
+// Copyright 2023 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
 import WebKit
+
+#if os(macOS)
+import AppKit
+public typealias WebViewController = NSViewController
+#else
+import UIKit
+public typealias WebViewController = UIViewController
+#endif
 
 private enum Key:String { case local, messageBridge }
 
@@ -20,8 +28,7 @@ public struct CaptiveWebView {
     public static let scheme = Key.local.rawValue
 
     public class WebResource {}
-    public class BuiltInHandlers {}
-    
+    public class BuiltInCommand {}
 
     // Swift seems to have made it rather difficult to create a throw-able that
     // has a message that can be retrieved in the catch. So, Captive Web View
@@ -56,14 +63,12 @@ public struct CaptiveWebView {
         }
     }
     
-#if !os(macOS)
-    
-    // The next classes don't have an equivalent in the macOS library. They
-    // facilitate programmatic creation of the user interface, which would be a
-    // much bigger job on macOS.
-    
-    open class ViewController: UIViewController, WKNavigationDelegate {
-
+    open class ViewController:
+        WebViewController, CaptiveWebViewCommandHandler, WKNavigationDelegate
+    {
+        public static var viewControllerMap =
+            Dictionary<String, WebViewController.Type>()
+        
         public var loadVisibilityTimeOutSeconds:TimeInterval? = 0.4
         // See notes in the ViewController.swift file, near the
         // WKNavigationDelegate didCommit callback for an explanation of this
@@ -90,24 +95,16 @@ public struct CaptiveWebView {
                 setCommandHandler(of: webView, to: newValue)
             }
         }
-    }
-    
-    open class DefaultViewController:
-        CaptiveWebView.ViewController, CaptiveWebViewCommandHandler
-    {
-        public static var viewControllerMap =
-            Dictionary<String, UIViewController.Type>()
-        
+
         // Open methods have to be here, not in the extension, so that they can
         // be overriden.
         // These base class methods call the static methods, which are in the
         // extension, in the DefaultViewController.swift file.
         
         open func handleCommand(_ command: Dictionary<String, Any>) ->
-            Dictionary<String, Any>
+            Dictionary<String, Any?>
         {
-            return CaptiveWebView.DefaultViewController.handleCommand(
-                self, command)
+            CaptiveWebView.ViewController.handleCommand(self, command)
         }
 
         // This method should be private to this class and any subclass.
@@ -117,10 +114,28 @@ public struct CaptiveWebView {
         open func response(
             to command: String,
             in commandDictionary: Dictionary<String, Any>
-            ) throws -> Dictionary<String, Any>
+            ) throws -> Dictionary<String, Any?>
         {
-            return try CaptiveWebView.DefaultViewController.response(
-                self, to:command, in:commandDictionary)
+            try CaptiveWebView.BuiltInCommand.response(
+                to: command,
+                in: commandDictionary,
+                map: CaptiveWebView.ViewController.viewControllerMap,
+                presentingFrom: self
+            )
+        }
+    }
+    
+#if !os(macOS)
+    
+    // The next classes don't have an equivalent in the macOS library. They
+    // facilitate programmatic creation of the user interface, which would be a
+    // much bigger job on macOS.
+    
+    open class DefaultViewController: CaptiveWebView.ViewController
+    {
+        override open func loadView() {
+            bridge = self
+            super.loadView()
         }
     }
     
