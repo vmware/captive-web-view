@@ -360,7 +360,7 @@
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/vmware/captive-web-view/";
 			requirement = {
-				branch = "38-cant-build-captive-web-view-for-macos";
+				branch = main;
 				kind = branch;
 			};
 		};
