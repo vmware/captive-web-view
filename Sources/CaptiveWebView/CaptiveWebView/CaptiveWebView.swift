@@ -92,19 +92,28 @@ public struct CaptiveWebView {
         }
     }
     
-#if !os(macOS)
-    
-    // The next classes don't have an equivalent in the macOS library. They
-    // facilitate programmatic creation of the user interface, which would be a
-    // much bigger job on macOS.
-    
     open class DefaultViewController: CaptiveWebView.ViewController
     {
+#if os(macOS)
+        open override func viewDidLoad() {
+            bridge = self
+            super.viewDidLoad()
+            if #available(macOS 13.3, *) {
+                webView.isInspectable = true
+            }
+        }
+#else
         override open func loadView() {
             bridge = self
             super.loadView()
         }
+#endif
     }
+    
+#if !os(macOS)
+    // The next class doesn't have an equivalent in the macOS library. It
+    // facilitates programmatic creation of the whole app user interface, which
+    // would be a much bigger job on macOS.
     
     open class ApplicationDelegate: UIResponder, UIApplicationDelegate {
         // Following declaration has to be here in the class.

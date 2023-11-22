@@ -6,15 +6,7 @@ import WebKit
 
 import CaptiveWebView
 
-class MainViewController: CaptiveWebView.ViewController {
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        bridge = self
-        if #available(macOS 13.3, *) {
-            webView.isInspectable = true
-        }
-    }
+class MainViewController: CaptiveWebView.DefaultViewController {
 
     override var representedObject: Any? {
         didSet {
