@@ -97,8 +97,8 @@ class FetchError: Error {
 // Convenience extension to facilitate use of the KEY enumeration as keys in a
 // dictionary. TOTH for the setter:
 // https://www.avanderlee.com/swift/custom-subscripts/#making-a-read-and-write-subscript
-extension Dictionary where Key == String {
-    fileprivate subscript(_ key:FetchError.Key) -> Value? {
+private extension Dictionary where Key == String {
+    subscript(_ key:FetchError.Key) -> Value? {
         get { self[key.rawValue] }
         set { self[key.rawValue] = newValue }
     }
@@ -106,7 +106,7 @@ extension Dictionary where Key == String {
 
 // Clunky but can be used to create a dictionary with String keys from a
 // dictionary literal with FetchError.Key keys.
-extension Dictionary where Key == FetchError.Key {
+private extension Dictionary where Key == FetchError.Key {
     func withStringKeys() -> [String: Value] {
         return Dictionary<String, Value>(uniqueKeysWithValues: self.map {
             ($0.rawValue, $1)

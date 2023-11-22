@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.
+// Copyright 2023 VMware, Inc.
 // SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
@@ -12,7 +12,7 @@ class SpinnerViewController: CaptiveWebView.DefaultViewController {
     override func response(
         to command: String,
         in commandDictionary: Dictionary<String, Any>
-        ) throws -> Dictionary<String, Any>
+        ) throws -> Dictionary<String, Any?>
     {
         switch command {
         case "getStatus":
