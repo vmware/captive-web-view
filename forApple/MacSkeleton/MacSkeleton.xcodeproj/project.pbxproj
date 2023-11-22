@@ -1,18 +1,16 @@
 // !$*UTF8*$!
-/* Copyright 2023 VMware, Inc.
- * SPDX-License-Identifier: BSD-2-Clause
- */
 {
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 60;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		044F09D824616D75005A11DD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 044F09D724616D75005A11DD /* AppDelegate.swift */; };
 		044F09DC24616D75005A11DD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 044F09DB24616D75005A11DD /* Assets.xcassets */; };
 		044F09DF24616D75005A11DD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 044F09DD24616D75005A11DD /* Main.storyboard */; };
+		047AB8712B0E68FE00D4DD67 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 047AB8702B0E68FE00D4DD67 /* CaptiveWebView */; };
 		049F4E63246178A200F213DD /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 049F4E62246178A200F213DD /* UserInterface */; };
 		04B2B3A62B0CF28A00C58FD0 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04B2B3A52B0CF28A00C58FD0 /* ViewController.swift */; };
 		04F5EA4A2B07C38F00355073 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 04F5EA492B07C38F00355073 /* CaptiveWebView */; };
@@ -35,6 +33,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				04F5EA4A2B07C38F00355073 /* CaptiveWebView in Frameworks */,
+				047AB8712B0E68FE00D4DD67 /* CaptiveWebView in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,6 +96,7 @@
 			name = MacSkeleton;
 			packageProductDependencies = (
 				04F5EA492B07C38F00355073 /* CaptiveWebView */,
+				047AB8702B0E68FE00D4DD67 /* CaptiveWebView */,
 			);
 			productName = MacSkeleton;
 			productReference = 044F09D424616D75005A11DD /* MacSkeleton.app */;
@@ -127,7 +127,7 @@
 			);
 			mainGroup = 044F09CB24616D75005A11DD;
 			packageReferences = (
-				04F5EA482B07C38F00355073 /* XCLocalSwiftPackageReference "../.." */,
+				047AB86F2B0E68FE00D4DD67 /* XCRemoteSwiftPackageReference "captive-web-view" */,
 			);
 			productRefGroup = 044F09D524616D75005A11DD /* Products */;
 			projectDirPath = "";
@@ -355,14 +355,23 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		04F5EA482B07C38F00355073 /* XCLocalSwiftPackageReference "../.." */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ../..;
+/* Begin XCRemoteSwiftPackageReference section */
+		047AB86F2B0E68FE00D4DD67 /* XCRemoteSwiftPackageReference "captive-web-view" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/vmware/captive-web-view/";
+			requirement = {
+				branch = "38-cant-build-captive-web-view-for-macos";
+				kind = branch;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		047AB8702B0E68FE00D4DD67 /* CaptiveWebView */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 047AB86F2B0E68FE00D4DD67 /* XCRemoteSwiftPackageReference "captive-web-view" */;
+			productName = CaptiveWebView;
+		};
 		04F5EA492B07C38F00355073 /* CaptiveWebView */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = CaptiveWebView;
