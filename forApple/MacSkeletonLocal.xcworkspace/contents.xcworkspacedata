@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Copyright 2023 VMware, Inc.
+    SPDX-License-Identifier: BSD-2-Clause
+-->
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "group:MacSkeleton/MacSkeleton.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../">
+   </FileRef>
+</Workspace>

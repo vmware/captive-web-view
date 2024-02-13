@@ -1,4 +1,4 @@
-// Copyright 2021 VMware, Inc.  
+// Copyright 2023 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import Foundation
@@ -16,7 +16,7 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         guard let taskURL: URL = urlSchemeTask.request.url else {
             os_log("Null URL in task request \"%@\".",
                    urlSchemeTask.request.description)
-            urlSchemeTask.didFailWithError(URLSchemeTaskError(
+            urlSchemeTask.didFailWithError(CaptiveWebViewError(
                 "Null URL in task request \(urlSchemeTask.request)."))
             return
         }
@@ -35,7 +35,7 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
                 responseURL = postURL
             }
             else {
-                throw URLSchemeTaskError("Unknown request type " +
+                throw CaptiveWebViewError("Unknown request type " +
                     String(describing: urlSchemeTask.request.httpMethod))
             }
             let mimeType = try CaptiveWebView.WebResource.getMIMEType(
@@ -63,7 +63,7 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
             return nil
         }
         guard let requestURL: URL = request.url else {
-            throw URLSchemeTaskError("Null URL in task request \(request).")
+            throw CaptiveWebViewError("Null URL in task request \(request).")
         }
         
         var baseURL:URL = Bundle.main.resourceURL ?? Bundle.main.bundleURL
@@ -157,7 +157,7 @@ class CaptiveURLHandler: NSObject, WKURLSchemeHandler, WKScriptMessageHandler {
         
         guard let body = CaptiveWebView.WebResource.bodyFrom(request: request)
             else {
-                throw URLSchemeTaskError("Body wasn't dictionary")
+                throw CaptiveWebViewError("Body wasn't dictionary")
         }
         
         // If a bridge has been set, then return its return value, otherwise

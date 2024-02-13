@@ -356,7 +356,8 @@ Proceed as follows.
 
     The method can be called
 
-    -   as `self.sendObject()` in a CaptiveWebView.DefaultViewController subclass.
+    -   as `self.sendObject()` in a CaptiveWebView.DefaultViewController
+        subclass.
     -   as `self.sendObject()` in a CaptiveWebView.ViewController subclass.
     -   as `CaptiveWebView.sendObject(to:)` anywhere there is access to the
         WKWebView instance.
@@ -426,7 +427,8 @@ The CaptiveWebView.ViewController class instantiates a WKWebView
 programmatically, and constrains it to fill the application's user interface
 window. This means that it doesn't need a storyboard.
 
-A storyboard might have been created by default in a new application. It can be removed by proceeding as follows.
+A storyboard might have been created by default in a new application. It can be
+removed by proceeding as follows.
 
 1.  Change your AppDelegate to be a subclass of the
     CaptiveWebView.ApplicationDelegate class.
@@ -471,6 +473,23 @@ A storyboard might have been created by default in a new application. It can be 
 4.  Remove the Main.storyboard file from the project.
 
 This concludes removing the application storyboard.
+
+# Troubleshooting
+An error like this sometimes appears in the log.
+
+>   WebProcessProxy::didFinishLaunching: Invalid connection identifier (web
+>   process failed to launch)
+
+That could be due to a missing entitlement
+`com.apple.security.files.user-selected.read-only` Outgoing Network Connections.
+
+Another symptom of the same condition is that the web view doesn't load any
+content. Debugging may show that the custom scheme handler isn't invoked when
+web view content is loaded. The entitlement seems to be required for the web
+view to load any content, even local files from your app resources.
+
+To resolve the issue, add the required entitlement. TOTH
+[stackoverflow.com/a/72303749/7657675](https://stackoverflow.com/a/72303749/7657675).
 
 Legal
 =====

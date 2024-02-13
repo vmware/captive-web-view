@@ -1,4 +1,4 @@
-// Copyright 2019 VMware, Inc.  
+// Copyright 2023 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
@@ -13,7 +13,7 @@ class MainViewController: CaptiveWebView.DefaultViewController {
     override func response(
         to command: String,
         in commandDictionary: Dictionary<String, Any>
-        ) throws -> Dictionary<String, Any>
+        ) throws -> Dictionary<String, Any?>
     {
         // First time a command is received, send a dummy object to the
         // JavaScript layer, just for demonstration purposes.

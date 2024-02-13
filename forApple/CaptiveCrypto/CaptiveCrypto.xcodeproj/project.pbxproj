@@ -1,29 +1,60 @@
 // !$*UTF8*$!
+/* Copyright 2023 VMware, Inc.
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
 {
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		0404B58F256AAD750040A373 /* UserInterface in Resources */ = {isa = PBXBuildFile; fileRef = 0404B58E256AAD750040A373 /* UserInterface */; };
+		045E96B12AF269FB007465B0 /* StoredKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96B02AF269FB007465B0 /* StoredKey.swift */; };
+		045E96B32AF26B7C007465B0 /* GenericPasswordConvertible.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96B22AF26B7C007465B0 /* GenericPasswordConvertible.swift */; };
+		045E96B52AF26C57007465B0 /* Error.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96B42AF26C57007465B0 /* Error.swift */; };
+		045E96B72AF26DBC007465B0 /* Storage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96B62AF26DBC007465B0 /* Storage.swift */; };
+		045E96B92AF27091007465B0 /* KeyType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96B82AF27091007465B0 /* KeyType.swift */; };
+		045E96BB2AF27114007465B0 /* Deletion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96BA2AF27114007465B0 /* Deletion.swift */; };
+		045E96BD2AF271D6007465B0 /* Description.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96BC2AF271D6007465B0 /* Description.swift */; };
+		045E96BF2AF27287007465B0 /* AnyEncodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96BE2AF27287007465B0 /* AnyEncodable.swift */; };
+		045E96C12AF27408007465B0 /* Generation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96C02AF27408007465B0 /* Generation.swift */; };
+		045E96C32AF27450007465B0 /* GenerateKeyPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96C22AF27450007465B0 /* GenerateKeyPair.swift */; };
+		045E96C52AF27489007465B0 /* GenerateKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96C42AF27489007465B0 /* GenerateKey.swift */; };
+		045E96C72AF285B3007465B0 /* Encipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96C62AF285B3007465B0 /* Encipher.swift */; };
+		045E96C92AF28689007465B0 /* Decipher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96C82AF28689007465B0 /* Decipher.swift */; };
+		045E96CB2AF28729007465B0 /* Array+inserting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96CA2AF28729007465B0 /* Array+inserting.swift */; };
+		045E96CD2AF2898E007465B0 /* keysWithName.swift in Sources */ = {isa = PBXBuildFile; fileRef = 045E96CC2AF2898E007465B0 /* keysWithName.swift */; };
 		0463D0DD25066E3000827E0F /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0463D0DC25066E3000827E0F /* AppDelegate.swift */; };
 		0463D0E625066E3000827E0F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0463D0E525066E3000827E0F /* Assets.xcassets */; };
 		0463D0E925066E3000827E0F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0463D0E725066E3000827E0F /* LaunchScreen.storyboard */; };
 		048420E4255D395200DAB9B6 /* CaptiveWebView in Frameworks */ = {isa = PBXBuildFile; productRef = 048420E3255D395200DAB9B6 /* CaptiveWebView */; };
-		04AB73A7251CC7F100DEFB84 /* StoredKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04AB73A6251CC7F100DEFB84 /* StoredKey.swift */; };
 		04DB3A92250671210035C035 /* MainViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DB3A91250671210035C035 /* MainViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0404B58E256AAD750040A373 /* UserInterface */ = {isa = PBXFileReference; lastKnownFileType = folder; name = UserInterface; path = ../../../WebResources/CaptiveCrypto/UserInterface; sourceTree = "<group>"; };
+		045E96B02AF269FB007465B0 /* StoredKey.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StoredKey.swift; sourceTree = "<group>"; };
+		045E96B22AF26B7C007465B0 /* GenericPasswordConvertible.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenericPasswordConvertible.swift; sourceTree = "<group>"; };
+		045E96B42AF26C57007465B0 /* Error.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Error.swift; sourceTree = "<group>"; };
+		045E96B62AF26DBC007465B0 /* Storage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Storage.swift; sourceTree = "<group>"; };
+		045E96B82AF27091007465B0 /* KeyType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyType.swift; sourceTree = "<group>"; };
+		045E96BA2AF27114007465B0 /* Deletion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Deletion.swift; sourceTree = "<group>"; };
+		045E96BC2AF271D6007465B0 /* Description.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Description.swift; sourceTree = "<group>"; };
+		045E96BE2AF27287007465B0 /* AnyEncodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnyEncodable.swift; sourceTree = "<group>"; };
+		045E96C02AF27408007465B0 /* Generation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Generation.swift; sourceTree = "<group>"; };
+		045E96C22AF27450007465B0 /* GenerateKeyPair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateKeyPair.swift; sourceTree = "<group>"; };
+		045E96C42AF27489007465B0 /* GenerateKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GenerateKey.swift; sourceTree = "<group>"; };
+		045E96C62AF285B3007465B0 /* Encipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Encipher.swift; sourceTree = "<group>"; };
+		045E96C82AF28689007465B0 /* Decipher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Decipher.swift; sourceTree = "<group>"; };
+		045E96CA2AF28729007465B0 /* Array+inserting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+inserting.swift"; sourceTree = "<group>"; };
+		045E96CC2AF2898E007465B0 /* keysWithName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = keysWithName.swift; sourceTree = "<group>"; };
 		0463D0D925066E3000827E0F /* CaptiveCrypto.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CaptiveCrypto.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0463D0DC25066E3000827E0F /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		0463D0E525066E3000827E0F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		0463D0E825066E3000827E0F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		0463D0EA25066E3000827E0F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		04AB73A6251CC7F100DEFB84 /* StoredKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoredKey.swift; sourceTree = "<group>"; };
 		04DB3A91250671210035C035 /* MainViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainViewController.swift; sourceTree = "<group>"; };
 		04DB3A95250672DF0035C035 /* CaptiveCrypto.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.entitlements; path = CaptiveCrypto.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -47,6 +78,26 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		045E96AF2AF269FB007465B0 /* StoredKey */ = {
+			isa = PBXGroup;
+			children = (
+				045E96C82AF28689007465B0 /* Decipher.swift */,
+				045E96BA2AF27114007465B0 /* Deletion.swift */,
+				045E96BC2AF271D6007465B0 /* Description.swift */,
+				045E96C62AF285B3007465B0 /* Encipher.swift */,
+				045E96B42AF26C57007465B0 /* Error.swift */,
+				045E96C42AF27489007465B0 /* GenerateKey.swift */,
+				045E96C22AF27450007465B0 /* GenerateKeyPair.swift */,
+				045E96C02AF27408007465B0 /* Generation.swift */,
+				045E96B22AF26B7C007465B0 /* GenericPasswordConvertible.swift */,
+				045E96B82AF27091007465B0 /* KeyType.swift */,
+				045E96B62AF26DBC007465B0 /* Storage.swift */,
+				045E96B02AF269FB007465B0 /* StoredKey.swift */,
+				045E96CC2AF2898E007465B0 /* keysWithName.swift */,
+			);
+			path = StoredKey;
+			sourceTree = "<group>";
+		};
 		0463D0D025066E3000827E0F = {
 			isa = PBXGroup;
 			children = (
@@ -67,6 +118,7 @@
 		0463D0DB25066E3000827E0F /* CaptiveCrypto */ = {
 			isa = PBXGroup;
 			children = (
+				045E96AF2AF269FB007465B0 /* StoredKey */,
 				0404B58E256AAD750040A373 /* UserInterface */,
 				04DB3A95250672DF0035C035 /* CaptiveCrypto.entitlements */,
 				04DB3A91250671210035C035 /* MainViewController.swift */,
@@ -74,7 +126,8 @@
 				0463D0E525066E3000827E0F /* Assets.xcassets */,
 				0463D0E725066E3000827E0F /* LaunchScreen.storyboard */,
 				0463D0EA25066E3000827E0F /* Info.plist */,
-				04AB73A6251CC7F100DEFB84 /* StoredKey.swift */,
+				045E96BE2AF27287007465B0 /* AnyEncodable.swift */,
+				045E96CA2AF28729007465B0 /* Array+inserting.swift */,
 			);
 			path = CaptiveCrypto;
 			sourceTree = "<group>";
@@ -153,8 +206,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				045E96CD2AF2898E007465B0 /* keysWithName.swift in Sources */,
+				045E96B12AF269FB007465B0 /* StoredKey.swift in Sources */,
+				045E96B72AF26DBC007465B0 /* Storage.swift in Sources */,
+				045E96C52AF27489007465B0 /* GenerateKey.swift in Sources */,
+				045E96BD2AF271D6007465B0 /* Description.swift in Sources */,
+				045E96BB2AF27114007465B0 /* Deletion.swift in Sources */,
 				0463D0DD25066E3000827E0F /* AppDelegate.swift in Sources */,
-				04AB73A7251CC7F100DEFB84 /* StoredKey.swift in Sources */,
+				045E96B92AF27091007465B0 /* KeyType.swift in Sources */,
+				045E96BF2AF27287007465B0 /* AnyEncodable.swift in Sources */,
+				045E96C72AF285B3007465B0 /* Encipher.swift in Sources */,
+				045E96C12AF27408007465B0 /* Generation.swift in Sources */,
+				045E96CB2AF28729007465B0 /* Array+inserting.swift in Sources */,
+				045E96B32AF26B7C007465B0 /* GenericPasswordConvertible.swift in Sources */,
+				045E96C32AF27450007465B0 /* GenerateKeyPair.swift in Sources */,
+				045E96C92AF28689007465B0 /* Decipher.swift in Sources */,
+				045E96B52AF26C57007465B0 /* Error.swift in Sources */,
 				04DB3A92250671210035C035 /* MainViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

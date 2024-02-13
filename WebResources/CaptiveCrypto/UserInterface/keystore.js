@@ -1,4 +1,4 @@
-// Copyright 2020 VMware, Inc.  
+// Copyright 2023 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import PageBuilder from "./pagebuilder.js";
@@ -36,7 +36,7 @@ function sorting_replacer(omit, key, value) {
 // Cheeky constants that are strings but declared without strings being used.
 const KEY = {
     // Commands that can be sent to the native layer.
-    encrypt:null,
+    encipher:null,
     write:null,
     capabilities: null,
     deleteAll: null,
@@ -342,7 +342,7 @@ class KeyStore {
         });
 
         runButton.addEventListener('click', () => this._send({
-            command: KEY.encrypt, parameters: {
+            command: KEY.encipher, parameters: {
                 sentinel: sentinelInput.value,
                 alias: alias
             }

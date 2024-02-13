@@ -1,4 +1,4 @@
-// Copyright 2021 VMware, Inc.  
+// Copyright 2023 VMware, Inc.  
 // SPDX-License-Identifier: BSD-2-Clause
 
 import UIKit
@@ -10,7 +10,9 @@ import CaptiveWebView
 class ViewController: UIViewController, CaptiveWebViewCommandHandler {
     var token:String? = nil
     
-    func handleCommand(_ command: Dictionary<String, Any>) -> Dictionary<String, Any> {
+    func handleCommand(
+        _ command: Dictionary<String, Any>) -> Dictionary<String, Any?>
+    {
         guard let tokenAny:Any = command["token"] else {
             os_log("handleCommand(%@)", command)
             resultsLabel.text = String(describing: command)
